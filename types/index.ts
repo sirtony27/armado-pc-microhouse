@@ -41,11 +41,11 @@ export interface ModeloBase {
     placaMadre: string;
     ram: string;
     almacenamiento: string;
-    gpu: string;
-    fuente: string;
-    gabinete: string;
+    gpu?: string; // GPU es opcional en el modelo base
   };
 }
+
+export type PasoCotizador = 'modelo' | 'mejoras' | 'gabinete-fuente' | 'resumen';
 
 export interface Cotizacion {
   id: string;

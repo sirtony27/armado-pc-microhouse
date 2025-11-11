@@ -1,9 +1,11 @@
 import { create } from 'zustand';
-import { ModeloBase, Componente, TipoComponente } from '@/types';
+import { ModeloBase, Componente, TipoComponente, PasoCotizador } from '@/types';
 
 interface CotizadorState {
+  pasoActual: PasoCotizador;
   modeloSeleccionado: ModeloBase | null;
   componentesSeleccionados: Record<string, string>;
+  setPaso: (paso: PasoCotizador) => void;
   setModeloBase: (modelo: ModeloBase) => void;
   cambiarComponente: (tipo: TipoComponente, componenteId: string) => void;
   calcularTotal: (componentes: Componente[]) => number;
@@ -11,8 +13,13 @@ interface CotizadorState {
 }
 
 export const useCotizadorStore = create<CotizadorState>((set, get) => ({
+  pasoActual: 'modelo',
   modeloSeleccionado: null,
   componentesSeleccionados: {},
+
+  setPaso: (paso: PasoCotizador) => {
+    set({ pasoActual: paso });
+  },
 
   setModeloBase: (modelo: ModeloBase) => {
     set({
@@ -22,10 +29,9 @@ export const useCotizadorStore = create<CotizadorState>((set, get) => ({
         placaMadre: modelo.componentes.placaMadre,
         ram: modelo.componentes.ram,
         almacenamiento: modelo.componentes.almacenamiento,
-        gpu: modelo.componentes.gpu,
-        fuente: modelo.componentes.fuente,
-        gabinete: modelo.componentes.gabinete,
+        ...(modelo.componentes.gpu && { gpu: modelo.componentes.gpu }),
       },
+      pasoActual: 'mejoras', // Automáticamente pasar al siguiente paso
     });
   },
 
@@ -60,6 +66,7 @@ export const useCotizadorStore = create<CotizadorState>((set, get) => ({
 
   resetear: () => {
     set({
+      pasoActual: 'modelo',
       modeloSeleccionado: null,
       componentesSeleccionados: {},
     });
