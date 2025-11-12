@@ -18,6 +18,15 @@
   }
 }
 
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3), 0 20px 60px -10px rgba(59, 130, 246, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.5), 0 25px 70px -10px rgba(99, 102, 241, 0.6);
+  }
+}
+
 @keyframes glow {
   0%, 100% {
     box-shadow: 0 0 5px rgba(59, 130, 246, 0.5);
@@ -61,6 +70,10 @@
 /* Clases de utilidad */
 .animate-float {
   animation: float 3s ease-in-out infinite;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 3s ease-in-out infinite;
 }
 
 .animate-shimmer {
@@ -149,12 +162,25 @@
 /* Perspective para efecto 3D del carrusel */
 .perspective-\[2000px\] {
   perspective: 2000px;
+  perspective-origin: center;
 }
 
 /* Preservar transformación 3D en hijos */
 [style*="rotateY"] {
   transform-style: preserve-3d;
   backface-visibility: hidden;
+}
+
+/* Animación suave para cards del carrusel */
+@keyframes smooth-slide {
+  0% {
+    transform: scale(0.9);
+    opacity: 0.5;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 /* Optimización para animaciones suaves */

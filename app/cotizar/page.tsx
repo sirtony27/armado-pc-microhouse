@@ -7,12 +7,14 @@ import { componentes } from '@/data/componentes';
 import { formatPrecio } from '@/lib/utils';
 import { ChevronLeft, ChevronRight, Check, Cpu, HardDrive, MemoryStick, MonitorUp, ChevronDown, Sparkles, ArrowRight, ArrowLeft, Box, Zap } from 'lucide-react';
 import Stepper from '@/components/cotizador/Stepper';
-import GabineteFuenteSelector from '@/components/cotizador/GabineteFuenteSelector';
+import GabineteSelector from '@/components/cotizador/GabineteSelector';
+import FuenteSelector from '@/components/cotizador/FuenteSelector';
 import './animations.css';
 
 export default function CotizarPage() {
   const { pasoActual, setPaso, modeloSeleccionado, componentesSeleccionados, setModeloBase, cambiarComponente } = useCotizadorStore();
   const [currentModelIndex, setCurrentModelIndex] = useState(0);
+  const [isTransitioning, setIsTransitioning] = useState(false);
   const [mejorasExpanded, setMejorasExpanded] = useState(pasoActual === 'mejoras');
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
@@ -25,22 +27,27 @@ export default function CotizarPage() {
   const puedeAvanzar = useMemo(() => {
     if (pasoActual === 'modelo') return !!modeloSeleccionado;
     if (pasoActual === 'mejoras') return !!modeloSeleccionado;
-    if (pasoActual === 'gabinete-fuente') {
-      return !!(componentesSeleccionados?.gabinete && componentesSeleccionados?.fuente);
+    if (pasoActual === 'gabinete') {
+      return !!componentesSeleccionados?.gabinete;
+    }
+    if (pasoActual === 'fuente') {
+      return !!componentesSeleccionados?.fuente;
     }
     return true;
   }, [pasoActual, modeloSeleccionado, componentesSeleccionados]);
 
   const handleSiguiente = () => {
     if (pasoActual === 'modelo' && puedeAvanzar) setPaso('mejoras');
-    else if (pasoActual === 'mejoras' && puedeAvanzar) setPaso('gabinete-fuente');
-    else if (pasoActual === 'gabinete-fuente' && puedeAvanzar) setPaso('resumen');
+    else if (pasoActual === 'mejoras' && puedeAvanzar) setPaso('gabinete');
+    else if (pasoActual === 'gabinete' && puedeAvanzar) setPaso('fuente');
+    else if (pasoActual === 'fuente' && puedeAvanzar) setPaso('resumen');
   };
 
   const handleAnterior = () => {
     if (pasoActual === 'mejoras') setPaso('modelo');
-    else if (pasoActual === 'gabinete-fuente') setPaso('mejoras');
-    else if (pasoActual === 'resumen') setPaso('gabinete-fuente');
+    else if (pasoActual === 'gabinete') setPaso('mejoras');
+    else if (pasoActual === 'fuente') setPaso('gabinete');
+    else if (pasoActual === 'resumen') setPaso('fuente');
   };
 
   // Expandir mejoras automáticamente en el paso de mejoras
@@ -99,13 +106,19 @@ export default function CotizarPage() {
 
   // Navegación del carrusel (solo cambia el índice, NO selecciona)
   const nextModel = () => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
     const nextIndex = (currentModelIndex + 1) % modelosBase.length;
     setCurrentModelIndex(nextIndex);
+    setTimeout(() => setIsTransitioning(false), 800);
   };
 
   const prevModel = () => {
+    if (isTransitioning) return;
+    setIsTransitioning(true);
     const prevIndex = (currentModelIndex - 1 + modelosBase.length) % modelosBase.length;
     setCurrentModelIndex(prevIndex);
+    setTimeout(() => setIsTransitioning(false), 800);
   };
 
   const subtotal = precioTotal;
@@ -144,12 +157,13 @@ export default function CotizarPage() {
       {/* Panel Lateral Izquierdo - Resumen */}
       <div className="w-80 bg-white/95 backdrop-blur-sm shadow-xl border-r border-slate-200/50 flex flex-col">
         {/* Header */}
-        <div className="px-5 py-4 bg-gradient-to-r from-blue-600 to-indigo-600">
-          <h2 className="text-base font-bold text-white">MicroHouse</h2>
-          <p className="text-[10px] text-blue-100 mt-0.5">
+        <div className="px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600">
+          <h2 className="text-sm font-bold text-white">MicroHouse</h2>
+          <p className="text-[9px] text-blue-100 mt-0.5">
             {pasoActual === 'modelo' && 'Paso 1: Elegí tu modelo base'}
             {pasoActual === 'mejoras' && 'Paso 2: Personalizá tu PC'}
-            {pasoActual === 'gabinete-fuente' && 'Paso 3: Gabinete y Fuente'}
+            {pasoActual === 'gabinete' && 'Paso 3: Elegí tu Gabinete'}
+            {pasoActual === 'fuente' && 'Paso 4: Elegí tu Fuente'}
             {pasoActual === 'resumen' && 'Resumen Final'}
           </p>
         </div>
@@ -232,17 +246,18 @@ export default function CotizarPage() {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Paso 1: Carrusel de Modelos */}
         {pasoActual === 'modelo' && (
-        <div className="flex-1 flex flex-col items-center justify-center px-6 py-8">
-          <div className="text-center mb-8">
+        <div className="flex-1 flex flex-col items-center justify-center px-6 py-6 overflow-hidden">
+          <div className="text-center mb-6 animate-in fade-in slide-in-from-top duration-700">
             <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
               Elegí tu PC Ideal
             </h1>
-            <p className="text-slate-600 text-sm">Navegá entre los modelos base</p>
+            <p className="text-slate-600 text-xs">Navegá entre los modelos base y encontrá el perfecto para vos</p>
           </div>
 
           {/* Carrusel Coverflow */}
           <div 
-            className="relative w-full max-w-6xl h-[550px] flex items-center justify-center perspective-[2000px]"
+            className="relative w-full max-w-7xl h-[480px] flex items-center justify-center mb-4"
+            style={{ perspective: '2500px', perspectiveOrigin: 'center' }}
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
             onTouchEnd={onTouchEnd}
@@ -250,105 +265,119 @@ export default function CotizarPage() {
             {/* Botones de navegación */}
             <button
               onClick={prevModel}
-              className="absolute left-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg hover:shadow-2xl transition-all hover:scale-125 active:scale-95 hover:-translate-x-1 border border-slate-200/50 duration-300"
+              disabled={isTransitioning}
+              className="absolute left-8 top-1/2 -translate-y-1/2 z-30 bg-white/95 backdrop-blur-md rounded-full p-3 shadow-xl hover:shadow-2xl transition-all duration-300 ease-out hover:scale-110 active:scale-95 hover:-translate-x-1 border-2 border-blue-100 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 group"
             >
-              <ChevronLeft className="h-6 w-6 text-slate-700" />
+              <ChevronLeft className="h-5 w-5 text-blue-600 transition-transform duration-200 group-hover:-translate-x-0.5" />
             </button>
 
             <button
               onClick={nextModel}
-              className="absolute right-4 top-1/2 -translate-y-1/2 z-20 bg-white/90 backdrop-blur-sm rounded-full p-3 shadow-lg hover:shadow-2xl transition-all hover:scale-125 active:scale-95 hover:translate-x-1 border border-slate-200/50 duration-300"
+              disabled={isTransitioning}
+              className="absolute right-8 top-1/2 -translate-y-1/2 z-30 bg-white/95 backdrop-blur-md rounded-full p-3 shadow-xl hover:shadow-2xl transition-all duration-300 ease-out hover:scale-110 active:scale-95 hover:translate-x-1 border-2 border-blue-100 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 group"
             >
-              <ChevronRight className="h-6 w-6 text-slate-700" />
+              <ChevronRight className="h-5 w-5 text-blue-600 transition-transform duration-200 group-hover:translate-x-0.5" />
             </button>
 
             {/* Container de Cards */}
             <div className="relative w-full h-full flex items-center justify-center">
-              {[-1, 0, 1].map((offset) => {
-                const index = (currentModelIndex + offset + modelosBase.length) % modelosBase.length;
-                const modelo = modelosBase[index];
+              {modelosBase.map((modelo, index) => {
+                const position = index - currentModelIndex;
+                const isVisible = Math.abs(position) <= 2;
+                
+                if (!isVisible) return null;
                 
                 return (
                   <div
-                    key={`${index}-${offset}`}
-                    className={`absolute transition-all duration-700 ease-out cursor-pointer ${
-                      offset === 0 ? 'z-10' : 'z-0'
+                    key={modelo.id}
+                    className={`absolute ${
+                      position === 0 ? 'z-20' : 'z-0'
                     }`}
                     style={{
                       transform: `
-                        translateX(${offset * 380}px)
-                        scale(${offset === 0 ? 1 : 0.75})
-                        rotateY(${offset * -15}deg)
+                        translateX(${position * 360}px)
+                        scale(${position === 0 ? 1 : 0.75})
+                        rotateY(${position * -18}deg)
                       `,
-                      opacity: offset === 0 ? 1 : 0.4,
-                      pointerEvents: offset === 0 ? 'auto' : 'none',
+                      opacity: position === 0 ? 1 : Math.max(0, 0.6 - Math.abs(position) * 0.2),
+                      pointerEvents: position === 0 ? 'auto' : 'none',
+                      transition: 'all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                      filter: position !== 0 ? `blur(${Math.abs(position) * 2}px)` : 'blur(0px)',
+                      transformStyle: 'preserve-3d',
                     }}
-                    onClick={() => offset === 0 && handleSeleccionarModelo(modelo)}
+                    onClick={() => position === 0 && handleSeleccionarModelo(modelo)}
                   >
                     {/* Card del Modelo */}
                     <div 
-                      className={`bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl p-8 text-center border border-slate-200/50 w-[420px] ${
-                        offset === 0 ? 'animate-glow' : ''
+                      className={`bg-white rounded-2xl p-6 text-center w-[360px] relative overflow-visible ${
+                        position === 0 ? 'shadow-[0_0_0_3px_rgba(59,130,246,0.3),0_20px_60px_-10px_rgba(59,130,246,0.4)] animate-glow-pulse' : 'shadow-2xl'
                       }`}
+                      style={{
+                        cursor: position === 0 ? 'pointer' : 'default',
+                      }}
                     >
-                      <div className="mb-4">
-                        <div className={`w-20 h-20 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-500 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg transition-all ${
-                          offset === 0 ? 'animate-float' : ''
+                      <div className="mb-3">
+                        <div className={`w-16 h-16 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 rounded-2xl mx-auto mb-3 flex items-center justify-center shadow-lg transition-all duration-700 ${
+                          position === 0 ? 'animate-float scale-100' : 'scale-90 opacity-80'
                         }`}>
-                          <span className="text-4xl">🖥️</span>
+                          <span className="text-3xl">🖥️</span>
                         </div>
                       </div>
 
-                      <h2 className="text-2xl font-bold text-slate-900 mb-2">
+                      <h2 className="text-lg font-bold text-slate-900 mb-2">
                         {modelo.nombre}
                       </h2>
-                      <p className="text-slate-600 mb-4 text-sm leading-relaxed">
+                      <p className="text-slate-600 mb-4 text-xs leading-relaxed px-2">
                         {modelo.descripcion}
                       </p>
 
                       {/* Resumen de componentes */}
-                      <div className="mb-4 p-3 bg-slate-50 rounded-lg border border-slate-200">
-                        <h3 className="text-xs font-bold text-slate-700 mb-2 uppercase tracking-wide">Incluye:</h3>
+                      <div className="mb-4 p-3 bg-gradient-to-br from-slate-50 to-blue-50/50 rounded-xl border border-slate-200/70 shadow-sm">
+                        <h3 className="text-[9px] font-bold text-slate-700 mb-2 uppercase tracking-wide flex items-center justify-center gap-2">
+                          <span className="w-1 h-1 rounded-full bg-blue-500"></span>
+                          Incluye
+                          <span className="w-1 h-1 rounded-full bg-blue-500"></span>
+                        </h3>
                         <div className="grid grid-cols-2 gap-2 text-left">
                           {modelo.componentes.procesador && (
-                            <div className="flex items-start gap-1.5">
+                            <div className="flex items-start gap-1">
                               <Cpu className="h-3 w-3 text-blue-600 mt-0.5 flex-shrink-0" />
                               <div>
-                                <p className="text-[8px] text-slate-500 uppercase">Procesador</p>
-                                <p className="text-[9px] font-semibold text-slate-800 leading-tight">
+                                <p className="text-[7px] text-slate-500 uppercase">Procesador</p>
+                                <p className="text-[8px] font-semibold text-slate-800 leading-tight">
                                   {componentes.find(c => c.id === modelo.componentes.procesador)?.modelo || 'Incluido'}
                                 </p>
                               </div>
                             </div>
                           )}
                           {modelo.componentes.ram && (
-                            <div className="flex items-start gap-1.5">
+                            <div className="flex items-start gap-1">
                               <MemoryStick className="h-3 w-3 text-purple-600 mt-0.5 flex-shrink-0" />
                               <div>
-                                <p className="text-[8px] text-slate-500 uppercase">RAM</p>
-                                <p className="text-[9px] font-semibold text-slate-800">
+                                <p className="text-[7px] text-slate-500 uppercase">RAM</p>
+                                <p className="text-[8px] font-semibold text-slate-800">
                                   {componentes.find(c => c.id === modelo.componentes.ram)?.especificaciones.capacidad || 'Incluido'}
                                 </p>
                               </div>
                             </div>
                           )}
                           {modelo.componentes.almacenamiento && (
-                            <div className="flex items-start gap-1.5">
+                            <div className="flex items-start gap-1">
                               <HardDrive className="h-3 w-3 text-emerald-600 mt-0.5 flex-shrink-0" />
                               <div>
-                                <p className="text-[8px] text-slate-500 uppercase">Storage</p>
-                                <p className="text-[9px] font-semibold text-slate-800">
+                                <p className="text-[7px] text-slate-500 uppercase">Storage</p>
+                                <p className="text-[8px] font-semibold text-slate-800">
                                   {componentes.find(c => c.id === modelo.componentes.almacenamiento)?.especificaciones.capacidad || 'Incluido'}
                                 </p>
                               </div>
                             </div>
                           )}
                           {modelo.componentes.gpu && (
-                            <div className="flex items-start gap-1.5">
+                            <div className="flex items-start gap-1">
                               <MonitorUp className="h-3 w-3 text-orange-600 mt-0.5 flex-shrink-0" />
                               <div>
-                                <p className="text-[8px] text-slate-500 uppercase">GPU</p>
-                                <p className="text-[9px] font-semibold text-slate-800 leading-tight">
+                                <p className="text-[7px] text-slate-500 uppercase">GPU</p>
+                                <p className="text-[8px] font-semibold text-slate-800 leading-tight">
                                   {componentes.find(c => c.id === modelo.componentes.gpu)?.modelo || 'Incluida'}
                                 </p>
                               </div>
@@ -357,31 +386,35 @@ export default function CotizarPage() {
                         </div>
                       </div>
 
-                      <div className="flex flex-wrap gap-1 justify-center mb-3">
+                      <div className="flex flex-wrap gap-1.5 justify-center mb-4">
                         {modelo.usoRecomendado.map((uso) => (
                           <span
                             key={uso}
-                            className="px-2 py-0.5 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 rounded-full text-[9px] font-medium border border-blue-200/50"
+                            className="px-2 py-1 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 rounded-full text-[9px] font-semibold border border-blue-200/70 shadow-sm hover:shadow-md hover:scale-105 transition-all duration-200"
                           >
                             {uso}
                           </span>
                         ))}
                       </div>
 
-                      <div className="mb-4 px-3 py-2 bg-gradient-to-br from-slate-50 to-blue-50 rounded-lg border border-slate-200/50">
-                        <p className="text-[9px] text-slate-500 uppercase font-medium tracking-wide mb-0.5">Precio base</p>
-                        <p className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                      <div className="mb-4 px-3 py-2 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-xl border-2 border-blue-200/50 shadow-sm">
+                        <p className="text-[9px] text-slate-500 uppercase font-semibold tracking-wider mb-0.5">Precio base desde</p>
+                        <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
                           {formatPrecio(modelo.precioBase)}
                         </p>
-                        <p className="text-[8px] text-slate-400 mt-0.5">Sin gabinete ni fuente</p>
+                        <p className="text-[8px] text-slate-500 mt-0.5">Sin gabinete ni fuente</p>
                       </div>
 
-                      {offset === 0 && (
+                      {position === 0 && (
                         <button
                           onClick={() => handleSeleccionarModelo(modelo)}
-                          className="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all text-sm font-semibold shadow-md hover:shadow-xl hover:scale-105 active:scale-95 transform duration-200 ripple"
+                          className="w-full px-5 py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 transition-all text-xs font-bold shadow-lg hover:shadow-2xl hover:scale-[1.02] active:scale-95 transform duration-200 relative overflow-hidden group"
                         >
-                          Seleccionar este Modelo
+                          <span className="relative z-10 flex items-center justify-center gap-2">
+                            Seleccionar este Modelo
+                            <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform duration-200" />
+                          </span>
+                          <div className="absolute inset-0 bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         </button>
                       )}
                     </div>
@@ -392,16 +425,24 @@ export default function CotizarPage() {
           </div>
 
           {/* Indicadores */}
-          <div className="flex gap-2 mt-6">
+          <div className="flex gap-2 animate-in fade-in slide-in-from-bottom duration-700 delay-300">
             {modelosBase.map((_, index) => (
               <button
                 key={index}
-                onClick={() => setCurrentModelIndex(index)}
-                className={`h-2 rounded-full transition-all duration-500 ${
+                onClick={() => {
+                  if (!isTransitioning) {
+                    setIsTransitioning(true);
+                    setCurrentModelIndex(index);
+                    setTimeout(() => setIsTransitioning(false), 800);
+                  }
+                }}
+                disabled={isTransitioning}
+                className={`h-2 rounded-full transition-all duration-500 ease-out ${
                   index === currentModelIndex
-                    ? 'w-8 bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg'
-                    : 'w-2 bg-slate-300 hover:bg-slate-400 hover:scale-150'
+                    ? 'w-10 bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg shadow-blue-500/50 scale-110'
+                    : 'w-2 bg-slate-300 hover:bg-slate-400 hover:scale-150 hover:shadow-md'
                 }`}
+                aria-label={`Ver modelo ${index + 1}`}
               />
             ))}
           </div>
@@ -613,60 +654,260 @@ export default function CotizarPage() {
         </div>
         )}
 
-        {/* Paso 3: Gabinete y Fuente */}
-        {pasoActual === 'gabinete-fuente' && <GabineteFuenteSelector />}
+        {/* Paso 3: Gabinete */}
+        {pasoActual === 'gabinete' && <GabineteSelector />}
 
-        {/* Paso 4: Resumen */}
+        {/* Paso 4: Fuente */}
+        {pasoActual === 'fuente' && <FuenteSelector />}
+
+        {/* Paso 5: Resumen */}
         {pasoActual === 'resumen' && (
-          <div className="flex-1 overflow-y-auto px-6 py-8">
-            <div className="max-w-4xl mx-auto">
-              <h1 className="text-2xl font-bold text-slate-900 mb-6">Resumen de tu Configuración</h1>
-              
-              <div className="bg-white rounded-xl shadow-lg p-6">
-                <h2 className="text-lg font-bold text-slate-800 mb-4">
-                  {modeloSeleccionado?.nombre}
-                </h2>
-                
-                <div className="space-y-3">
-                  {componentesDetalle.map(({ tipo, componente }) => (
-                    <div key={tipo} className="flex justify-between items-center py-2 border-b border-slate-100">
-                      <div className="flex items-center gap-2">
-                        {getComponentIcon(tipo)}
-                        <div>
-                          <p className="text-xs text-slate-500 uppercase">
-                            {tipo === 'procesador' && 'Procesador'}
-                            {tipo === 'placamadre' && 'Placa Madre'}
-                            {tipo === 'ram' && 'Memoria RAM'}
-                            {tipo === 'almacenamiento' && 'Almacenamiento'}
-                            {tipo === 'gpu' && 'GPU'}
-                            {tipo === 'fuente' && 'Fuente'}
-                            {tipo === 'gabinete' && 'Gabinete'}
+          <div className="flex-1 overflow-y-auto px-6 py-6 bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
+            <div className="max-w-6xl mx-auto">
+              {/* Header */}
+              <div className="text-center mb-6 animate-in fade-in slide-in-from-top duration-700">
+                <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full mb-3 shadow-lg">
+                  <Check className="h-8 w-8 text-white" />
+                </div>
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+                  ¡Configuración Lista!
+                </h1>
+                <p className="text-slate-600 text-sm">Tu PC personalizada está lista para ser armada</p>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Columna Izquierda - Configuración */}
+                <div className="lg:col-span-2 space-y-4">
+                  {/* Modelo Base */}
+                  <div className="bg-white rounded-xl shadow-lg p-6 animate-in fade-in slide-in-from-left duration-500">
+                    <div className="flex items-center gap-3 mb-4">
+                      <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                        <span className="text-2xl">🖥️</span>
+                      </div>
+                      <div>
+                        <h2 className="text-xl font-bold text-slate-900">{modeloSeleccionado?.nombre}</h2>
+                        <p className="text-xs text-slate-500">Modelo base seleccionado</p>
+                      </div>
+                    </div>
+                    <p className="text-sm text-slate-600 leading-relaxed">{modeloSeleccionado?.descripcion}</p>
+                  </div>
+
+                  {/* Componentes */}
+                  <div className="bg-white rounded-xl shadow-lg p-6 animate-in fade-in slide-in-from-left duration-500 delay-100">
+                    <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
+                      <Cpu className="h-5 w-5 text-blue-600" />
+                      Componentes de tu PC
+                    </h3>
+                    
+                    <div className="space-y-3">
+                      {componentesDetalle.map(({ tipo, componente }, index) => (
+                        <div 
+                          key={tipo} 
+                          className="group flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-all duration-300 border border-slate-100 hover:border-blue-200 hover:shadow-sm"
+                          style={{ animationDelay: `${index * 50}ms` }}
+                        >
+                          <div className="flex items-center gap-3 flex-1">
+                            <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                              {getComponentIcon(tipo)}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <p className="text-[10px] text-slate-500 uppercase font-semibold tracking-wide">
+                                {tipo === 'procesador' && 'Procesador'}
+                                {tipo === 'placaMadre' && 'Placa Madre'}
+                                {tipo === 'ram' && 'Memoria RAM'}
+                                {tipo === 'almacenamiento' && 'Almacenamiento'}
+                                {tipo === 'gpu' && 'Tarjeta Gráfica'}
+                                {tipo === 'fuente' && 'Fuente de Poder'}
+                                {tipo === 'gabinete' && 'Gabinete'}
+                              </p>
+                              <p className="font-semibold text-slate-900 text-sm truncate">
+                                {componente?.marca} {componente?.modelo}
+                              </p>
+                              {componente?.especificaciones && (
+                                <p className="text-xs text-slate-500 truncate">
+                                  {tipo === 'ram' && componente.especificaciones.capacidad}
+                                  {tipo === 'almacenamiento' && `${componente.especificaciones.capacidad} ${componente.especificaciones.tipo}`}
+                                  {tipo === 'gpu' && componente.especificaciones.vram}
+                                  {tipo === 'fuente' && `${componente.especificaciones.potencia} ${componente.especificaciones.certificacion}`}
+                                  {tipo === 'gabinete' && componente.especificaciones.formato}
+                                </p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="text-right">
+                            <p className="font-bold text-blue-600 text-sm">
+                              {formatPrecio(componente?.precio || 0)}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Info Adicional */}
+                  <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-left duration-500 delay-200">
+                    <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Check className="h-5 w-5 text-green-600" />
+                        <h4 className="font-bold text-green-900 text-sm">Garantía Incluida</h4>
+                      </div>
+                      <p className="text-xs text-green-700">12 meses de garantía en todos los componentes</p>
+                    </div>
+                    <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Box className="h-5 w-5 text-blue-600" />
+                        <h4 className="font-bold text-blue-900 text-sm">Armado Profesional</h4>
+                      </div>
+                      <p className="text-xs text-blue-700">Probado y optimizado antes de entrega</p>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Columna Derecha - Resumen y Acciones */}
+                <div className="space-y-4">
+                  {/* Resumen de Precios */}
+                  <div className="bg-white rounded-xl shadow-lg p-6 sticky top-4 animate-in fade-in slide-in-from-right duration-500">
+                    <h3 className="text-lg font-bold text-slate-900 mb-4">Resumen de Compra</h3>
+                    
+                    <div className="space-y-3 mb-4">
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-600">Subtotal</span>
+                        <span className="font-semibold text-slate-900">{formatPrecio(subtotal)}</span>
+                      </div>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-slate-600">IVA (21%)</span>
+                        <span className="font-semibold text-slate-900">{formatPrecio(iva)}</span>
+                      </div>
+                      <div className="pt-3 border-t-2 border-slate-200">
+                        <div className="flex justify-between items-center">
+                          <span className="text-lg font-bold text-slate-900">Total</span>
+                          <div className="text-right">
+                            <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                              {formatPrecio(total)}
+                            </p>
+                            <p className="text-xs text-slate-500">Precio final</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Opciones de financiación */}
+                    <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-4 mb-4 border border-purple-200">
+                      <p className="text-xs font-bold text-purple-900 mb-3 flex items-center gap-2">
+                        💳 Opciones de Financiación
+                      </p>
+                      
+                      <div className="space-y-2">
+                        {/* 3 cuotas sin interés */}
+                        <div className="bg-white/70 rounded-lg p-2.5 border border-purple-200/50">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-purple-700 font-semibold">3 cuotas</span>
+                            <span className="inline-flex items-center px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[9px] font-bold">
+                              SIN INTERÉS
+                            </span>
+                          </div>
+                          <p className="text-base font-bold text-purple-900 mt-1">
+                            {formatPrecio(Math.ceil(total / 3))} <span className="text-xs font-normal">/mes</span>
                           </p>
-                          <p className="font-medium text-slate-900">
-                            {componente?.marca} {componente?.modelo}
+                        </div>
+
+                        {/* 6 cuotas con interés */}
+                        <div className="bg-white/50 rounded-lg p-2.5 border border-purple-100">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-purple-700">6 cuotas</span>
+                            <span className="text-[9px] text-purple-600">Total: {formatPrecio(Math.ceil(total * 1.26))}</span>
+                          </div>
+                          <p className="text-sm font-bold text-purple-800 mt-1">
+                            {formatPrecio(Math.ceil((total * 1.26) / 6))} <span className="text-xs font-normal">/mes</span>
+                          </p>
+                        </div>
+
+                        {/* 9 cuotas con interés */}
+                        <div className="bg-white/50 rounded-lg p-2.5 border border-purple-100">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-purple-700">9 cuotas</span>
+                            <span className="text-[9px] text-purple-600">Total: {formatPrecio(Math.ceil(total * 1.38))}</span>
+                          </div>
+                          <p className="text-sm font-bold text-purple-800 mt-1">
+                            {formatPrecio(Math.ceil((total * 1.38) / 9))} <span className="text-xs font-normal">/mes</span>
+                          </p>
+                        </div>
+
+                        {/* 12 cuotas con interés */}
+                        <div className="bg-white/50 rounded-lg p-2.5 border border-purple-100">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-purple-700">12 cuotas</span>
+                            <span className="text-[9px] text-purple-600">Total: {formatPrecio(Math.ceil(total * 1.51))}</span>
+                          </div>
+                          <p className="text-sm font-bold text-purple-800 mt-1">
+                            {formatPrecio(Math.ceil((total * 1.51) / 12))} <span className="text-xs font-normal">/mes</span>
                           </p>
                         </div>
                       </div>
-                      <p className="font-semibold text-blue-600">
-                        {formatPrecio(componente?.precio || 0)}
+
+                      <p className="text-[9px] text-purple-600 mt-2 text-center">
+                        * Sujeto a aprobación crediticia
                       </p>
                     </div>
-                  ))}
-                </div>
-                
-                <div className="mt-6 pt-6 border-t-2 border-slate-200">
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-600">Subtotal</span>
-                      <span className="font-semibold">{formatPrecio(subtotal)}</span>
+
+                    {/* Botones de Acción */}
+                    <div className="space-y-2">
+                      <button
+                        onClick={handleCompartirWhatsApp}
+                        className="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all text-sm font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transform duration-200 flex items-center justify-center gap-2"
+                      >
+                        <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/>
+                        </svg>
+                        Consultar por WhatsApp
+                      </button>
+
+                      <button
+                        onClick={handleDescargarPDF}
+                        className="w-full px-4 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-lg hover:from-red-600 hover:to-pink-700 transition-all text-sm font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transform duration-200 flex items-center justify-center gap-2"
+                      >
+                        <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg>
+                        Descargar Cotización PDF
+                      </button>
+
+                      <button
+                        className="w-full px-4 py-2.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200 transition-all text-sm font-semibold flex items-center justify-center gap-2"
+                      >
+                        <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                        </svg>
+                        Compartir
+                      </button>
                     </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-slate-600">IVA (21%)</span>
-                      <span className="font-semibold">{formatPrecio(iva)}</span>
-                    </div>
-                    <div className="flex justify-between text-xl font-bold pt-2">
-                      <span>TOTAL</span>
-                      <span className="text-blue-600">{formatPrecio(total)}</span>
+
+                    {/* Nota legal */}
+                    <p className="text-[10px] text-slate-500 mt-4 text-center">
+                      Los precios están sujetos a disponibilidad de stock y pueden variar sin previo aviso.
+                    </p>
+                  </div>
+
+                  {/* Banner de soporte */}
+                  <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl p-6 text-white animate-in fade-in slide-in-from-right duration-500 delay-100">
+                    <h4 className="font-bold text-lg mb-2">¿Necesitás ayuda?</h4>
+                    <p className="text-sm text-blue-100 mb-4">
+                      Nuestro equipo está disponible para asesorarte
+                    </p>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center gap-2">
+                        <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z"/>
+                        </svg>
+                        <span>Lun a Vie 9:00 - 18:00</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
+                          <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z"/>
+                          <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z"/>
+                        </svg>
+                        <span>info@microhouse.com</span>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -702,7 +943,7 @@ export default function CotizarPage() {
                   : 'bg-slate-200 text-slate-400 cursor-not-allowed'
               }`}
             >
-              {pasoActual === 'gabinete-fuente' ? 'Ver Resumen' : 'Continuar'}
+              {pasoActual === 'fuente' ? 'Ver Resumen' : 'Continuar'}
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>

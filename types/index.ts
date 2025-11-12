@@ -45,7 +45,7 @@ export interface ModeloBase {
   };
 }
 
-export type PasoCotizador = 'modelo' | 'mejoras' | 'gabinete-fuente' | 'resumen';
+export type PasoCotizador = 'modelo' | 'mejoras' | 'gabinete' | 'fuente' | 'resumen';
 
 export interface Cotizacion {
   id: string;
