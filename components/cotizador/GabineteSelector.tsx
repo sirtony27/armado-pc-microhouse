@@ -5,6 +5,7 @@ import { formatPrecio } from '@/lib/utils';
 import { Check, Box, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { useCotizadorStore } from '@/store/cotizadorStore';
 import { useState } from 'react';
+import { useRemotePrices } from '@/lib/pricing';
 
 export default function GabineteSelector() {
   const { componentesSeleccionados, cambiarComponente } = useCotizadorStore();
@@ -13,6 +14,7 @@ export default function GabineteSelector() {
   const [isTransitioning, setIsTransitioning] = useState(false);
 
   const gabinetes = componentes.filter((c) => c.tipo === 'GABINETE');
+  const remotePrices = useRemotePrices(componentes);
 
   const nextGabinete = () => {
     if (isTransitioning) return;
@@ -122,7 +124,7 @@ export default function GabineteSelector() {
 
                   <div className="mb-4 px-3 py-2 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200/50 shadow-sm">
                     <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                      {formatPrecio(gabinete.precio)}
+                      {formatPrecio(remotePrices[gabinete.id] ?? gabinete.precio)}
                     </p>
                   </div>
 

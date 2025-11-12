@@ -2,9 +2,10 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { useCotizadorStore } from '@/store/cotizadorStore';
-import { modelosBase } from '@/data/modelos';
-import { componentes } from '@/data/componentes';
+import { useModelosBase } from '@/lib/models';
+import { useComponentes } from '@/lib/componentes';
 import { formatPrecio } from '@/lib/utils';
+import { useRemotePrices } from '@/lib/pricing';
 import { ChevronLeft, ChevronRight, Check, Cpu, HardDrive, MemoryStick, MonitorUp, ChevronDown, Sparkles, ArrowRight, ArrowLeft, Box, Zap } from 'lucide-react';
 import Stepper from '@/components/cotizador/Stepper';
 import GabineteSelector from '@/components/cotizador/GabineteSelector';
@@ -13,9 +14,12 @@ import './animations.css';
 
 export default function CotizarPage() {
   const { pasoActual, setPaso, modeloSeleccionado, componentesSeleccionados, setModeloBase, cambiarComponente } = useCotizadorStore();
+  const modelosBase = useModelosBase();
+  const componentes = useComponentes();
   const [currentModelIndex, setCurrentModelIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [mejorasExpanded, setMejorasExpanded] = useState(pasoActual === 'mejoras');
+  const remotePrices = useRemotePrices(componentes);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
@@ -89,7 +93,7 @@ export default function CotizarPage() {
     const ids = Object.values(componentesSeleccionados);
     return componentes
       .filter((comp) => ids.includes(comp.id))
-      .reduce((sum, comp) => sum + comp.precio, 0);
+      .reduce((sum, comp) => sum + (remotePrices[comp.id] ?? comp.precio), 0);
   }, [componentesSeleccionados]);
 
   // Obtener componentes seleccionados con detalles
@@ -121,9 +125,7 @@ export default function CotizarPage() {
     setTimeout(() => setIsTransitioning(false), 800);
   };
 
-  const subtotal = precioTotal;
-  const iva = subtotal * 0.21;
-  const total = subtotal + iva;
+  const total = precioTotal;
 
   const handleDescargarPDF = () => {
     alert('Funcionalidad de PDF en desarrollo');
@@ -203,7 +205,7 @@ export default function CotizarPage() {
                       {componente?.marca} {componente?.modelo}
                     </p>
                     <p className="text-blue-600 font-semibold text-[11px] mt-0.5">
-                      {formatPrecio(componente?.precio || 0)}
+                      {formatPrecio((componente ? (remotePrices[componente.id] ?? componente.precio) : 0) || 0)}
                     </p>
                   </div>
                 ))}
@@ -223,15 +225,7 @@ export default function CotizarPage() {
         {modeloSeleccionado && (
           <div className="px-5 py-4 border-t border-slate-200/50 bg-gradient-to-br from-slate-50 to-blue-50/30 animate-in slide-in-from-bottom duration-700">
             <div className="space-y-2.5">
-              <div className="flex justify-between text-xs hover:scale-105 transition-transform duration-200">
-                <span className="text-slate-600 font-medium">Subtotal</span>
-                <span className="font-semibold text-slate-800">{formatPrecio(subtotal)}</span>
-              </div>
-              <div className="flex justify-between text-xs hover:scale-105 transition-transform duration-200">
-                <span className="text-slate-600 font-medium">IVA (21%)</span>
-                <span className="font-semibold text-slate-800">{formatPrecio(iva)}</span>
-              </div>
-              <div className="flex justify-between items-center pt-2.5 border-t-2 border-slate-300 hover:scale-105 transition-transform duration-200">
+              <div className="flex justify-between items-center hover:scale-105 transition-transform duration-200">
                 <span className="text-sm font-bold text-slate-900">TOTAL</span>
                 <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent animate-pulse">
                   {formatPrecio(total)}
@@ -530,7 +524,7 @@ export default function CotizarPage() {
                           <p className={`font-bold text-[11px] mt-1.5 ${
                             componentesSeleccionados?.ram === comp.id ? 'text-white' : 'text-purple-600'
                           }`}>
-                            {formatPrecio(comp.precio)}
+                            {formatPrecio(remotePrices[comp.id] ?? comp.precio)}
                           </p>
                         </button>
                       ))}
@@ -579,7 +573,7 @@ export default function CotizarPage() {
                           <p className={`font-bold text-[11px] mt-1.5 ${
                             componentesSeleccionados?.almacenamiento === comp.id ? 'text-white' : 'text-emerald-600'
                           }`}>
-                            {formatPrecio(comp.precio)}
+                            {formatPrecio(remotePrices[comp.id] ?? comp.precio)}
                           </p>
                         </button>
                       ))}
@@ -631,7 +625,7 @@ export default function CotizarPage() {
                           <p className={`font-bold text-[11px] mt-1.5 ${
                             componentesSeleccionados?.gpu === comp.id ? 'text-white' : 'text-orange-600'
                           }`}>
-                            {formatPrecio(comp.precio)}
+                            {formatPrecio(remotePrices[comp.id] ?? comp.precio)}
                           </p>
                         </button>
                       ))}
@@ -736,7 +730,7 @@ export default function CotizarPage() {
                           </div>
                           <div className="text-right">
                             <p className="font-bold text-blue-600 text-sm">
-                              {formatPrecio(componente?.precio || 0)}
+                              {formatPrecio((componente ? (remotePrices[componente.id] ?? componente.precio) : 0) || 0)}
                             </p>
                           </div>
                         </div>
@@ -770,83 +764,70 @@ export default function CotizarPage() {
                     <h3 className="text-lg font-bold text-slate-900 mb-4">Resumen de Compra</h3>
                     
                     <div className="space-y-3 mb-4">
-                      <div className="flex justify-between text-sm">
-                        <span className="text-slate-600">Subtotal</span>
-                        <span className="font-semibold text-slate-900">{formatPrecio(subtotal)}</span>
-                      </div>
-                      <div className="flex justify-between text-sm">
-                        <span className="text-slate-600">IVA (21%)</span>
-                        <span className="font-semibold text-slate-900">{formatPrecio(iva)}</span>
-                      </div>
-                      <div className="pt-3 border-t-2 border-slate-200">
-                        <div className="flex justify-between items-center">
-                          <span className="text-lg font-bold text-slate-900">Total</span>
-                          <div className="text-right">
-                            <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                              {formatPrecio(total)}
-                            </p>
-                            <p className="text-xs text-slate-500">Precio final</p>
-                          </div>
+                      <div className="flex justify-between items-center">
+                        <span className="text-lg font-bold text-slate-900">Total</span>
+                        <div className="text-right">
+                          <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                            {formatPrecio(total)}
+                          </p>
+                          <p className="text-xs text-slate-500">Precio final</p>
                         </div>
                       </div>
                     </div>
 
-                    {/* Opciones de financiación */}
+                    {/* Opciones de pago */}
                     <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-4 mb-4 border border-purple-200">
                       <p className="text-xs font-bold text-purple-900 mb-3 flex items-center gap-2">
-                        💳 Opciones de Financiación
+                        💳 Opciones de pago
                       </p>
-                      
                       <div className="space-y-2">
+                        {/* Contado / Débito / Transferencia - 25% OFF */}
+                        <div className="bg-white rounded-lg p-2.5 border border-emerald-200">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-emerald-700 font-semibold">Contado / Débito / Transferencia</span>
+                            <span className="inline-flex items-center px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-[9px] font-bold">-25%</span>
+                          </div>
+                          <p className="text-base font-bold text-emerald-900 mt-1">
+                            {formatPrecio(Math.ceil(total * 0.75))} <span className="text-[10px] font-normal">final</span>
+                          </p>
+                        </div>
+
+                        {/* 1 cuota sin interés */}
+                        <div className="bg-white/70 rounded-lg p-2.5 border border-purple-200/50">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-purple-700 font-semibold">1 cuota</span>
+                            <span className="inline-flex items-center px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[9px] font-bold">SIN INTERÉS</span>
+                          </div>
+                          <p className="text-base font-bold text-purple-900 mt-1">
+                            {formatPrecio(Math.ceil(total))} <span className="text-xs font-normal">/única</span>
+                          </p>
+                        </div>
+
                         {/* 3 cuotas sin interés */}
                         <div className="bg-white/70 rounded-lg p-2.5 border border-purple-200/50">
                           <div className="flex justify-between items-center">
                             <span className="text-xs text-purple-700 font-semibold">3 cuotas</span>
-                            <span className="inline-flex items-center px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[9px] font-bold">
-                              SIN INTERÉS
-                            </span>
+                            <span className="inline-flex items-center px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[9px] font-bold">SIN INTERÉS</span>
                           </div>
                           <p className="text-base font-bold text-purple-900 mt-1">
                             {formatPrecio(Math.ceil(total / 3))} <span className="text-xs font-normal">/mes</span>
                           </p>
                         </div>
 
-                        {/* 6 cuotas con interés */}
-                        <div className="bg-white/50 rounded-lg p-2.5 border border-purple-100">
+                        {/* 6 cuotas sin interés */}
+                        <div className="bg-white/70 rounded-lg p-2.5 border border-purple-200/50">
                           <div className="flex justify-between items-center">
-                            <span className="text-xs text-purple-700">6 cuotas</span>
-                            <span className="text-[9px] text-purple-600">Total: {formatPrecio(Math.ceil(total * 1.26))}</span>
+                            <span className="text-xs text-purple-700 font-semibold">6 cuotas</span>
+                            <span className="inline-flex items-center px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[9px] font-bold">SIN INTERÉS</span>
                           </div>
-                          <p className="text-sm font-bold text-purple-800 mt-1">
-                            {formatPrecio(Math.ceil((total * 1.26) / 6))} <span className="text-xs font-normal">/mes</span>
-                          </p>
-                        </div>
-
-                        {/* 9 cuotas con interés */}
-                        <div className="bg-white/50 rounded-lg p-2.5 border border-purple-100">
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs text-purple-700">9 cuotas</span>
-                            <span className="text-[9px] text-purple-600">Total: {formatPrecio(Math.ceil(total * 1.38))}</span>
-                          </div>
-                          <p className="text-sm font-bold text-purple-800 mt-1">
-                            {formatPrecio(Math.ceil((total * 1.38) / 9))} <span className="text-xs font-normal">/mes</span>
-                          </p>
-                        </div>
-
-                        {/* 12 cuotas con interés */}
-                        <div className="bg-white/50 rounded-lg p-2.5 border border-purple-100">
-                          <div className="flex justify-between items-center">
-                            <span className="text-xs text-purple-700">12 cuotas</span>
-                            <span className="text-[9px] text-purple-600">Total: {formatPrecio(Math.ceil(total * 1.51))}</span>
-                          </div>
-                          <p className="text-sm font-bold text-purple-800 mt-1">
-                            {formatPrecio(Math.ceil((total * 1.51) / 12))} <span className="text-xs font-normal">/mes</span>
+                          <p className="text-base font-bold text-purple-900 mt-1">
+                            {formatPrecio(Math.ceil(total / 6))} <span className="text-xs font-normal">/mes</span>
                           </p>
                         </div>
                       </div>
 
                       <p className="text-[9px] text-purple-600 mt-2 text-center">
-                        * Sujeto a aprobación crediticia
+                        Precios de cuotas sin interés provistos por el proveedor. Descuento aplicable solo en contado/débito/transferencia.
                       </p>
                     </div>
 
