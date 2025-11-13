@@ -76,6 +76,11 @@ export default function ComponenteSelector({
                   }`}
                 >
                   <div className="flex items-start justify-between">
+                    {componente.imagenUrl && (
+                      <div className="mr-3">
+                        <img src={componente.imagenUrl} alt={`${componente.marca} ${componente.modelo}`} loading="lazy" className="w-12 h-12 rounded object-cover border" />
+                      </div>
+                    )}
                     <div className="flex-1">
                       <p className="font-semibold text-gray-900">
                         {componente.marca} {componente.modelo}

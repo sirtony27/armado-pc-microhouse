@@ -36,8 +36,8 @@ export default function GabineteSelector() {
     <div className="flex-1 flex flex-col items-center justify-center px-6 py-6 overflow-hidden">
       <div className="text-center mb-6 animate-in fade-in slide-in-from-top duration-700">
         <div className="flex items-center justify-center gap-2 mb-2">
-          <Box className="h-7 w-7 text-blue-600" />
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+          <Box className="h-7 w-7 text-[#E02127]" />
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
             Elegí tu Gabinete
           </h1>
         </div>
@@ -51,17 +51,17 @@ export default function GabineteSelector() {
         <button
           onClick={prevGabinete}
           disabled={isTransitioning}
-          className="absolute left-8 top-1/2 -translate-y-1/2 z-30 bg-white/95 backdrop-blur-md rounded-full p-3 shadow-xl hover:shadow-2xl transition-all duration-300 ease-out hover:scale-110 active:scale-95 hover:-translate-x-1 border-2 border-blue-100 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 group"
+          className="absolute left-8 top-1/2 -translate-y-1/2 z-30 bg-white/95 backdrop-blur-md rounded-full p-3 shadow-xl hover:shadow-2xl transition-all duration-300 ease-out hover:scale-110 active:scale-95 hover:-translate-x-1 border-2 border-[#E02127]/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 group"
         >
-          <ChevronLeft className="h-5 w-5 text-blue-600 transition-transform duration-200 group-hover:-translate-x-0.5" />
+          <ChevronLeft className="h-5 w-5 text-[#E02127] transition-transform duration-200 group-hover:-translate-x-0.5" />
         </button>
 
         <button
           onClick={nextGabinete}
           disabled={isTransitioning}
-          className="absolute right-8 top-1/2 -translate-y-1/2 z-30 bg-white/95 backdrop-blur-md rounded-full p-3 shadow-xl hover:shadow-2xl transition-all duration-300 ease-out hover:scale-110 active:scale-95 hover:translate-x-1 border-2 border-blue-100 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 group"
+          className="absolute right-8 top-1/2 -translate-y-1/2 z-30 bg-white/95 backdrop-blur-md rounded-full p-3 shadow-xl hover:shadow-2xl transition-all duration-300 ease-out hover:scale-110 active:scale-95 hover:translate-x-1 border-2 border-[#E02127]/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 group"
         >
-          <ChevronRight className="h-5 w-5 text-blue-600 transition-transform duration-200 group-hover:translate-x-0.5" />
+          <ChevronRight className="h-5 w-5 text-[#E02127] transition-transform duration-200 group-hover:translate-x-0.5" />
         </button>
 
         <div className="relative w-full h-full flex items-center justify-center">
@@ -91,11 +91,11 @@ export default function GabineteSelector() {
               >
                 <div 
                   className={`bg-white rounded-2xl p-6 text-center w-[360px] relative overflow-visible ${
-                    position === 0 ? 'shadow-[0_0_0_3px_rgba(59,130,246,0.3),0_20px_60px_-10px_rgba(59,130,246,0.4)] animate-glow-pulse' : 'shadow-2xl'
+                    position === 0 ? 'shadow-[0_0_0_3px_rgba(224,33,39,0.3),0_20px_60px_-10px_rgba(224,33,39,0.4)] animate-glow-pulse' : 'shadow-2xl'
                   }`}
                   style={{ cursor: position === 0 ? 'pointer' : 'default' }}
                 >
-                  <div className={`w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mx-auto mb-3 flex items-center justify-center shadow-lg transition-all duration-700 ${
+                  <div className={`w-16 h-16 bg-gradient-to-br from-[#E02127] to-[#0D1A4B] rounded-2xl mx-auto mb-3 flex items-center justify-center shadow-lg transition-all duration-700 ${
                     position === 0 ? 'animate-float' : 'scale-90 opacity-80'
                   }`}>
                     <Box className="h-8 w-8 text-white" />
@@ -123,7 +123,7 @@ export default function GabineteSelector() {
                   </div>
 
                   <div className="mb-4 px-3 py-2 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200/50 shadow-sm">
-                    <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                    <p className="text-2xl font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
                       {formatPrecio(remotePrices[gabinete.id] ?? gabinete.precio)}
                     </p>
                   </div>
@@ -136,7 +136,7 @@ export default function GabineteSelector() {
                       }}
                       className={`w-full px-5 py-2.5 rounded-xl transition-all text-xs font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transform duration-200 relative overflow-hidden group ${
                         componentesSeleccionados?.gabinete === gabinete.id
-                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white'
+                          ? 'bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white'
                           : 'bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700 hover:from-blue-600 hover:to-indigo-600 hover:text-white'
                       }`}
                     >
@@ -176,7 +176,7 @@ export default function GabineteSelector() {
             disabled={isTransitioning}
             className={`h-2 rounded-full transition-all duration-500 ease-out ${
               index === currentIndex
-                ? 'w-10 bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg shadow-blue-500/50 scale-110'
+                ? 'w-10 bg-gradient-to-r from-[#E02127] to-[#0D1A4B] shadow-lg shadow-red-500/50 scale-110'
                 : 'w-2 bg-slate-300 hover:bg-slate-400 hover:scale-150 hover:shadow-md'
             }`}
             aria-label={`Ver gabinete ${index + 1}`}
@@ -186,3 +186,4 @@ export default function GabineteSelector() {
     </div>
   );
 }
+

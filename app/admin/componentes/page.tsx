@@ -22,6 +22,7 @@ type ComponenteRow = {
 }
 
 import AdminLayout from '@/components/admin/AdminLayout'
+import EditComponenteModal from '@/components/admin/EditComponenteModal'
 
 type FieldDef = { key: string; label: string; type: 'text'|'number'|'select'|'boolean'; options?: string[] }
 const FIELDS: Record<Categoria, FieldDef[]> = {
@@ -95,6 +96,7 @@ export default function AdminComponentesPage() {
   const [items, setItems] = useState<ComponenteRow[]>([])
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [editingComponente, setEditingComponente] = useState<ComponenteRow | null>(null)
   const [q, setQ] = useState('')
 
   // Form state
@@ -263,12 +265,12 @@ export default function AdminComponentesPage() {
                 <th className="p-2 text-left">Marca/Modelo</th>
                 <th className="p-2 text-left">SKU</th>
                 <th className="p-2 text-left">Activo</th>
-                <th className="p-2 text-left">Acciones</th>
+                
               </tr>
             </thead>
             <tbody>
               {filtered.map((c) => (
-                <tr key={c.id} className="border-t">
+                <tr key={c.id} onClick={() => setEditingComponente(c)} className="border-t hover:bg-blue-50 cursor-pointer transition-colors">
                   <td className="p-2">
                     {c.image_url ? (
                       <Image src={c.image_url} alt={c.modelo} width={64} height={64} className="rounded object-cover" />
@@ -297,6 +299,8 @@ export default function AdminComponentesPage() {
           </table>
         </div>
       )}
-    </AdminLayout>
+    {editingComponente && (<EditComponenteModal componente={editingComponente} onClose={() => setEditingComponente(null)} onSaved={() => { setEditingComponente(null); load() }} />)}`n      </AdminLayout>
   )
 }
+
+

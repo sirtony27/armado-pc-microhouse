@@ -159,9 +159,9 @@ export default function CotizarPage() {
       {/* Panel Lateral Izquierdo - Resumen */}
       <div className="w-80 bg-white/95 backdrop-blur-sm shadow-xl border-r border-slate-200/50 flex flex-col">
         {/* Header */}
-        <div className="px-4 py-3 bg-gradient-to-r from-blue-600 to-indigo-600">
-          <h2 className="text-sm font-bold text-white">MicroHouse</h2>
-          <p className="text-[9px] text-blue-100 mt-0.5">
+        <div className="px-4 py-3 bg-gradient-to-r from-[#E02127] to-[#0D1A4B]">
+          <img src="https://wckxhidltmnvpbrswnmz.supabase.co/storage/v1/object/public/componentes/branding/microhouse-logo.png" alt="MicroHouse" className="h-8 w-auto object-contain" loading="eager" />
+          <p className="text-[9px] text-white/90 mt-0.5">
             {pasoActual === 'modelo' && 'Paso 1: Elegí tu modelo base'}
             {pasoActual === 'mejoras' && 'Paso 2: Personalizá tu PC'}
             {pasoActual === 'gabinete' && 'Paso 3: Elegí tu Gabinete'}
@@ -176,7 +176,7 @@ export default function CotizarPage() {
           
           {modeloSeleccionado ? (
             <>
-              <div className="mb-3 px-3 py-2 bg-gradient-to-r from-blue-500 to-indigo-500 rounded-lg shadow-sm animate-in slide-in-from-left duration-500">
+              <div className="mb-3 px-3 py-2 bg-gradient-to-r from-[#E02127] to-[#0D1A4B] rounded-lg shadow-sm animate-in slide-in-from-left duration-500">
                 <p className="text-[11px] font-semibold text-white">{modeloSeleccionado.nombre}</p>
               </div>
 
@@ -188,7 +188,7 @@ export default function CotizarPage() {
                     style={{ animationDelay: `${index * 50}ms` }}
                   >
                     <div className="flex items-center gap-1.5 mb-0.5">
-                      <div className="text-blue-600">
+                      <div className="text-[#E02127]">
                         {getComponentIcon(tipo)}
                       </div>
                       <p className="text-[9px] text-slate-500 uppercase font-medium tracking-wide">
@@ -201,10 +201,20 @@ export default function CotizarPage() {
                         {tipo === 'gabinete' && 'Gabinete'}
                       </p>
                     </div>
-                    <p className="font-medium text-slate-800 text-[11px] truncate leading-tight">
-                      {componente?.marca} {componente?.modelo}
-                    </p>
-                    <p className="text-blue-600 font-semibold text-[11px] mt-0.5">
+                    <div className="flex items-center gap-2">
+                      {componente?.imagenUrl ? (
+                        <img
+                          src={componente.imagenUrl}
+                          alt={`${componente?.marca || ''} ${componente?.modelo || ''}`}
+                          loading="lazy"
+                          className="w-6 h-6 rounded object-cover border border-slate-200"
+                        />
+                      ) : null}
+                      <p className="font-medium text-slate-800 text-[11px] truncate leading-tight">
+                        {componente?.marca} {componente?.modelo}
+                      </p>
+                    </div>
+                    <p className="text-[#E02127] font-semibold text-[11px] mt-0.5">
                       {formatPrecio((componente ? (remotePrices[componente.id] ?? componente.precio) : 0) || 0)}
                     </p>
                   </div>
@@ -227,7 +237,7 @@ export default function CotizarPage() {
             <div className="space-y-2.5">
               <div className="flex justify-between items-center hover:scale-105 transition-transform duration-200">
                 <span className="text-sm font-bold text-slate-900">TOTAL</span>
-                <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent animate-pulse">
+                <span className="text-2xl font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent animate-pulse">
                   {formatPrecio(total)}
                 </span>
               </div>
@@ -241,15 +251,8 @@ export default function CotizarPage() {
         {/* Paso 1: Carrusel de Modelos */}
         {pasoActual === 'modelo' && (
         <div className="flex-1 flex flex-col items-center justify-center px-6 py-6 overflow-hidden">
-          <div className="text-center mb-6 animate-in fade-in slide-in-from-top duration-700">
-            <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
-              Elegí tu PC Ideal
-            </h1>
-            <p className="text-slate-600 text-xs">Navegá entre los modelos base y encontrá el perfecto para vos</p>
-          </div>
-
           {/* Carrusel Coverflow */}
-          <div 
+          <div
             className="relative w-full max-w-7xl h-[480px] flex items-center justify-center mb-4"
             style={{ perspective: '2500px', perspectiveOrigin: 'center' }}
             onTouchStart={onTouchStart}
@@ -260,17 +263,17 @@ export default function CotizarPage() {
             <button
               onClick={prevModel}
               disabled={isTransitioning}
-              className="absolute left-8 top-1/2 -translate-y-1/2 z-30 bg-white/95 backdrop-blur-md rounded-full p-3 shadow-xl hover:shadow-2xl transition-all duration-300 ease-out hover:scale-110 active:scale-95 hover:-translate-x-1 border-2 border-blue-100 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 group"
+              className="absolute left-8 top-1/2 -translate-y-1/2 z-30 bg-white/95 backdrop-blur-md rounded-full p-3 shadow-xl hover:shadow-2xl transition-all duration-300 ease-out hover:scale-110 active:scale-95 hover:-translate-x-1 border-2 border-[#E02127]/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 group"
             >
-              <ChevronLeft className="h-5 w-5 text-blue-600 transition-transform duration-200 group-hover:-translate-x-0.5" />
+              <ChevronLeft className="h-5 w-5 text-[#E02127] transition-transform duration-200 group-hover:-translate-x-0.5" />
             </button>
 
             <button
               onClick={nextModel}
               disabled={isTransitioning}
-              className="absolute right-8 top-1/2 -translate-y-1/2 z-30 bg-white/95 backdrop-blur-md rounded-full p-3 shadow-xl hover:shadow-2xl transition-all duration-300 ease-out hover:scale-110 active:scale-95 hover:translate-x-1 border-2 border-blue-100 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 group"
+              className="absolute right-8 top-1/2 -translate-y-1/2 z-30 bg-white/95 backdrop-blur-md rounded-full p-3 shadow-xl hover:shadow-2xl transition-all duration-300 ease-out hover:scale-110 active:scale-95 hover:translate-x-1 border-2 border-[#E02127]/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 group"
             >
-              <ChevronRight className="h-5 w-5 text-blue-600 transition-transform duration-200 group-hover:translate-x-0.5" />
+              <ChevronRight className="h-5 w-5 text-[#E02127] transition-transform duration-200 group-hover:translate-x-0.5" />
             </button>
 
             {/* Container de Cards */}
@@ -290,7 +293,7 @@ export default function CotizarPage() {
                     style={{
                       transform: `
                         translateX(${position * 360}px)
-                        scale(${position === 0 ? 1 : 0.75})
+                        scale(${position === 0 ? 0.9 : 0.75})
                         rotateY(${position * -18}deg)
                       `,
                       opacity: position === 0 ? 1 : Math.max(0, 0.6 - Math.abs(position) * 0.2),
@@ -304,18 +307,34 @@ export default function CotizarPage() {
                     {/* Card del Modelo */}
                     <div 
                       className={`bg-white rounded-2xl p-6 text-center w-[360px] relative overflow-visible ${
-                        position === 0 ? 'shadow-[0_0_0_3px_rgba(59,130,246,0.3),0_20px_60px_-10px_rgba(59,130,246,0.4)] animate-glow-pulse' : 'shadow-2xl'
+                        position === 0 ? 'shadow-[0_0_0_3px_rgba(224,33,39,0.3),0_20px_60px_-10px_rgba(224,33,39,0.4)] animate-glow-pulse' : 'shadow-2xl'
                       }`}
                       style={{
                         cursor: position === 0 ? 'pointer' : 'default',
                       }}
                     >
                       <div className="mb-3">
-                        <div className={`w-16 h-16 bg-gradient-to-br from-blue-500 via-indigo-500 to-purple-600 rounded-2xl mx-auto mb-3 flex items-center justify-center shadow-lg transition-all duration-700 ${
-                          position === 0 ? 'animate-float scale-100' : 'scale-90 opacity-80'
-                        }`}>
-                          <span className="text-3xl">🖥️</span>
-                        </div>
+                        {modelo.imagenUrl ? (
+                          <div
+                            className={`mx-auto mb-3 rounded-xl overflow-hidden shadow-lg transition-all duration-700 ${
+                              position === 0 ? 'animate-float scale-100' : 'scale-90 opacity-80'
+                            }`}
+                            style={{ width: 220, height: 120 }}
+                          >
+                            <img
+                              src={modelo.imagenUrl}
+                              alt={modelo.nombre}
+                              loading="lazy"
+                              className="w-full h-full object-cover"
+                            />
+                          </div>
+                        ) : (
+                          <div className={`w-16 h-16 bg-gradient-to-br from-[#E02127] to-[#0D1A4B] rounded-2xl mx-auto mb-3 flex items-center justify-center shadow-lg transition-all duration-700 ${
+                            position === 0 ? 'animate-float scale-100' : 'scale-90 opacity-80'
+                          }`}>
+                            <span className="text-3xl">🖥️</span>
+                          </div>
+                        )}
                       </div>
 
                       <h2 className="text-lg font-bold text-slate-900 mb-2">
@@ -335,10 +354,10 @@ export default function CotizarPage() {
                         <div className="grid grid-cols-2 gap-2 text-left">
                           {modelo.componentes.procesador && (
                             <div className="flex items-start gap-1">
-                              <Cpu className="h-3 w-3 text-blue-600 mt-0.5 flex-shrink-0" />
+                              <Cpu className="h-3 w-3 text-[#E02127] mt-0.5 flex-shrink-0" />
                               <div>
-                                <p className="text-[7px] text-slate-500 uppercase">Procesador</p>
-                                <p className="text-[8px] font-semibold text-slate-800 leading-tight">
+                                <p className="text-[11px] text-slate-500 uppercase">Procesador</p>
+                                <p className="text-[11px] font-semibold text-slate-800 leading-tight">
                                   {componentes.find(c => c.id === modelo.componentes.procesador)?.modelo || 'Incluido'}
                                 </p>
                               </div>
@@ -348,8 +367,8 @@ export default function CotizarPage() {
                             <div className="flex items-start gap-1">
                               <MemoryStick className="h-3 w-3 text-purple-600 mt-0.5 flex-shrink-0" />
                               <div>
-                                <p className="text-[7px] text-slate-500 uppercase">RAM</p>
-                                <p className="text-[8px] font-semibold text-slate-800">
+                                <p className="text-[11px] text-slate-500 uppercase">RAM</p>
+                                <p className="text-[11px] font-semibold text-slate-800">
                                   {componentes.find(c => c.id === modelo.componentes.ram)?.especificaciones.capacidad || 'Incluido'}
                                 </p>
                               </div>
@@ -359,8 +378,8 @@ export default function CotizarPage() {
                             <div className="flex items-start gap-1">
                               <HardDrive className="h-3 w-3 text-emerald-600 mt-0.5 flex-shrink-0" />
                               <div>
-                                <p className="text-[7px] text-slate-500 uppercase">Storage</p>
-                                <p className="text-[8px] font-semibold text-slate-800">
+                                <p className="text-[11px] text-slate-500 uppercase">Storage</p>
+                                <p className="text-[11px] font-semibold text-slate-800">
                                   {componentes.find(c => c.id === modelo.componentes.almacenamiento)?.especificaciones.capacidad || 'Incluido'}
                                 </p>
                               </div>
@@ -370,8 +389,8 @@ export default function CotizarPage() {
                             <div className="flex items-start gap-1">
                               <MonitorUp className="h-3 w-3 text-orange-600 mt-0.5 flex-shrink-0" />
                               <div>
-                                <p className="text-[7px] text-slate-500 uppercase">GPU</p>
-                                <p className="text-[8px] font-semibold text-slate-800 leading-tight">
+                                <p className="text-[11px] text-slate-500 uppercase">GPU</p>
+                                <p className="text-[11px] font-semibold text-slate-800 leading-tight">
                                   {componentes.find(c => c.id === modelo.componentes.gpu)?.modelo || 'Incluida'}
                                 </p>
                               </div>
@@ -393,7 +412,7 @@ export default function CotizarPage() {
 
                       <div className="mb-4 px-3 py-2 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-xl border-2 border-blue-200/50 shadow-sm">
                         <p className="text-[9px] text-slate-500 uppercase font-semibold tracking-wider mb-0.5">Precio base desde</p>
-                        <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 bg-clip-text text-transparent">
+                        <p className="text-2xl font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
                           {formatPrecio(modelo.precioBase)}
                         </p>
                         <p className="text-[8px] text-slate-500 mt-0.5">Sin gabinete ni fuente</p>
@@ -402,13 +421,13 @@ export default function CotizarPage() {
                       {position === 0 && (
                         <button
                           onClick={() => handleSeleccionarModelo(modelo)}
-                          className="w-full px-5 py-2.5 bg-gradient-to-r from-blue-600 via-indigo-600 to-purple-600 text-white rounded-xl hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 transition-all text-xs font-bold shadow-lg hover:shadow-2xl hover:scale-[1.02] active:scale-95 transform duration-200 relative overflow-hidden group"
+                          className="w-full px-5 py-2.5 bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white rounded-xl hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 transition-all text-xs font-bold shadow-lg hover:shadow-2xl hover:scale-[1.02] active:scale-95 transform duration-200 relative overflow-hidden group"
                         >
                           <span className="relative z-10 flex items-center justify-center gap-2">
                             Seleccionar este Modelo
                             <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform duration-200" />
                           </span>
-                          <div className="absolute inset-0 bg-gradient-to-r from-blue-700 via-indigo-700 to-purple-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                          <div className="absolute inset-0 bg-gradient-to-r from-[#c01d23] to-[#0a1339] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
                         </button>
                       )}
                     </div>
@@ -419,7 +438,7 @@ export default function CotizarPage() {
           </div>
 
           {/* Indicadores */}
-          <div className="flex gap-2 animate-in fade-in slide-in-from-bottom duration-700 delay-300">
+          <div className="flex gap-2 mt-6 animate-in fade-in slide-in-from-bottom duration-700 delay-300">
             {modelosBase.map((_, index) => (
               <button
                 key={index}
@@ -433,7 +452,7 @@ export default function CotizarPage() {
                 disabled={isTransitioning}
                 className={`h-2 rounded-full transition-all duration-500 ease-out ${
                   index === currentModelIndex
-                    ? 'w-10 bg-gradient-to-r from-blue-600 to-indigo-600 shadow-lg shadow-blue-500/50 scale-110'
+                    ? 'w-10 bg-gradient-to-r from-[#E02127] to-[#0D1A4B] shadow-lg shadow-red-500/50 scale-110'
                     : 'w-2 bg-slate-300 hover:bg-slate-400 hover:scale-150 hover:shadow-md'
                 }`}
                 aria-label={`Ver modelo ${index + 1}`}
@@ -663,7 +682,7 @@ export default function CotizarPage() {
                 <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full mb-3 shadow-lg">
                   <Check className="h-8 w-8 text-white" />
                 </div>
-                <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mb-2">
+                <h1 className="text-3xl font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent mb-2">
                   ¡Configuración Lista!
                 </h1>
                 <p className="text-slate-600 text-sm">Tu PC personalizada está lista para ser armada</p>
@@ -689,7 +708,7 @@ export default function CotizarPage() {
                   {/* Componentes */}
                   <div className="bg-white rounded-xl shadow-lg p-6 animate-in fade-in slide-in-from-left duration-500 delay-100">
                     <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                      <Cpu className="h-5 w-5 text-blue-600" />
+                      <Cpu className="h-5 w-5 text-[#E02127]" />
                       Componentes de tu PC
                     </h3>
                     
@@ -701,9 +720,18 @@ export default function CotizarPage() {
                           style={{ animationDelay: `${index * 50}ms` }}
                         >
                           <div className="flex items-center gap-3 flex-1">
-                            <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                              {getComponentIcon(tipo)}
-                            </div>
+                            {componente?.imagenUrl ? (
+                              <img
+                                src={componente.imagenUrl}
+                                alt={`${componente.marca} ${componente.modelo}`}
+                                loading="lazy"
+                                className="flex-shrink-0 w-10 h-10 rounded object-cover border border-slate-200"
+                              />
+                            ) : (
+                              <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
+                                {getComponentIcon(tipo)}
+                              </div>
+                            )}
                             <div className="flex-1 min-w-0">
                               <p className="text-[10px] text-slate-500 uppercase font-semibold tracking-wide">
                                 {tipo === 'procesador' && 'Procesador'}
@@ -729,7 +757,7 @@ export default function CotizarPage() {
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold text-blue-600 text-sm">
+                            <p className="font-bold text-[#E02127] text-sm">
                               {formatPrecio((componente ? (remotePrices[componente.id] ?? componente.precio) : 0) || 0)}
                             </p>
                           </div>
@@ -749,7 +777,7 @@ export default function CotizarPage() {
                     </div>
                     <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
                       <div className="flex items-center gap-2 mb-2">
-                        <Box className="h-5 w-5 text-blue-600" />
+                        <Box className="h-5 w-5 text-[#E02127]" />
                         <h4 className="font-bold text-blue-900 text-sm">Armado Profesional</h4>
                       </div>
                       <p className="text-xs text-blue-700">Probado y optimizado antes de entrega</p>
@@ -767,7 +795,7 @@ export default function CotizarPage() {
                       <div className="flex justify-between items-center">
                         <span className="text-lg font-bold text-slate-900">Total</span>
                         <div className="text-right">
-                          <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                          <p className="text-2xl font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
                             {formatPrecio(total)}
                           </p>
                           <p className="text-xs text-slate-500">Precio final</p>
@@ -870,9 +898,9 @@ export default function CotizarPage() {
                   </div>
 
                   {/* Banner de soporte */}
-                  <div className="bg-gradient-to-br from-blue-600 to-indigo-600 rounded-xl p-6 text-white animate-in fade-in slide-in-from-right duration-500 delay-100">
+                  <div className="bg-gradient-to-br from-[#E02127] to-[#0D1A4B] rounded-xl p-6 text-white animate-in fade-in slide-in-from-right duration-500 delay-100">
                     <h4 className="font-bold text-lg mb-2">¿Necesitás ayuda?</h4>
-                    <p className="text-sm text-blue-100 mb-4">
+                    <p className="text-sm text-white/90 mb-4">
                       Nuestro equipo está disponible para asesorarte
                     </p>
                     <div className="space-y-2 text-sm">
@@ -920,7 +948,7 @@ export default function CotizarPage() {
               disabled={!puedeAvanzar}
               className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${
                 puedeAvanzar
-                  ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-2xl hover:scale-110 active:scale-95 hover:translate-x-1'
+                  ? 'bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-2xl hover:scale-110 active:scale-95 hover:translate-x-1'
                   : 'bg-slate-200 text-slate-400 cursor-not-allowed'
               }`}
             >
@@ -934,3 +962,4 @@ export default function CotizarPage() {
     </div>
   );
 }
+

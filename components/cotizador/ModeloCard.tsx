@@ -28,6 +28,11 @@ export default function ModeloCard({ modelo, seleccionado, onSelect }: ModeloCar
       )}
       
       <div className="mb-4">
+        {modelo.imagenUrl && (
+          <div className="mb-3 rounded-md overflow-hidden">
+            <img src={modelo.imagenUrl} alt={modelo.nombre} loading="lazy" className="w-full h-28 object-cover" />
+          </div>
+        )}
         <h3 className="text-xl font-bold text-gray-900">{modelo.nombre}</h3>
         <p className="mt-2 text-sm text-gray-600">{modelo.descripcion}</p>
       </div>

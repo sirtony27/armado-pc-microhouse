@@ -34,9 +34,9 @@ export default function Stepper({ pasoActual }: StepperProps) {
                   <div
                     className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
                       isCompleted
-                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+                        ? 'bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white shadow-md'
                         : isCurrent
-                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-lg ring-4 ring-blue-200'
+                        ? 'bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white shadow-lg ring-4 ring-blue-200'
                         : 'bg-slate-200 text-slate-500'
                     }`}
                   >
@@ -49,7 +49,7 @@ export default function Stepper({ pasoActual }: StepperProps) {
                   <p
                     className={`mt-2 text-xs font-medium whitespace-nowrap ${
                       isCurrent
-                        ? 'text-blue-600'
+                        ? 'text-[#E02127]'
                         : isCompleted
                         ? 'text-slate-700'
                         : 'text-slate-400'
@@ -65,7 +65,7 @@ export default function Stepper({ pasoActual }: StepperProps) {
                     <div
                       className={`h-full transition-all ${
                         isCompleted
-                          ? 'bg-gradient-to-r from-blue-600 to-indigo-600'
+                          ? 'bg-gradient-to-r from-[#E02127] to-[#0D1A4B]'
                           : 'bg-slate-200'
                       }`}
                     />
@@ -79,3 +79,4 @@ export default function Stepper({ pasoActual }: StepperProps) {
     </div>
   );
 }
+

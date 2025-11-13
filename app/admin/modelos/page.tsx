@@ -18,13 +18,20 @@ type Modelo = {
   precio_base: number
 }
 
+type ModeloComplete = Modelo & {
+  componentes_ids: Record<string, string>
+  uso_recomendado: string[] | null
+}
+
 import AdminLayout from '@/components/admin/AdminLayout'
+import EditModeloModal from '@/components/admin/EditModeloModal'
 
 export default function AdminModelosPage() {
   const [componentes, setComponentes] = useState<Componente[]>([])
   const [items, setItems] = useState<Modelo[]>([])
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
+  const [editingModelo, setEditingModelo] = useState<any | null>(null)
 
   // Form
   const [nombre, setNombre] = useState('')
@@ -48,6 +55,11 @@ export default function AdminModelosPage() {
       .eq('activo', true)
       .order('tipo')
     setComponentes((data as any) || [])
+  }
+
+  async function loadAndEditModelo(id: string) {
+    const { data } = await supabase.from('modelos_base').select('*').eq('id', id).single()
+    if (data) setEditingModelo(data)
   }
 
   async function loadModelos() {
@@ -206,6 +218,8 @@ export default function AdminModelosPage() {
           ))}
         </div>
       )}
-    </AdminLayout>
+    {editingModelo && (<EditModeloModal modelo={editingModelo} onClose={() => setEditingModelo(null)} onSaved={() => { setEditingModelo(null); loadModelos() }} />)}`n      </AdminLayout>
   )
 }
+
+
