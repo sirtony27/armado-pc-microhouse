@@ -32,6 +32,7 @@ export default function AdminModelosPage() {
   const [loading, setLoading] = useState(false)
   const [saving, setSaving] = useState(false)
   const [editingModelo, setEditingModelo] = useState<any | null>(null)
+  const [editingId, setEditingId] = useState<string | null>(null)
 
   // Form
   const [nombre, setNombre] = useState('')
@@ -58,8 +59,21 @@ export default function AdminModelosPage() {
   }
 
   async function loadAndEditModelo(id: string) {
-    const { data } = await supabase.from('modelos_base').select('*').eq('id', id).single()
-    if (data) setEditingModelo(data)
+    setEditingId(id)
+    const { data: modeloData, error } = await supabase.from('modelos_base').select('id,nombre,slug,descripcion,imagen_url,precio_base,uso_recomendado,numero_comprobante,activo,orden').eq('id', id).single()
+    const { data: conf } = await supabase.from('configuracion_modelo').select('procesador_id,placa_madre_id,ram_id,almacenamiento_id,gpu_id,fuente_id,gabinete_id').eq('modelo_id', id).single()
+    if (!error && modeloData) {
+      const componentes_ids: Record<string,string> = {
+        CPU: conf?.procesador_id || '',
+        PLACA_MADRE: conf?.placa_madre_id || '',
+        RAM: conf?.ram_id || '',
+        ALMACENAMIENTO: conf?.almacenamiento_id || '',
+        GPU: conf?.gpu_id || '',
+        FUENTE: conf?.fuente_id || '',
+        GABINETE: conf?.gabinete_id || '',
+      }
+      setEditingModelo({ ...modeloData, componentes_ids })
+    }
   }
 
   async function loadModelos() {
@@ -211,14 +225,16 @@ export default function AdminModelosPage() {
               <div className="mt-2 font-semibold">{m.nombre}</div>
               <div className="text-xs text-slate-500">{m.slug}</div>
               <div className="text-xs text-slate-600 mt-1 line-clamp-2">{m.descripcion}</div>
-              <div className="mt-2 flex gap-2">
-                <button onClick={()=>onDelete(m.id)} className="text-red-600">Eliminar</button>
+              <div className="mt-2 flex gap-3">
+                <button onClick={()=>loadAndEditModelo(m.id)} className="text-blue-600 hover:underline">Editar</button>
+                <button onClick={()=>onDelete(m.id)} className="text-red-600 hover:underline">Eliminar</button>
               </div>
             </div>
           ))}
         </div>
       )}
-    {editingModelo && (<EditModeloModal modelo={editingModelo} onClose={() => setEditingModelo(null)} onSaved={() => { setEditingModelo(null); loadModelos() }} />)}`n      </AdminLayout>
+    {editingModelo && (<EditModeloModal modelo={editingModelo} onClose={() => setEditingModelo(null)} onSaved={() => { setEditingModelo(null); loadModelos() }} />)}
+    </AdminLayout>
   )
 }
 

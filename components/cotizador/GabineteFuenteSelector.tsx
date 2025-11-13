@@ -4,7 +4,8 @@ import { componentes } from '@/data/componentes';
 import { formatPrecio } from '@/lib/utils';
 import { Check, Box, Zap, AlertCircle, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { useCotizadorStore } from '@/store/cotizadorStore';
-import { useMemo, useState } from 'react';
+import { useMemo, useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase'
 
 export default function GabineteFuenteSelector() {
   const { componentesSeleccionados, cambiarComponente } = useCotizadorStore();
@@ -32,11 +33,24 @@ export default function GabineteFuenteSelector() {
   }, [componentesSeleccionados]);
 
   const fuentes = componentes.filter((c) => c.tipo === 'FUENTE');
-  const gabinetes = componentes.filter((c) => c.tipo === 'GABINETE');
+  const [gabinetesDb, setGabinetesDb] = useState<any[]>([])
+  useEffect(() => { (async () => {
+    try {
+      const { data } = await supabase
+        .from('componentes')
+        .select('id,marca,modelo,descripcion,especificaciones,sku')
+        .eq('tipo','GABINETE')
+        .throwOnError()
+      setGabinetesDb((data as any) || [])
+    } catch (err) {
+      console.error('Error fetching gabinetes:', (err as any)?.message || err, err)
+    }
+  })() }, [])
+  const gabinetes = gabinetesDb;
 
   // Navegación del carrusel de gabinetes
   const nextGabinete = () => {
-    if (isGabineteTransitioning) return;
+    if (isGabineteTransitioning || gabinetes.length === 0) return;
     setIsGabineteTransitioning(true);
     const nextIndex = (currentGabineteIndex + 1) % gabinetes.length;
     setCurrentGabineteIndex(nextIndex);
@@ -44,7 +58,7 @@ export default function GabineteFuenteSelector() {
   };
 
   const prevGabinete = () => {
-    if (isGabineteTransitioning) return;
+    if (isGabineteTransitioning || gabinetes.length === 0) return;
     setIsGabineteTransitioning(true);
     const prevIndex = (currentGabineteIndex - 1 + gabinetes.length) % gabinetes.length;
     setCurrentGabineteIndex(prevIndex);
@@ -172,12 +186,34 @@ export default function GabineteFuenteSelector() {
                         </p>
 
                         <div className="flex flex-wrap gap-2 justify-center mb-4">
-                          <span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-[9px] font-semibold border border-blue-200/70">
-                            {gabinete.especificaciones.formato}
-                          </span>
+                          {gabinete.especificaciones.formato && (
+                            <span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-[9px] font-semibold border border-blue-200/70">
+                              {gabinete.especificaciones.formato}
+                            </span>
+                          )}
                           {gabinete.especificaciones.color && (
                             <span className="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-full text-[9px] font-semibold border border-indigo-200/70">
                               {gabinete.especificaciones.color}
+                            </span>
+                          )}
+                          {gabinete.especificaciones.vidrio_lateral && (
+                            <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-full text-[9px] font-semibold border border-emerald-200/70">
+                              Vidrio lateral
+                            </span>
+                          )}
+                          {gabinete.especificaciones.ventiladores_incluidos && (
+                            <span className="px-2.5 py-1 bg-cyan-50 text-cyan-700 rounded-full text-[9px] font-semibold border border-cyan-200/70">
+                              {gabinete.especificaciones.ventiladores_incluidos} ventiladores
+                            </span>
+                          )}
+                          {gabinete.especificaciones.puertos_frontales && (
+                            <span className="px-2.5 py-1 bg-fuchsia-50 text-fuchsia-700 rounded-full text-[9px] font-semibold border border-fuchsia-200/70">
+                              {gabinete.especificaciones.puertos_frontales}
+                            </span>
+                          )}
+                          {gabinete.especificaciones.soporte_gpu && (
+                            <span className="px-2.5 py-1 bg-amber-50 text-amber-700 rounded-full text-[9px] font-semibold border border-amber-200/70">
+                              GPU {gabinete.especificaciones.soporte_gpu}
                             </span>
                           )}
                         </div>

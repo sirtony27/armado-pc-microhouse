@@ -36,6 +36,7 @@ export interface ModeloBase {
   usoRecomendado: string[];
   imagenUrl: string;
   precioBase: number;
+  numeroComprobante?: string; // Campo opcional para referencia externa / comprobante
   componentes: {
     procesador: string;
     placaMadre: string;
@@ -45,7 +46,7 @@ export interface ModeloBase {
   };
 }
 
-export type PasoCotizador = 'modelo' | 'mejoras' | 'gabinete' | 'fuente' | 'resumen';
+export type PasoCotizador = 'modelo' | 'mejoras' | 'gabinete' | 'resumen';
 
 export interface Cotizacion {
   id: string;

@@ -9,7 +9,6 @@ import { useRemotePrices } from '@/lib/pricing';
 import { ChevronLeft, ChevronRight, Check, Cpu, HardDrive, MemoryStick, MonitorUp, ChevronDown, Sparkles, ArrowRight, ArrowLeft, Box, Zap } from 'lucide-react';
 import Stepper from '@/components/cotizador/Stepper';
 import GabineteSelector from '@/components/cotizador/GabineteSelector';
-import FuenteSelector from '@/components/cotizador/FuenteSelector';
 import './animations.css';
 
 export default function CotizarPage() {
@@ -34,24 +33,19 @@ export default function CotizarPage() {
     if (pasoActual === 'gabinete') {
       return !!componentesSeleccionados?.gabinete;
     }
-    if (pasoActual === 'fuente') {
-      return !!componentesSeleccionados?.fuente;
-    }
     return true;
   }, [pasoActual, modeloSeleccionado, componentesSeleccionados]);
 
   const handleSiguiente = () => {
     if (pasoActual === 'modelo' && puedeAvanzar) setPaso('mejoras');
     else if (pasoActual === 'mejoras' && puedeAvanzar) setPaso('gabinete');
-    else if (pasoActual === 'gabinete' && puedeAvanzar) setPaso('fuente');
-    else if (pasoActual === 'fuente' && puedeAvanzar) setPaso('resumen');
+    else if (pasoActual === 'gabinete' && puedeAvanzar) setPaso('resumen');
   };
 
   const handleAnterior = () => {
     if (pasoActual === 'mejoras') setPaso('modelo');
     else if (pasoActual === 'gabinete') setPaso('mejoras');
-    else if (pasoActual === 'fuente') setPaso('gabinete');
-    else if (pasoActual === 'resumen') setPaso('fuente');
+    else if (pasoActual === 'resumen') setPaso('gabinete');
   };
 
   // Expandir mejoras automáticamente en el paso de mejoras
@@ -90,7 +84,8 @@ export default function CotizarPage() {
   // Calcular precio total
   const precioTotal = useMemo(() => {
     if (!componentesSeleccionados) return 0;
-    const ids = Object.values(componentesSeleccionados);
+    const entries = Object.entries(componentesSeleccionados).filter(([tipo]) => tipo !== 'fuente');
+    const ids = entries.map(([_, id]) => id);
     return componentes
       .filter((comp) => ids.includes(comp.id))
       .reduce((sum, comp) => sum + (remotePrices[comp.id] ?? comp.precio), 0);
@@ -99,13 +94,12 @@ export default function CotizarPage() {
   // Obtener componentes seleccionados con detalles
   const componentesDetalle = useMemo(() => {
     if (!componentesSeleccionados) return [];
-    return Object.entries(componentesSeleccionados).map(([tipo, id]) => {
-      const comp = componentes.find((c) => c.id === id);
-      return {
-        tipo,
-        componente: comp,
-      };
-    });
+    return Object.entries(componentesSeleccionados)
+      .filter(([tipo]) => tipo !== 'fuente')
+      .map(([tipo, id]) => {
+        const comp = componentes.find((c) => c.id === id);
+        return { tipo, componente: comp };
+      });
   }, [componentesSeleccionados]);
 
   // Navegación del carrusel (solo cambia el índice, NO selecciona)
@@ -165,7 +159,6 @@ export default function CotizarPage() {
             {pasoActual === 'modelo' && 'Paso 1: Elegí tu modelo base'}
             {pasoActual === 'mejoras' && 'Paso 2: Personalizá tu PC'}
             {pasoActual === 'gabinete' && 'Paso 3: Elegí tu Gabinete'}
-            {pasoActual === 'fuente' && 'Paso 4: Elegí tu Fuente'}
             {pasoActual === 'resumen' && 'Resumen Final'}
           </p>
         </div>
@@ -520,6 +513,9 @@ export default function CotizarPage() {
                           }`}
                           onClick={() => cambiarComponente('RAM', comp.id)}
                         >
+                          {comp.imagenUrl && (
+                            <img src={comp.imagenUrl} alt={`${comp.marca} ${comp.modelo}`} className="w-full h-24 object-cover rounded mb-2 border" loading="lazy" />
+                          )}
                           {componentesSeleccionados?.ram === comp.id && (
                             <div className="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow animate-in zoom-in duration-300">
                               <Check className="h-2.5 w-2.5 text-purple-600" />
@@ -569,6 +565,9 @@ export default function CotizarPage() {
                           }`}
                           onClick={() => cambiarComponente('ALMACENAMIENTO', comp.id)}
                         >
+                          {comp.imagenUrl && (
+                            <img src={comp.imagenUrl} alt={`${comp.marca} ${comp.modelo}`} className="w-full h-24 object-cover rounded mb-2 border" loading="lazy" />
+                          )}
                           {componentesSeleccionados?.almacenamiento === comp.id && (
                             <div className="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow animate-in zoom-in duration-300">
                               <Check className="h-2.5 w-2.5 text-emerald-600" />
@@ -621,6 +620,9 @@ export default function CotizarPage() {
                           }`}
                           onClick={() => cambiarComponente('GPU', comp.id)}
                         >
+                          {comp.imagenUrl && (
+                            <img src={comp.imagenUrl} alt={`${comp.marca} ${comp.modelo}`} className="w-full h-24 object-cover rounded mb-2 border" loading="lazy" />
+                          )}
                           {componentesSeleccionados?.gpu === comp.id && (
                             <div className="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow animate-in zoom-in duration-300">
                               <Check className="h-2.5 w-2.5 text-orange-600" />
@@ -670,8 +672,7 @@ export default function CotizarPage() {
         {/* Paso 3: Gabinete */}
         {pasoActual === 'gabinete' && <GabineteSelector />}
 
-        {/* Paso 4: Fuente */}
-        {pasoActual === 'fuente' && <FuenteSelector />}
+
 
         {/* Paso 5: Resumen */}
         {pasoActual === 'resumen' && (
@@ -952,7 +953,7 @@ export default function CotizarPage() {
                   : 'bg-slate-200 text-slate-400 cursor-not-allowed'
               }`}
             >
-              {pasoActual === 'fuente' ? 'Ver Resumen' : 'Continuar'}
+              {pasoActual === 'gabinete' ? 'Ver Resumen' : 'Continuar'}
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>

@@ -4,7 +4,8 @@ import { componentes } from '@/data/componentes';
 import { formatPrecio } from '@/lib/utils';
 import { Check, Box, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { useCotizadorStore } from '@/store/cotizadorStore';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { supabase } from '@/lib/supabase'
 import { useRemotePrices } from '@/lib/pricing';
 
 export default function GabineteSelector() {
@@ -12,12 +13,25 @@ export default function GabineteSelector() {
   
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [gabinetesDb, setGabinetesDb] = useState<any[]>([])
+  useEffect(() => { (async () => {
+    try {
+      const { data } = await supabase
+        .from('componentes')
+        .select('id,marca,modelo,descripcion,especificaciones,sku')
+        .eq('tipo','GABINETE')
+        .throwOnError()
+      setGabinetesDb((data as any) || [])
+    } catch (err) {
+      console.error('Error fetching gabinetes:', (err as any)?.message || err, err)
+    }
+  })() }, [])
 
-  const gabinetes = componentes.filter((c) => c.tipo === 'GABINETE');
-  const remotePrices = useRemotePrices(componentes);
+  const gabinetes = gabinetesDb;
+  const remotePrices = useRemotePrices(gabinetes);
 
   const nextGabinete = () => {
-    if (isTransitioning) return;
+    if (isTransitioning || gabinetes.length === 0) return;
     setIsTransitioning(true);
     const nextIdx = (currentIndex + 1) % gabinetes.length;
     setCurrentIndex(nextIdx);
@@ -25,7 +39,7 @@ export default function GabineteSelector() {
   };
 
   const prevGabinete = () => {
-    if (isTransitioning) return;
+    if (isTransitioning || gabinetes.length === 0) return;
     setIsTransitioning(true);
     const prevIdx = (currentIndex - 1 + gabinetes.length) % gabinetes.length;
     setCurrentIndex(prevIdx);
@@ -112,12 +126,34 @@ export default function GabineteSelector() {
                   </p>
 
                   <div className="flex flex-wrap gap-2 justify-center mb-4">
-                    <span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-[9px] font-semibold border border-blue-200/70">
-                      {gabinete.especificaciones.formato}
-                    </span>
+                    {gabinete.especificaciones.formato && (
+                      <span className="px-2.5 py-1 bg-blue-50 text-blue-700 rounded-full text-[9px] font-semibold border border-blue-200/70">
+                        {gabinete.especificaciones.formato}
+                      </span>
+                    )}
                     {gabinete.especificaciones.color && (
                       <span className="px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-full text-[9px] font-semibold border border-indigo-200/70">
                         {gabinete.especificaciones.color}
+                      </span>
+                    )}
+                    {gabinete.especificaciones.vidrio_lateral && (
+                      <span className="px-2.5 py-1 bg-emerald-50 text-emerald-700 rounded-full text-[9px] font-semibold border border-emerald-200/70">
+                        Vidrio lateral
+                      </span>
+                    )}
+                    {gabinete.especificaciones.ventiladores_incluidos && (
+                      <span className="px-2.5 py-1 bg-cyan-50 text-cyan-700 rounded-full text-[9px] font-semibold border border-cyan-200/70">
+                        {gabinete.especificaciones.ventiladores_incluidos} ventiladores
+                      </span>
+                    )}
+                    {gabinete.especificaciones.puertos_frontales && (
+                      <span className="px-2.5 py-1 bg-fuchsia-50 text-fuchsia-700 rounded-full text-[9px] font-semibold border border-fuchsia-200/70">
+                        {gabinete.especificaciones.puertos_frontales}
+                      </span>
+                    )}
+                    {gabinete.especificaciones.soporte_gpu && (
+                      <span className="px-2.5 py-1 bg-amber-50 text-amber-700 rounded-full text-[9px] font-semibold border border-amber-200/70">
+                        GPU {gabinete.especificaciones.soporte_gpu}
                       </span>
                     )}
                   </div>

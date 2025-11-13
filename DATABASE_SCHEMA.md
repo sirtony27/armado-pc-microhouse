@@ -451,3 +451,41 @@ ORDER BY veces_usado DESC;
 ---
 
 **Nota**: Este esquema está optimizado para Supabase pero es compatible con PostgreSQL estándar.
+
+## 🧩 Migración nueva: campos número de comprobante y SKU
+
+```sql
+-- Agregar campo número de comprobante opcional a modelos_base
+ALTER TABLE modelos_base ADD COLUMN IF NOT EXISTS numero_comprobante VARCHAR(50);
+
+-- Agregar SKU y número de comprobante opcional a componentes (si no existen)
+ALTER TABLE componentes ADD COLUMN IF NOT EXISTS sku VARCHAR(100);
+ALTER TABLE componentes ADD COLUMN IF NOT EXISTS numero_comprobante VARCHAR(50);
+
+-- Índice para búsqueda rápida por SKU
+CREATE INDEX IF NOT EXISTS idx_componentes_sku ON componentes(sku);
+
+
+
+-- Capturar SKU en detalle de cotización (opcional, si se desea conservarlo en el snapshot)
+ALTER TABLE IF EXISTS cotizacion_detalle ADD COLUMN IF NOT EXISTS sku VARCHAR(100);
+
+-- Si quieres incluir número_comprobante también en componentes históricos (opcional)
+ALTER TABLE IF EXISTS precios_historico ADD COLUMN IF NOT EXISTS numero_comprobante VARCHAR(50);
+-- Crear tabla precios_historico si no existe (para luego agregar el campo)
+CREATE TABLE IF NOT EXISTS precios_historico (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  componente_id UUID REFERENCES componentes(id) ON DELETE CASCADE,
+  precio DECIMAL(10,2) NOT NULL,
+  stock INT,
+  fecha DATE NOT NULL DEFAULT CURRENT_DATE,
+  numero_comprobante VARCHAR(50),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+```
+
+### Notas de implementación
+- Ejecutar estos comandos en el SQL editor de Supabase.
+- Actualizar RLS si el nuevo campo necesita restricciones (normalmente no es necesario).
+- Frontend ya preparado para `numero_comprobante` en modelos y componentes; asegúrate de refrescar tipos si usas generación automática.
+

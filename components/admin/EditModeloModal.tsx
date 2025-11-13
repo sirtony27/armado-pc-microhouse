@@ -1,6 +1,7 @@
 'use client'
 import { useState, useEffect, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
+import { formatPrecio } from '@/lib/utils'
 
 const REQ_CATS = ['CPU','PLACA_MADRE','RAM','ALMACENAMIENTO'] as const
 const OPT_CATS = ['GPU','FUENTE','GABINETE'] as const
@@ -15,6 +16,9 @@ type Modelo = {
   uso_recomendado: string[] | null
   imagen_url: string | null
   precio_base: number
+  activo?: boolean | null
+  orden?: number | null
+  numero_comprobante?: string | null // nuevo campo opcional
   componentes_ids: Record<string, string>
 }
 
@@ -32,8 +36,14 @@ export default function EditModeloModal({ modelo, onClose, onSaved }: Props) {
   const [usoRecomendado, setUsoRecomendado] = useState<string[]>(modelo.uso_recomendado || [])
   const [usoInput, setUsoInput] = useState('')
   const [sel, setSel] = useState<Record<string, string>>(modelo.componentes_ids || {})
+  const [numeroComprobante, setNumeroComprobante] = useState(modelo.numero_comprobante || '')
+  const [precioBase, setPrecioBase] = useState(modelo.precio_base)
+  const [activo, setActivo] = useState(modelo.activo ?? true)
+  const [orden, setOrden] = useState(modelo.orden ?? 0)
+  const [componentFilter, setComponentFilter] = useState('')
   const [file, setFile] = useState<File | null>(null)
   const [saving, setSaving] = useState(false)
+  const [computedPrecio, setComputedPrecio] = useState<number>(modelo.precio_base)
 
   // Actualizar estados cuando cambia el modelo
   useEffect(() => {
@@ -42,6 +52,10 @@ export default function EditModeloModal({ modelo, onClose, onSaved }: Props) {
     setDescripcion(modelo.descripcion || '')
     setUsoRecomendado(modelo.uso_recomendado || [])
     setSel(modelo.componentes_ids || {})
+    setNumeroComprobante(modelo.numero_comprobante || '')
+    setPrecioBase(modelo.precio_base)
+    setActivo(modelo.activo ?? true)
+    setOrden(modelo.orden ?? 0)
     setFile(null)
   }, [modelo])
 
@@ -49,12 +63,34 @@ export default function EditModeloModal({ modelo, onClose, onSaved }: Props) {
     const map: Record<string, Componente[]> = {}
     for (const t of [...REQ_CATS, ...OPT_CATS]) map[t] = []
     componentes.forEach(c => { if (!map[c.tipo]) map[c.tipo] = []; map[c.tipo].push(c) })
+    if (componentFilter.trim()) {
+      const f = componentFilter.toLowerCase()
+      for (const k of Object.keys(map)) {
+        map[k] = map[k].filter(c => `${c.marca} ${c.modelo} ${c.sku ?? ''}`.toLowerCase().includes(f))
+      }
+    }
     return map
-  }, [componentes])
+  }, [componentes, componentFilter])
 
   useEffect(() => {
     loadComponentes()
   }, [])
+
+  // Recalcular precio base automáticamente según selección y SKUs
+  useEffect(() => {
+    const run = async () => {
+      const ids = [sel['CPU'], sel['PLACA_MADRE'], sel['RAM'], sel['ALMACENAMIENTO'], sel['GPU']].filter(Boolean) as string[]
+      if (!ids.length) { setComputedPrecio(0); return }
+      const selected = componentes.filter(c => ids.includes(c.id))
+      const skus = selected.map(c => c.sku).filter(Boolean) as string[]
+      if (!skus.length) { setComputedPrecio(0); return }
+      const { data: prods } = await supabase.from('productos').select('sku,precio').in('sku', skus)
+      const priceMap = new Map((prods||[]).map((p:any)=>[String(p.sku), Number(p.precio||0)]))
+      const sum = selected.reduce((acc, c) => acc + (priceMap.get(String(c.sku)) || 0), 0)
+      setComputedPrecio(sum)
+    }
+    run()
+  }, [sel, componentes])
 
   async function loadComponentes() {
     const { data } = await supabase
@@ -109,11 +145,30 @@ export default function EditModeloModal({ modelo, onClose, onSaved }: Props) {
           descripcion,
           uso_recomendado: usoRecomendado,
           imagen_url: imageUrl,
-          componentes_ids: sel,
+          numero_comprobante: numeroComprobante || null,
+          precio_base: computedPrecio,
+          activo,
+          orden,
         })
         .eq('id', modelo.id)
 
       if (error) throw error
+
+      // Guardar configuración de componentes en tabla separada
+      const payload: any = {
+        modelo_id: modelo.id,
+        procesador_id: sel['CPU'] || null,
+        placa_madre_id: sel['PLACA_MADRE'] || null,
+        ram_id: sel['RAM'] || null,
+        almacenamiento_id: sel['ALMACENAMIENTO'] || null,
+        gpu_id: sel['GPU'] || null,
+        fuente_id: sel['FUENTE'] || null,
+        gabinete_id: sel['GABINETE'] || null,
+      }
+      const { error: confError } = await supabase
+        .from('configuracion_modelo')
+        .upsert(payload, { onConflict: 'modelo_id' })
+      if (confError) throw confError
 
       onSaved()
       onClose()
@@ -135,12 +190,28 @@ export default function EditModeloModal({ modelo, onClose, onSaved }: Props) {
         <form onSubmit={handleSave} className="p-6 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
+              <label className="block text-sm font-semibold mb-1">N° Comprobante (Opcional)</label>
+              <input value={numeroComprobante} onChange={(e) => setNumeroComprobante(e.target.value)} placeholder="Ej: FACT-123" className="w-full border rounded px-3 py-2" />
+            </div>
+            <div>
               <label className="block text-sm font-semibold mb-1">Nombre</label>
               <input value={nombre} onChange={(e) => setNombre(e.target.value)} required className="w-full border rounded px-3 py-2" />
             </div>
             <div>
               <label className="block text-sm font-semibold mb-1">Slug</label>
               <input value={slug} onChange={(e) => setSlug(e.target.value)} required className="w-full border rounded px-3 py-2" />
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-1">Precio Base (automático)</label>
+              <div className="w-full border rounded px-3 py-2 bg-slate-50">{formatPrecio(computedPrecio)}</div>
+            </div>
+            <div>
+              <label className="block text-sm font-semibold mb-1">Orden</label>
+              <input type="number" value={orden} onChange={(e) => setOrden(Number(e.target.value))} className="w-full border rounded px-3 py-2" />
+            </div>
+            <div className="flex items-center gap-2">
+              <input type="checkbox" checked={activo} onChange={(e) => setActivo(e.target.checked)} />
+              <span className="text-sm font-semibold">Activo</span>
             </div>
             <div className="md:col-span-2">
               <label className="block text-sm font-semibold mb-1">Descripción</label>
@@ -174,6 +245,13 @@ export default function EditModeloModal({ modelo, onClose, onSaved }: Props) {
 
           <div>
             <label className="block text-sm font-semibold mb-2">Componentes</label>
+            <input
+              type="text"
+              value={componentFilter}
+              onChange={(e) => setComponentFilter(e.target.value)}
+              placeholder="Filtrar por marca/modelo/SKU"
+              className="mb-3 w-full border rounded px-3 py-2 text-sm"
+            />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {[...REQ_CATS, ...OPT_CATS].map((cat) => (
                 <div key={cat}>

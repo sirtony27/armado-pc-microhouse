@@ -11,7 +11,8 @@ type ComponenteRow = {
   marca: string
   modelo: string
   descripcion: string | null
-  sku: string | null
+  sku: string | null // SKU opcional existente
+  numero_comprobante?: string | null // nuevo campo opcional para comprobante
   image_url: string | null
   especificaciones: any | null
   activo: boolean
@@ -84,6 +85,7 @@ export default function EditComponenteModal({ componente, onClose, onSaved }: Pr
   const [modelo, setModelo] = useState(componente.modelo)
   const [descripcion, setDescripcion] = useState(componente.descripcion || '')
   const [sku, setSku] = useState(componente.sku || '')
+  const [numeroComprobante, setNumeroComprobante] = useState(componente.numero_comprobante || '')
   const [activo, setActivo] = useState(componente.activo)
   const [specsForm, setSpecsForm] = useState<Record<string, any>>(componente.especificaciones || {})
   const [file, setFile] = useState<File | null>(null)
@@ -95,6 +97,7 @@ export default function EditComponenteModal({ componente, onClose, onSaved }: Pr
     setModelo(componente.modelo)
     setDescripcion(componente.descripcion || '')
     setSku(componente.sku || '')
+    setNumeroComprobante(componente.numero_comprobante || '')
     setActivo(componente.activo)
     setSpecsForm(componente.especificaciones || {})
     setFile(null)
@@ -134,6 +137,7 @@ export default function EditComponenteModal({ componente, onClose, onSaved }: Pr
           modelo,
           descripcion,
           sku: sku || null,
+          numero_comprobante: numeroComprobante || null,
           image_url: imageUrl,
           especificaciones: specsForm,
           activo,

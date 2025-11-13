@@ -7,7 +7,7 @@ import { Download, Share2, Save } from 'lucide-react';
 
 interface ResumenCotizacionProps {
   nombreModelo: string;
-  componentesConPrecios: { tipo: string; nombre: string; precio: number }[];
+  componentesConPrecios: { tipo: string; nombre: string; precio: number; sku?: string | null }[];
   total: number;
 }
 
@@ -48,7 +48,10 @@ export default function ResumenCotizacion({
           <p className="text-sm font-medium text-gray-700">Componentes:</p>
           {componentesConPrecios.map((comp, idx) => (
             <div key={idx} className="flex justify-between text-sm">
-              <span className="text-gray-600">{comp.tipo}</span>
+              <span className="text-gray-600 flex flex-col">
+                <span>{comp.tipo}</span>
+                {comp.sku && <span className="text-[10px] text-gray-400">SKU: {comp.sku}</span>}
+              </span>
               <span className="font-medium text-gray-900">{formatPrecio(comp.precio)}</span>
             </div>
           ))}
