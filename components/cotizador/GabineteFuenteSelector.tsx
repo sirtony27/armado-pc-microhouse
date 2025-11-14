@@ -38,7 +38,7 @@ export default function GabineteFuenteSelector() {
     try {
       const { data } = await supabase
         .from('componentes')
-        .select('id,marca,modelo,descripcion,especificaciones,sku')
+        .select('*')
         .eq('tipo','GABINETE')
         .throwOnError()
       setGabinetesDb((data as any) || [])
@@ -169,11 +169,29 @@ export default function GabineteFuenteSelector() {
                         }`}
                         style={{ cursor: position === 0 ? 'pointer' : 'default' }}
                       >
-                        <div className={`w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg transition-all duration-700 ${
-                          position === 0 ? 'animate-float' : 'scale-90 opacity-80'
-                        }`}>
-                          <Box className="h-8 w-8 text-white" />
-                        </div>
+                        {(() => {
+                          const raw = (gabinete as any)?.imagen_url ?? (gabinete as any)?.imagenUrl ?? (gabinete as any)?.imagen ?? (gabinete as any)?.image_url ?? '';
+                          const base = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+                          let normalized = '';
+                          if (raw) {
+                            if (/^https?:\/\//i.test(raw)) normalized = raw;
+                            else if (/^\/?storage\/v1\/object\/public\//i.test(raw)) normalized = `${base.replace(/\/$/, '')}/${raw.replace(/^\//, '')}`;
+                            else normalized = `${base.replace(/\/$/, '')}/storage/v1/object/public/${raw.replace(/^\//, '')}`;
+                          }
+                          return normalized ? (
+                            <div className={`mx-auto mb-4 rounded-2xl overflow-hidden shadow-lg transition-all duration-700 bg-white border border-slate-200 ${
+                              position === 0 ? 'animate-float' : 'scale-90 opacity-80'
+                            }`} style={{ width: 240, height: 320 }}>
+                              <img src={normalized} alt={`${gabinete.marca} ${gabinete.modelo}`} loading="lazy" className="w-full h-full object-contain" />
+                            </div>
+                          ) : (
+                            <div className={`w-16 h-16 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg transition-all duration-700 ${
+                              position === 0 ? 'animate-float' : 'scale-90 opacity-80'
+                            }`}>
+                              <Box className="h-8 w-8 text-white" />
+                            </div>
+                          )
+                        })()}
 
                         <h3 className="text-lg font-bold text-slate-900 mb-2">
                           {gabinete.marca}
@@ -220,7 +238,7 @@ export default function GabineteFuenteSelector() {
 
                         <div className="mb-4 px-3 py-2 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200/50 shadow-sm">
                           <p className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
-                            {formatPrecio(gabinete.precio)}
+                            {formatPrecio(Math.ceil((gabinete.precio as number) * 1.10))}
                           </p>
                         </div>
 
@@ -391,7 +409,7 @@ export default function GabineteFuenteSelector() {
 
                         <div className="mb-4 px-3 py-2 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border-2 border-amber-200/50 shadow-sm">
                           <p className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
-                            {formatPrecio(fuente.precio)}
+                            {formatPrecio(Math.ceil((fuente.precio as number) * 1.10))}
                           </p>
                         </div>
 

@@ -10,6 +10,8 @@ import { ChevronLeft, ChevronRight, Check, Cpu, HardDrive, MemoryStick, MonitorU
 import Stepper from '@/components/cotizador/Stepper';
 import GabineteSelector from '@/components/cotizador/GabineteSelector';
 import './animations.css';
+// jsPDF will be dynamically imported
+// autoTable will be dynamically imported
 
 export default function CotizarPage() {
   const { pasoActual, setPaso, modeloSeleccionado, componentesSeleccionados, setModeloBase, cambiarComponente } = useCotizadorStore();
@@ -121,8 +123,114 @@ export default function CotizarPage() {
 
   const total = precioTotal;
 
-  const handleDescargarPDF = () => {
-    alert('Funcionalidad de PDF en desarrollo');
+  const handleDescargarPDF = async () => {
+    try {
+      const { default: jsPDF } = await import('jspdf');
+      const autoTable = (await import('jspdf-autotable')).default;
+      const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+      const pageWidth = doc.internal.pageSize.getWidth();
+      let y = 40;
+
+      // Header bar
+      doc.setFillColor(224, 33, 39);
+      doc.rect(0, 0, pageWidth, 8, 'F');
+
+      // Logo
+      try {
+        const logoResp = await fetch('https://wckxhidltmnvpbrswnmz.supabase.co/storage/v1/object/public/componentes/branding/microhouse-logo.png');
+        const logoBlob = await logoResp.blob();
+        const logoDataUrl: string = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(logoBlob);
+        });
+        // place logo on the right top area
+        doc.addImage(logoDataUrl, 'PNG', pageWidth - 200, 14, 160, 36);
+      } catch {}
+
+      // Title and date
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(18);
+      doc.text('Cotización PC - MicroHouse', 40, y);
+      doc.setFontSize(10);
+      doc.setFont('helvetica', 'normal');
+      const fecha = new Date();
+      doc.text(`Emitida: ${fecha.toLocaleString()}`, 40, y + 16);
+      y += 40;
+
+      // Modelo
+      if (modeloSeleccionado?.nombre) {
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(12);
+        doc.text(`Modelo: ${modeloSeleccionado.nombre}`, 40, y);
+        y += 16;
+      }
+
+      // Tabla de componentes (precio mostrado: 3 cuotas +10%)
+      const tipoMap: Record<string, string> = {
+        procesador: 'Procesador', placamadre: 'Placa Madre', placaMadre: 'Placa Madre',
+        ram: 'Memoria RAM', almacenamiento: 'Almacenamiento', gpu: 'GPU',
+        fuente: 'Fuente', gabinete: 'Gabinete'
+      };
+      const rows = componentesDetalle.map(({ tipo, componente }) => {
+        const base = componente ? (remotePrices[componente.id] ?? componente.precio) : 0;
+        const precio3 = Math.ceil((base || 0) * 1.10);
+        const e: any = componente?.especificaciones || {};
+        const detalle = tipo === 'ram' ? (e.capacidad || '')
+          : tipo === 'almacenamiento' ? `${e.capacidad || ''} ${e.tipo || ''}`.trim()
+          : tipo === 'gpu' ? (e.vram || '')
+          : tipo === 'fuente' ? `${e.potencia || ''} ${e.certificacion || ''}`.trim()
+          : tipo === 'gabinete' ? (e.formato || '')
+          : '';
+        return [tipoMap[tipo] || tipo, `${componente?.marca || ''} ${componente?.modelo || ''}`.trim(), detalle, formatPrecio(precio3)];
+      });
+
+      autoTable(doc, {
+        head: [['Componente', 'Marca/Modelo', 'Detalle', 'Precio 3 cuotas']],
+        body: rows,
+        startY: y,
+        theme: 'striped',
+        styles: { fontSize: 9 },
+        headStyles: { fillColor: [224, 33, 39], textColor: 255 }
+      });
+
+      const afterTableY = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY + 20 : y + 20;
+
+      // Totales y métodos de pago
+      const contado = Math.ceil(total);
+      const unoCuota = contado;
+      const tresTotal = Math.ceil(contado * 1.10);
+      const seisTotal = Math.ceil(contado * 1.2603);
+      const nueveTotal = Math.ceil(contado * 1.3805);
+      const doceTotal = Math.ceil(contado * 1.51);
+
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(12);
+      doc.text('Opciones de pago', 40, afterTableY);
+      let py = afterTableY + 16;
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(11);
+      doc.text(`Contado / Débito / Transferencia (Mejor precio): ${formatPrecio(contado)}`, 40, py); py += 16;
+      doc.text(`1 cuota (sin interés): ${formatPrecio(unoCuota)}`, 40, py); py += 16;
+      doc.text(`3 cuotas (sin interés): ${formatPrecio(Math.ceil(tresTotal / 3))} / mes — Total: ${formatPrecio(tresTotal)}`, 40, py); py += 16;
+      doc.text(`6 cuotas: ${formatPrecio(Math.ceil(seisTotal / 6))} / mes — Total: ${formatPrecio(seisTotal)}`, 40, py); py += 16;
+      doc.text(`9 cuotas: ${formatPrecio(Math.ceil(nueveTotal / 9))} / mes — Total: ${formatPrecio(nueveTotal)}`, 40, py); py += 16;
+      doc.text(`12 cuotas: ${formatPrecio(Math.ceil(doceTotal / 12))} / mes — Total: ${formatPrecio(doceTotal)}`, 40, py); py += 24;
+
+      // Aclaración
+      doc.setFontSize(9);
+      doc.setTextColor(100);
+      doc.text('El precio del presupuesto es válido al momento de la emisión y está sujeto a cambios sin previo aviso.', 40, py, { maxWidth: pageWidth - 80 });
+
+      // Guardar
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      const name = `Cotizacion-MicroHouse-${fecha.getFullYear()}${pad(fecha.getMonth() + 1)}${pad(fecha.getDate())}-${pad(fecha.getHours())}${pad(fecha.getMinutes())}.pdf`;
+      doc.save(name);
+    } catch (e) {
+      console.error(e);
+      alert('No se pudo generar el PDF.');
+    }
   };
 
   const handleCompartirWhatsApp = () => {
@@ -208,7 +316,7 @@ export default function CotizarPage() {
                       </p>
                     </div>
                     <p className="text-[#E02127] font-semibold text-[11px] mt-0.5">
-                      {formatPrecio((componente ? (remotePrices[componente.id] ?? componente.precio) : 0) || 0)}
+                      {formatPrecio(Math.ceil((((componente ? (remotePrices[componente.id] ?? componente.precio) : 0) || 0) * 1.10)))}
                     </p>
                   </div>
                 ))}
@@ -539,7 +647,7 @@ export default function CotizarPage() {
                           <p className={`font-bold text-[11px] mt-1.5 ${
                             componentesSeleccionados?.ram === comp.id ? 'text-white' : 'text-purple-600'
                           }`}>
-                            {formatPrecio(remotePrices[comp.id] ?? comp.precio)}
+                            {formatPrecio(Math.ceil((remotePrices[comp.id] ?? comp.precio) * 1.10))}
                           </p>
                         </button>
                       ))}
@@ -591,7 +699,7 @@ export default function CotizarPage() {
                           <p className={`font-bold text-[11px] mt-1.5 ${
                             componentesSeleccionados?.almacenamiento === comp.id ? 'text-white' : 'text-emerald-600'
                           }`}>
-                            {formatPrecio(remotePrices[comp.id] ?? comp.precio)}
+                            {formatPrecio(Math.ceil((remotePrices[comp.id] ?? comp.precio) * 1.10))}
                           </p>
                         </button>
                       ))}
@@ -646,7 +754,7 @@ export default function CotizarPage() {
                           <p className={`font-bold text-[11px] mt-1.5 ${
                             componentesSeleccionados?.gpu === comp.id ? 'text-white' : 'text-orange-600'
                           }`}>
-                            {formatPrecio(remotePrices[comp.id] ?? comp.precio)}
+                            {formatPrecio(Math.ceil((remotePrices[comp.id] ?? comp.precio) * 1.10))}
                           </p>
                         </button>
                       ))}
@@ -759,7 +867,7 @@ export default function CotizarPage() {
                           </div>
                           <div className="text-right">
                             <p className="font-bold text-[#E02127] text-sm">
-                              {formatPrecio((componente ? (remotePrices[componente.id] ?? componente.precio) : 0) || 0)}
+                              {formatPrecio(Math.ceil((((componente ? (remotePrices[componente.id] ?? componente.precio) : 0) || 0) * 1.10)))}
                             </p>
                           </div>
                         </div>
@@ -797,7 +905,7 @@ export default function CotizarPage() {
                         <span className="text-lg font-bold text-slate-900">Total</span>
                         <div className="text-right">
                           <p className="text-2xl font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
-                            {formatPrecio(total)}
+                            {formatPrecio(Math.ceil(total * 1.10))}
                           </p>
                           <p className="text-xs text-slate-500">Precio final</p>
                         </div>
@@ -814,14 +922,14 @@ export default function CotizarPage() {
                         <div className="bg-white rounded-lg p-2.5 border border-emerald-200">
                           <div className="flex justify-between items-center">
                             <span className="text-xs text-emerald-700 font-semibold">Contado / Débito / Transferencia</span>
-                            <span className="inline-flex items-center px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-[9px] font-bold">-25%</span>
+                            <span className="inline-flex items-center px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-[9px] font-bold">Mejor precio</span>
                           </div>
                           <p className="text-base font-bold text-emerald-900 mt-1">
-                            {formatPrecio(Math.ceil(total * 0.75))} <span className="text-[10px] font-normal">final</span>
+                            {formatPrecio(Math.ceil(total))} <span className="text-[10px] font-normal">final</span>
                           </p>
                         </div>
 
-                        {/* 1 cuota sin interés */}
+                        {/* 1 cuota (sin interés) */}
                         <div className="bg-white/70 rounded-lg p-2.5 border border-purple-200/50">
                           <div className="flex justify-between items-center">
                             <span className="text-xs text-purple-700 font-semibold">1 cuota</span>
@@ -830,28 +938,41 @@ export default function CotizarPage() {
                           <p className="text-base font-bold text-purple-900 mt-1">
                             {formatPrecio(Math.ceil(total))} <span className="text-xs font-normal">/única</span>
                           </p>
+                          <p className="text-[10px] text-slate-500">Total: {formatPrecio(Math.ceil(total))}</p>
                         </div>
 
-                        {/* 3 cuotas sin interés */}
+                        {/* 3 cuotas (sin interés) */}
                         <div className="bg-white/70 rounded-lg p-2.5 border border-purple-200/50">
                           <div className="flex justify-between items-center">
                             <span className="text-xs text-purple-700 font-semibold">3 cuotas</span>
                             <span className="inline-flex items-center px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[9px] font-bold">SIN INTERÉS</span>
                           </div>
                           <p className="text-base font-bold text-purple-900 mt-1">
-                            {formatPrecio(Math.ceil(total / 3))} <span className="text-xs font-normal">/mes</span>
+                            {formatPrecio(Math.ceil(total * 1.10 / 3))} <span className="text-xs font-normal">/mes</span>
                           </p>
+                          <p className="text-[10px] text-slate-500">Total: {formatPrecio(Math.ceil(total * 1.10))}</p>
                         </div>
 
                         {/* 6 cuotas sin interés */}
                         <div className="bg-white/70 rounded-lg p-2.5 border border-purple-200/50">
                           <div className="flex justify-between items-center">
-                            <span className="text-xs text-purple-700 font-semibold">6 cuotas</span>
-                            <span className="inline-flex items-center px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[9px] font-bold">SIN INTERÉS</span>
+                            <span className="text-xs text-purple-700 font-semibold">9 cuotas</span>
                           </div>
                           <p className="text-base font-bold text-purple-900 mt-1">
-                            {formatPrecio(Math.ceil(total / 6))} <span className="text-xs font-normal">/mes</span>
+                            {formatPrecio(Math.ceil(total * 1.3805 / 9))} <span className="text-xs font-normal">/mes</span>
                           </p>
+                          <p className="text-[10px] text-slate-500">Total: {formatPrecio(Math.ceil(total * 1.3805))}</p>
+                        </div>
+
+                        {/* 12 cuotas */}
+                        <div className="bg-white/70 rounded-lg p-2.5 border border-purple-200/50">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-purple-700 font-semibold">12 cuotas</span>
+                          </div>
+                          <p className="text-base font-bold text-purple-900 mt-1">
+                            {formatPrecio(Math.ceil(total * 1.51 / 12))} <span className="text-xs font-normal">/mes</span>
+                          </p>
+                          <p className="text-[10px] text-slate-500">Total: {formatPrecio(Math.ceil(total * 1.51))}</p>
                         </div>
                       </div>
 
