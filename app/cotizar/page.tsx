@@ -16,6 +16,7 @@ import './animations.css';
 export default function CotizarPage() {
   const { pasoActual, setPaso, modeloSeleccionado, componentesSeleccionados, setModeloBase, cambiarComponente } = useCotizadorStore();
   const modelosBase = useModelosBase();
+  const modelosOrdenados = useMemo(() => [...modelosBase].sort((a, b) => a.precioBase - b.precioBase), [modelosBase]);
   const componentes = useComponentes();
   const [currentModelIndex, setCurrentModelIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
@@ -108,7 +109,7 @@ export default function CotizarPage() {
   const nextModel = () => {
     if (isTransitioning) return;
     setIsTransitioning(true);
-    const nextIndex = (currentModelIndex + 1) % modelosBase.length;
+    const nextIndex = (currentModelIndex + 1) % modelosOrdenados.length;
     setCurrentModelIndex(nextIndex);
     setTimeout(() => setIsTransitioning(false), 800);
   };
@@ -116,7 +117,7 @@ export default function CotizarPage() {
   const prevModel = () => {
     if (isTransitioning) return;
     setIsTransitioning(true);
-    const prevIndex = (currentModelIndex - 1 + modelosBase.length) % modelosBase.length;
+    const prevIndex = (currentModelIndex - 1 + modelosOrdenados.length) % modelosOrdenados.length;
     setCurrentModelIndex(prevIndex);
     setTimeout(() => setIsTransitioning(false), 800);
   };
@@ -339,7 +340,7 @@ export default function CotizarPage() {
               <div className="flex justify-between items-center hover:scale-105 transition-transform duration-200">
                 <span className="text-sm font-bold text-slate-900">TOTAL</span>
                 <span className="text-2xl font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent animate-pulse">
-                  {formatPrecio(total)}
+                  {formatPrecio(Math.ceil(total * 1.10))}
                 </span>
               </div>
             </div>
@@ -379,7 +380,7 @@ export default function CotizarPage() {
 
             {/* Container de Cards */}
             <div className="relative w-full h-full flex items-center justify-center">
-              {modelosBase.map((modelo, index) => {
+              {modelosOrdenados.map((modelo, index) => {
                 const position = index - currentModelIndex;
                 const isVisible = Math.abs(position) <= 2;
                 
@@ -540,7 +541,7 @@ export default function CotizarPage() {
 
           {/* Indicadores */}
           <div className="flex gap-2 mt-6 animate-in fade-in slide-in-from-bottom duration-700 delay-300">
-            {modelosBase.map((_, index) => (
+            {modelosOrdenados.map((_, index) => (
               <button
                 key={index}
                 onClick={() => {
@@ -600,7 +601,7 @@ export default function CotizarPage() {
           
           {/* Contenido Expandible */}
           {mejorasExpanded && modeloSeleccionado && (
-            <div className="h-full overflow-y-auto overflow-x-hidden px-4 py-3 animate-in fade-in slide-in-from-top-4 duration-500" style={{ maxHeight: 'calc(100vh - 300px)' }}>
+            <div className="h-full overflow-y-auto overflow-x-hidden px-4 py-3 animate-in fade-in slide-in-from-top-4 duration-500" style={{ maxHeight: 'calc(100vh - 140px)', minHeight: '60vh' }}>
               <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
                 {/* Categoría: RAM */}
                 <div className="bg-gradient-to-br from-purple-50/50 to-pink-50/50 rounded-lg p-3 border border-purple-100 hover:shadow-lg hover:scale-[1.02] transition-all duration-300">
@@ -936,9 +937,9 @@ export default function CotizarPage() {
                             <span className="inline-flex items-center px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[9px] font-bold">SIN INTERÉS</span>
                           </div>
                           <p className="text-base font-bold text-purple-900 mt-1">
-                            {formatPrecio(Math.ceil(total))} <span className="text-xs font-normal">/única</span>
+                            {formatPrecio(Math.ceil(total * 1.10))} <span className="text-xs font-normal">/única</span>
                           </p>
-                          <p className="text-[10px] text-slate-500">Total: {formatPrecio(Math.ceil(total))}</p>
+                          <p className="text-[10px] text-slate-500">Total: {formatPrecio(Math.ceil(total * 1.10))}</p>
                         </div>
 
                         {/* 3 cuotas (sin interés) */}
