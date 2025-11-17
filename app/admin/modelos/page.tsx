@@ -139,7 +139,7 @@ export default function AdminModelosPage() {
       }
       const { error: e2 } = await supabase.from('configuracion_modelo').upsert(payload, { onConflict: 'modelo_id' })
       if (e2) throw e2
-      setNombre(''); setSlug(''); setDescripcion(''); setPrecioBase(0); setFile(null); setSel({})
+      setNombre(''); setSlug(''); setDescripcion(''); setFile(null); setSel({})
       await loadModelos()
       alert('Modelo creado')
     } catch (err: any) {
