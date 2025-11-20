@@ -14,6 +14,13 @@ export default function GabineteSelector() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [gabinetesDb, setGabinetesDb] = useState<any[]>([])
+  const [vw, setVw] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1024);
+  useEffect(() => { const onResize = () => setVw(window.innerWidth); window.addEventListener('resize', onResize); return () => window.removeEventListener('resize', onResize); }, []);
+  const isMobile = vw < 768;
+  const cardSpacing = isMobile ? 220 : 360;
+  const centerScale = isMobile ? 0.98 : 1;
+  const sideScale = isMobile ? 0.85 : 0.75;
+  const tiltDeg = isMobile ? 10 : 18;
   useEffect(() => { (async () => {
     try {
       const { data } = await supabase
@@ -59,23 +66,23 @@ export default function GabineteSelector() {
       </div>
 
       <div 
-        className="relative w-full max-w-7xl h-[480px] flex items-center justify-center mb-4"
+        className="relative w-full max-w-7xl md:h-[480px] min-h-[360px] flex items-center justify-center mb-4"
         style={{ perspective: '2500px', perspectiveOrigin: 'center' }}
       >
         <button
           onClick={prevGabinete}
           disabled={isTransitioning}
-          className="absolute left-8 top-1/2 -translate-y-1/2 z-30 bg-white/95 backdrop-blur-md rounded-full p-3 shadow-xl hover:shadow-2xl transition-all duration-300 ease-out hover:scale-110 active:scale-95 hover:-translate-x-1 border-2 border-[#E02127]/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 group"
+          className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 z-30 bg-white/95 backdrop-blur-md rounded-full p-2 md:p-3 shadow-xl hover:shadow-2xl transition-all duration-300 ease-out hover:scale-110 active:scale-95 hover:-translate-x-1 border-2 border-[#E02127]/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 group"
         >
-          <ChevronLeft className="h-5 w-5 text-[#E02127] transition-transform duration-200 group-hover:-translate-x-0.5" />
+          <ChevronLeft className="h-4 w-4 md:h-5 md:w-5 text-[#E02127] transition-transform duration-200 group-hover:-translate-x-0.5" />
         </button>
 
         <button
           onClick={nextGabinete}
           disabled={isTransitioning}
-          className="absolute right-8 top-1/2 -translate-y-1/2 z-30 bg-white/95 backdrop-blur-md rounded-full p-3 shadow-xl hover:shadow-2xl transition-all duration-300 ease-out hover:scale-110 active:scale-95 hover:translate-x-1 border-2 border-[#E02127]/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 group"
+          className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 z-30 bg-white/95 backdrop-blur-md rounded-full p-2 md:p-3 shadow-xl hover:shadow-2xl transition-all duration-300 ease-out hover:scale-110 active:scale-95 hover:translate-x-1 border-2 border-[#E02127]/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 group"
         >
-          <ChevronRight className="h-5 w-5 text-[#E02127] transition-transform duration-200 group-hover:translate-x-0.5" />
+          <ChevronRight className="h-4 w-4 md:h-5 md:w-5 text-[#E02127] transition-transform duration-200 group-hover:translate-x-0.5" />
         </button>
 
         <div className="relative w-full h-full flex items-center justify-center">
@@ -91,9 +98,9 @@ export default function GabineteSelector() {
                 className={`absolute ${position === 0 ? 'z-20' : 'z-0'}`}
                 style={{
                   transform: `
-                    translateX(${position * 360}px)
-                    scale(${position === 0 ? 1 : 0.75})
-                    rotateY(${position * -18}deg)
+                    translateX(${position * cardSpacing}px)
+                    scale(${position === 0 ? centerScale : sideScale})
+                    rotateY(${position * -tiltDeg}deg)
                   `,
                   opacity: position === 0 ? 1 : Math.max(0, 0.6 - Math.abs(position) * 0.2),
                   pointerEvents: position === 0 ? 'auto' : 'none',
@@ -104,7 +111,7 @@ export default function GabineteSelector() {
                 onClick={() => position === 0 && cambiarComponente('GABINETE', gabinete.id)}
               >
                 <div 
-                  className={`bg-white rounded-2xl p-6 text-center w-[360px] relative overflow-visible ${
+                  className={`bg-white rounded-2xl p-6 text-center w-[85vw] max-w-[360px] relative overflow-visible ${
                     position === 0 ? 'shadow-[0_0_0_3px_rgba(224,33,39,0.3),0_20px_60px_-10px_rgba(224,33,39,0.4)] animate-glow-pulse' : 'shadow-2xl'
                   }`}
                   style={{ cursor: position === 0 ? 'pointer' : 'default' }}
@@ -121,7 +128,7 @@ export default function GabineteSelector() {
                     return src ? (
                       <div className={`mx-auto mb-3 rounded-2xl overflow-hidden shadow-lg transition-all duration-700 bg-white border border-slate-200 ${
                         position === 0 ? 'animate-float scale-100' : 'scale-90 opacity-80'
-                      }`} style={{ width: 240, height: 320 }}>
+                      }`} style={{ width: 'min(240px,70vw)', height: 'min(320px,60vh)' }}>
                         <img src={src} alt={`${gabinete.marca} ${gabinete.modelo}`} loading="lazy" className="w-full h-full object-contain" />
                       </div>
                     ) : (
@@ -216,7 +223,7 @@ export default function GabineteSelector() {
         </div>
       </div>
 
-      <div className="flex gap-2 animate-in fade-in slide-in-from-bottom duration-700 delay-300">
+      <div className="flex gap-1.5 md:gap-2 mt-4 md:mt-6 animate-in fade-in slide-in-from-bottom duration-700 delay-300">
         {gabinetes.map((_, index) => (
           <button
             key={index}
@@ -228,10 +235,10 @@ export default function GabineteSelector() {
               }
             }}
             disabled={isTransitioning}
-            className={`h-2 rounded-full transition-all duration-500 ease-out ${
+            className={`h-1.5 md:h-2 rounded-full transition-all duration-500 ease-out ${
               index === currentIndex
-                ? 'w-10 bg-gradient-to-r from-[#E02127] to-[#0D1A4B] shadow-lg shadow-red-500/50 scale-110'
-                : 'w-2 bg-slate-300 hover:bg-slate-400 hover:scale-150 hover:shadow-md'
+                ? 'w-8 md:w-10 bg-gradient-to-r from-[#E02127] to-[#0D1A4B] shadow-lg shadow-red-500/50 scale-110'
+                : 'w-1.5 md:w-2 bg-slate-300 hover:bg-slate-400 hover:scale-150 hover:shadow-md'
             }`}
             aria-label={`Ver gabinete ${index + 1}`}
           />
