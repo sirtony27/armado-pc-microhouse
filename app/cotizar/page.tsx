@@ -200,8 +200,8 @@ export default function CotizarPage() {
 
       // Totales y métodos de pago
       const contado = Math.ceil(total);
-      const unoCuota = contado;
-      const tresTotal = Math.ceil(contado * 1.10);
+      const unoCuota = Math.ceil(total * 1.10); // 1 cuota sin interés igual que resumen
+      const tresTotal = Math.ceil(total * 1.10);
       const seisTotal = Math.ceil(contado * 1.2603);
       const nueveTotal = Math.ceil(contado * 1.3805);
       const doceTotal = Math.ceil(contado * 1.51);
@@ -954,7 +954,18 @@ export default function CotizarPage() {
                           <p className="text-[10px] text-slate-500">Total: {formatPrecio(Math.ceil(total * 1.10))}</p>
                         </div>
 
-                        {/* 6 cuotas sin interés */}
+                        {/* 6 cuotas */}
+                        <div className="bg-white/70 rounded-lg p-2.5 border border-purple-200/50">
+                          <div className="flex justify-between items-center">
+                            <span className="text-xs text-purple-700 font-semibold">6 cuotas</span>
+                          </div>
+                          <p className="text-base font-bold text-purple-900 mt-1">
+                            {formatPrecio(Math.ceil(total * 1.2603 / 6))} <span className="text-xs font-normal">/mes</span>
+                          </p>
+                          <p className="text-[10px] text-slate-500">Total: {formatPrecio(Math.ceil(total * 1.2603))}</p>
+                        </div>
+
+                        {/* 9 cuotas */}
                         <div className="bg-white/70 rounded-lg p-2.5 border border-purple-200/50">
                           <div className="flex justify-between items-center">
                             <span className="text-xs text-purple-700 font-semibold">9 cuotas</span>
