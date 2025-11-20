@@ -24,6 +24,17 @@ export default function CotizarPage() {
   const remotePrices = useRemotePrices(componentes);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
+  const [vw, setVw] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1024);
+  useEffect(() => {
+    const onResize = () => setVw(window.innerWidth);
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
+  const isMobile = vw < 768;
+  const cardSpacing = isMobile ? 220 : 360;
+  const tiltDeg = isMobile ? 10 : 18;
+  const centerScale = isMobile ? 0.98 : 0.9;
+  const sideScale = isMobile ? 0.85 : 0.75;
 
   const handleSeleccionarModelo = (modelo: typeof modelosBase[0]) => {
     setModeloBase(modelo); // Esto ya actualiza el paso automáticamente
@@ -254,13 +265,13 @@ export default function CotizarPage() {
   };
 
   return (
-    <div className="flex flex-col h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-slate-50">
+    <div className="flex flex-col min-h-screen overflow-x-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-slate-50">
       {/* Stepper */}
       <Stepper pasoActual={pasoActual} />
 
-      <div className="flex flex-1 overflow-hidden">
+      <div className="flex flex-1 overflow-hidden flex-col md:flex-row">
       {/* Panel Lateral Izquierdo - Resumen */}
-      <div className="w-80 bg-white/95 backdrop-blur-sm shadow-xl border-r border-slate-200/50 flex flex-col">
+      <div className="w-full md:w-80 bg-white/95 backdrop-blur-sm shadow-xl md:border-r border-slate-200/50 flex flex-col md:max-h-full md:overflow-hidden">
         {/* Header */}
         <div className="px-4 py-3 bg-gradient-to-r from-[#E02127] to-[#0D1A4B]">
           <img src="https://wckxhidltmnvpbrswnmz.supabase.co/storage/v1/object/public/componentes/branding/microhouse-logo.png" alt="MicroHouse" className="h-8 w-auto object-contain" loading="eager" />
@@ -273,7 +284,7 @@ export default function CotizarPage() {
         </div>
 
         {/* Resumen de Componentes */}
-        <div className="flex-1 overflow-y-auto px-4 py-3">
+        <div className="flex-1 overflow-y-auto px-4 py-3 max-h-[42vh] md:max-h-none">
           <h3 className="text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider">Tu Configuración</h3>
           
           {modeloSeleccionado ? (
@@ -352,10 +363,10 @@ export default function CotizarPage() {
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Paso 1: Carrusel de Modelos */}
         {pasoActual === 'modelo' && (
-        <div className="flex-1 flex flex-col items-center justify-center px-6 py-6 overflow-hidden">
+        <div className="flex-1 flex flex-col items-center justify-center px-4 md:px-6 py-6 overflow-visible w-full">
           {/* Carrusel Coverflow */}
           <div
-            className="relative w-full max-w-7xl h-[480px] flex items-center justify-center mb-4"
+            className="relative w-full max-w-7xl md:h-[480px] min-h-[340px] flex items-center justify-center mb-4"
             style={{ perspective: '2500px', perspectiveOrigin: 'center' }}
             onTouchStart={onTouchStart}
             onTouchMove={onTouchMove}
@@ -408,7 +419,7 @@ export default function CotizarPage() {
                   >
                     {/* Card del Modelo */}
                     <div 
-                      className={`bg-white rounded-2xl p-6 text-center w-[360px] relative overflow-visible ${
+                      className={`bg-white rounded-2xl p-6 text-center w-[85vw] max-w-[360px] relative overflow-visible ${
                         position === 0 ? 'shadow-[0_0_0_3px_rgba(224,33,39,0.3),0_20px_60px_-10px_rgba(224,33,39,0.4)] animate-glow-pulse' : 'shadow-2xl'
                       }`}
                       style={{
@@ -421,7 +432,7 @@ export default function CotizarPage() {
                             className={`mx-auto mb-3 rounded-xl overflow-hidden shadow-lg transition-all duration-700 ${
                               position === 0 ? 'animate-float scale-100' : 'scale-90 opacity-80'
                             }`}
-                            style={{ width: 220, height: 120 }}
+                            style={{ width: 'min(220px,70vw)', height: 'min(120px,40vw)' }}
                           >
                             <img
                               src={modelo.imagenUrl}
@@ -1062,7 +1073,7 @@ export default function CotizarPage() {
 
       {/* Botones de Navegación */}
       {pasoActual !== 'resumen' && (
-        <div className="border-t border-slate-200 bg-white px-6 py-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
+        <div className="border-t border-slate-200 bg-white px-4 md:px-6 py-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
           <div className="max-w-6xl mx-auto flex justify-between items-center">
             <button
               onClick={handleAnterior}
