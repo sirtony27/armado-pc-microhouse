@@ -5,7 +5,8 @@ export type TipoComponente =
   | 'ALMACENAMIENTO' 
   | 'PLACA_MADRE' 
   | 'FUENTE' 
-  | 'GABINETE';
+  | 'GABINETE'
+  | 'MONITOR';
 
 export interface Componente {
   id: string;
@@ -46,7 +47,7 @@ export interface ModeloBase {
   };
 }
 
-export type PasoCotizador = 'modelo' | 'mejoras' | 'gabinete' | 'resumen';
+export type PasoCotizador = 'modelo' | 'mejoras' | 'gabinete' | 'fuente' | 'monitor' | 'resumen';
 
 export interface Cotizacion {
   id: string;

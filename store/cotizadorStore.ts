@@ -4,7 +4,7 @@ import { ModeloBase, Componente, TipoComponente, PasoCotizador } from '@/types';
 interface CotizadorState {
   pasoActual: PasoCotizador;
   modeloSeleccionado: ModeloBase | null;
-  componentesSeleccionados: Record<string, string>;
+  componentesSeleccionados: Record<string, string | null>;
   setPaso: (paso: PasoCotizador) => void;
   setModeloBase: (modelo: ModeloBase) => void;
   cambiarComponente: (tipo: TipoComponente, componenteId: string) => void;
@@ -29,9 +29,12 @@ export const useCotizadorStore = create<CotizadorState>((set, get) => ({
         placaMadre: modelo.componentes.placaMadre,
         ram: modelo.componentes.ram,
         almacenamiento: modelo.componentes.almacenamiento,
+        gabinete: null,
+        fuente: null,
+        monitor: null,
         ...(modelo.componentes.gpu && { gpu: modelo.componentes.gpu }),
       },
-      pasoActual: 'mejoras', // Automáticamente pasar al siguiente paso
+      pasoActual: 'mejoras',
     });
   },
 
@@ -44,6 +47,7 @@ export const useCotizadorStore = create<CotizadorState>((set, get) => ({
       'GPU': 'gpu',
       'FUENTE': 'fuente',
       'GABINETE': 'gabinete',
+      'MONITOR': 'monitor',
     };
     
     const tipoKey = tipoMap[tipo];
@@ -57,7 +61,7 @@ export const useCotizadorStore = create<CotizadorState>((set, get) => ({
 
   calcularTotal: (componentes: Componente[]) => {
     const { componentesSeleccionados } = get();
-    const ids = Object.values(componentesSeleccionados);
+    const ids = Object.values(componentesSeleccionados).filter(Boolean) as string[];
     const total = componentes
       .filter((comp) => ids.includes(comp.id))
       .reduce((sum, comp) => sum + comp.precio, 0);

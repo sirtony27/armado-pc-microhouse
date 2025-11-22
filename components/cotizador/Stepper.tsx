@@ -11,7 +11,9 @@ const pasos = [
   { id: 'modelo' as PasoCotizador, label: 'Modelo Base', numero: 1 },
   { id: 'mejoras' as PasoCotizador, label: 'Mejoras', numero: 2 },
   { id: 'gabinete' as PasoCotizador, label: 'Gabinete', numero: 3 },
-  { id: 'resumen' as PasoCotizador, label: 'Resumen', numero: 4 },
+  { id: 'fuente' as PasoCotizador, label: 'Fuente (Opcional)', numero: 4 },
+  { id: 'monitor' as PasoCotizador, label: 'Monitor (Opcional)', numero: 5 },
+  { id: 'resumen' as PasoCotizador, label: 'Resumen', numero: 6 },
 ];
 
 export default function Stepper({ pasoActual }: StepperProps) {

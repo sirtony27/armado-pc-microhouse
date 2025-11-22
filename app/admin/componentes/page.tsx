@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 
-const CATEGORIAS = ['CPU','PLACA_MADRE','RAM','ALMACENAMIENTO','GPU','FUENTE','GABINETE'] as const
+const CATEGORIAS = ['CPU','PLACA_MADRE','RAM','ALMACENAMIENTO','GPU','FUENTE','GABINETE','MONITOR'] as const
 
 type Categoria = typeof CATEGORIAS[number]
 
@@ -78,6 +78,17 @@ const FIELDS: Record<Categoria, FieldDef[]> = {
     { key:'ventiladores_incluidos', label:'Ventiladores incluidos', type:'text' },
     { key:'color', label:'Color', type:'text' },
     { key:'vidrio_lateral', label:'Vidrio lateral', type:'boolean' },
+    { key:'incluye_fuente', label:'Incluye fuente', type:'boolean' },
+    { key:'potencia_fuente', label:'Potencia fuente (W)', type:'number' },
+  ],
+  MONITOR: [
+    { key:'tamano_pulgadas', label:'Tamaño (\" )', type:'number' },
+    { key:'resolucion', label:'Resolución', type:'text' },
+    { key:'panel', label:'Panel', type:'select', options:['IPS','VA','TN','OLED'] },
+    { key:'frecuencia_hz', label:'Frecuencia (Hz)', type:'number' },
+    { key:'tiempo_respuesta_ms', label:'Tiempo resp. (ms)', type:'number' },
+    { key:'brillo_nits', label:'Brillo (nits)', type:'number' },
+    { key:'puertos', label:'Puertos (HDMI/DP/USB-C)', type:'text' },
   ],
 }
 
@@ -98,6 +109,9 @@ export default function AdminComponentesPage() {
   const [saving, setSaving] = useState(false)
   const [editingComponente, setEditingComponente] = useState<ComponenteRow | null>(null)
   const [q, setQ] = useState('')
+  const [filtroTipo, setFiltroTipo] = useState<Categoria | 'ALL'>('ALL')
+  const [filtroActivo, setFiltroActivo] = useState<'all' | 'activos' | 'inactivos'>('all')
+  const [orden, setOrden] = useState<'recientes' | 'marca' | 'tipo' | 'sku'>('recientes')
 
   // Form state
   const [tipo, setTipo] = useState<Categoria>('CPU')
@@ -162,7 +176,7 @@ export default function AdminComponentesPage() {
         await supabase.from('productos').upsert({ sku: payload.sku, nombre: `${payload.marca} ${payload.modelo}` }, { onConflict: 'sku' })
       }
       // reset form
-      setMarca(''); setModelo(''); setDescripcion(''); setSku(''); setSpecsText(''); setFile(null)
+      setMarca(''); setModelo(''); setDescripcion(''); setSku(''); setSpecsText(''); setSpecsForm({}); setFile(null); setTipo('CPU')
       await load()
       alert('Componente creado')
     } catch (err: any) {
@@ -187,7 +201,17 @@ export default function AdminComponentesPage() {
     setItems((prev) => prev.map((it) => it.id === id ? { ...it, activo: !activo } : it))
   }
 
-  const filtered = items.filter(c => [c.marca, c.modelo, c.tipo, c.sku || ''].join(' ').toLowerCase().includes(q.toLowerCase()))
+  const filtered = items
+    .filter(c => [c.marca, c.modelo, c.tipo, c.sku || ''].join(' ').toLowerCase().includes(q.toLowerCase()))
+    .filter(c => (filtroTipo === 'ALL' ? true : c.tipo === filtroTipo))
+    .filter(c => filtroActivo === 'all' ? true : filtroActivo === 'activos' ? c.activo : !c.activo)
+    .sort((a, b) => {
+      if (orden === 'marca') return `${a.marca} ${a.modelo}`.localeCompare(`${b.marca} ${b.modelo}`)
+      if (orden === 'tipo') return a.tipo.localeCompare(b.tipo) || `${a.marca} ${a.modelo}`.localeCompare(`${b.marca} ${b.modelo}`)
+      if (orden === 'sku') return (a.sku || '').localeCompare(b.sku || '')
+      // recientes (created_at desc)
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+    })
 
   return (
     <AdminLayout title="Componentes" subtitle="Cargá y gestioná el catálogo de componentes">
@@ -242,7 +266,26 @@ export default function AdminComponentesPage() {
         </div>
         <div>
           <label className="block text-sm font-semibold mb-1">Imagen</label>
-          <input type="file" accept="image/png,image/jpeg,image/webp,image/avif,image/svg+xml" onChange={(e) => setFile(e.target.files?.[0] || null)} />
+          <input
+            type="file"
+            accept="image/png,image/jpeg,image/webp,image/avif,image/svg+xml"
+            onChange={(e) => setFile(e.target.files?.[0] || null)}
+            className="block w-full text-sm"
+          />
+          <p className="text-[11px] text-slate-500 mt-1">Recomendado: JPG/WEBP 800px+ lado mayor.</p>
+          {file && (
+            <div className="mt-2 flex items-center gap-2 text-xs text-slate-700">
+              <span className="font-semibold truncate max-w-[200px]">{file.name}</span>
+              <span className="text-slate-500">{`${(file.size / 1024).toFixed(1)} KB`}</span>
+              <button
+                type="button"
+                onClick={() => setFile(null)}
+                className="px-2 py-0.5 rounded border border-slate-200 hover:bg-slate-100 text-slate-600"
+              >
+                Quitar
+              </button>
+            </div>
+          )}
         </div>
         <div className="flex items-end">
           <button disabled={saving || !isSpecsValid()} className={`text-white px-4 py-2 rounded ${saving||!isSpecsValid()? 'bg-blue-400 cursor-not-allowed':'bg-blue-600'}`}>{saving ? 'Guardando…' : 'Crear componente'}</button>

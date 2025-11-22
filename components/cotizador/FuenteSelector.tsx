@@ -1,37 +1,55 @@
 'use client';
 
-import { componentes } from '@/data/componentes';
 import { formatPrecio } from '@/lib/utils';
 import { Check, Zap, ChevronLeft, ChevronRight, ArrowRight, AlertCircle } from 'lucide-react';
 import { useCotizadorStore } from '@/store/cotizadorStore';
-import { useState, useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRemotePrices } from '@/lib/pricing';
+import { supabase } from '@/lib/supabase';
 
 export default function FuenteSelector() {
   const { componentesSeleccionados, cambiarComponente } = useCotizadorStore();
   
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+  const [componentesDb, setComponentesDb] = useState<any[]>([]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { data, error } = await supabase
+          .from('componentes')
+          .select('*')
+          .eq('activo', true)
+          .order('created_at', { ascending: false });
+        if (!cancelled && !error && data) setComponentesDb(data as any);
+      } catch (err) {
+        console.error('Error fetching fuentes:', (err as any)?.message || err);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   // Calcular potencia requerida
   const potenciaRequerida = useMemo(() => {
     let watts = 0;
-    const ids = Object.values(componentesSeleccionados);
-    
-    componentes
-      .filter((c) => ids.includes(c.id))
-      .forEach((comp) => {
-        if (comp.compatibilidad?.consumoWatts) {
-          watts += comp.compatibilidad.consumoWatts;
-        }
+    const ids = Object.values(componentesSeleccionados || {}).filter(Boolean).map(String);
+
+    componentesDb
+      .filter((c: any) => ids.includes(String(c.id)))
+      .forEach((comp: any) => {
+        const compat = comp.compatibilidad || {};
+        const val = Number(compat.consumoWatts ?? compat.consumo_w ?? compat.potencia);
+        if (!Number.isNaN(val)) watts += val;
       });
 
     // Agregar margen de seguridad del 30%
     return Math.ceil(watts * 1.3);
-  }, [componentesSeleccionados]);
+  }, [componentesSeleccionados, componentesDb]);
 
-  const fuentes = componentes.filter((c) => c.tipo === 'FUENTE');
-  const remotePrices = useRemotePrices(componentes);
+  const fuentes = useMemo(() => componentesDb.filter((c: any) => c.tipo === 'FUENTE'), [componentesDb]);
+  const remotePrices = useRemotePrices(fuentes);
 
   const nextFuente = () => {
     if (isTransitioning) return;
@@ -101,7 +119,8 @@ export default function FuenteSelector() {
           {fuentes.map((fuente, index) => {
             const position = index - currentIndex;
             const isVisible = Math.abs(position) <= 2;
-            const potencia = parseInt(fuente.especificaciones.potencia?.replace('W', '') || '0');
+            const potenciaRaw = (fuente.especificaciones?.potencia || '').toString();
+            const potencia = parseInt(potenciaRaw.replace(/[^0-9]/g, '') || '0');
             const esRecomendada = potencia >= potenciaRequerida;
             const esInsuficiente = potencia < potenciaRequerida;
             
@@ -164,16 +183,16 @@ export default function FuenteSelector() {
 
                   <div className="flex flex-wrap gap-2 justify-center mb-4">
                     <span className="px-2.5 py-1 bg-amber-50 text-amber-700 rounded-full text-[9px] font-semibold border border-amber-200/70">
-                      {fuente.especificaciones.potencia}
+                      {fuente.especificaciones?.potencia || 'Potencia N/D'}
                     </span>
                     <span className="px-2.5 py-1 bg-orange-50 text-orange-700 rounded-full text-[9px] font-semibold border border-orange-200/70">
-                      {fuente.especificaciones.certificacion}
+                      {fuente.especificaciones?.certificacion || 'Certificación N/D'}
                     </span>
                   </div>
 
                   <div className="mb-4 px-3 py-2 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border-2 border-amber-200/50 shadow-sm">
                     <p className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
-                      {formatPrecio(remotePrices[fuente.id] ?? fuente.precio)}
+                      {formatPrecio(Math.ceil(Number(remotePrices[fuente.id] ?? fuente.precio ?? 0) * 1.10))}
                     </p>
                   </div>
 

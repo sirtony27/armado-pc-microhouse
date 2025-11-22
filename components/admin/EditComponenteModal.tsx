@@ -2,7 +2,7 @@
 import { useState, useEffect } from 'react'
 import { supabase } from '@/lib/supabase'
 
-const CATEGORIAS = ['CPU','PLACA_MADRE','RAM','ALMACENAMIENTO','GPU','FUENTE','GABINETE'] as const
+const CATEGORIAS = ['CPU','PLACA_MADRE','RAM','ALMACENAMIENTO','GPU','FUENTE','GABINETE','MONITOR'] as const
 type Categoria = typeof CATEGORIAS[number]
 
 type ComponenteRow = {
@@ -71,6 +71,17 @@ const FIELDS: Record<Categoria, FieldDef[]> = {
     { key:'color', label:'Color', type:'text' },
     { key:'panel_lateral', label:'Panel Lateral', type:'text' },
     { key:'usb_frontal', label:'USB Frontal', type:'text' },
+    { key:'incluye_fuente', label:'Incluye fuente', type:'boolean' },
+    { key:'potencia_fuente', label:'Potencia fuente (W)', type:'number' },
+  ],
+  MONITOR: [
+    { key:'tamano_pulgadas', label:'Tamaño (\" )', type:'number' },
+    { key:'resolucion', label:'Resolución', type:'text' },
+    { key:'panel', label:'Panel', type:'select', options:['IPS','VA','TN','OLED'] },
+    { key:'frecuencia_hz', label:'Frecuencia (Hz)', type:'number' },
+    { key:'tiempo_respuesta_ms', label:'Tiempo resp. (ms)', type:'number' },
+    { key:'brillo_nits', label:'Brillo (nits)', type:'number' },
+    { key:'puertos', label:'Puertos (HDMI/DP/USB-C)', type:'text' },
   ],
 }
 

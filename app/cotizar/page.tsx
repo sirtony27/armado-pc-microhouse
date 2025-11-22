@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo, useEffect, useRef, useLayoutEffect, useCallback } from 'react';
 import { useCotizadorStore } from '@/store/cotizadorStore';
 import { useModelosBase } from '@/lib/models';
 import { useComponentes } from '@/lib/componentes';
@@ -9,6 +9,8 @@ import { useRemotePrices } from '@/lib/pricing';
 import { ChevronLeft, ChevronRight, Check, Cpu, HardDrive, MemoryStick, MonitorUp, ChevronDown, Sparkles, ArrowRight, ArrowLeft, Box, Zap } from 'lucide-react';
 import Stepper from '@/components/cotizador/Stepper';
 import GabineteSelector from '@/components/cotizador/GabineteSelector';
+import FuenteSelector from '@/components/cotizador/FuenteSelector';
+import MonitorSelector from '@/components/cotizador/MonitorSelector';
 import './animations.css';
 // jsPDF will be dynamically imported
 // autoTable will be dynamically imported
@@ -24,21 +26,62 @@ export default function CotizarPage() {
   const remotePrices = useRemotePrices(componentes);
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
-  const [vw, setVw] = useState<number>(typeof window !== 'undefined' ? window.innerWidth : 1024);
-  useEffect(() => {
-    const onResize = () => setVw(window.innerWidth);
-    window.addEventListener('resize', onResize);
-    return () => window.removeEventListener('resize', onResize);
+
+  const [maxCardHeight, setMaxCardHeight] = useState<number | null>(null);
+  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
+
+  const placaActual = useMemo(
+    () => componentes.find((c) => c.id === componentesSeleccionados?.placaMadre),
+    [componentes, componentesSeleccionados]
+  );
+  const measureAndSetHeight = useCallback(() => {
+    let maxHeight = 0;
+    cardRefs.current.forEach(card => {
+      if (card) {
+        card.style.minHeight = 'auto';
+        maxHeight = Math.max(maxHeight, card.scrollHeight);
+      }
+    });
+    if (maxHeight > 0) {
+      setMaxCardHeight(maxHeight);
+    }
   }, []);
-  const isMobile = vw < 768;
-  const cardSpacing = isMobile ? 220 : 360;
-  const tiltDeg = isMobile ? 10 : 18;
-  const centerScale = isMobile ? 0.98 : 0.9;
-  const sideScale = isMobile ? 0.85 : 0.75;
+
+  useLayoutEffect(() => {
+    if (modelosOrdenados.length > 0) {
+      measureAndSetHeight();
+    }
+    window.addEventListener('resize', measureAndSetHeight);
+    return () => window.removeEventListener('resize', measureAndSetHeight);
+  }, [modelosOrdenados, measureAndSetHeight]);
+
+
 
   const handleSeleccionarModelo = (modelo: typeof modelosBase[0]) => {
     setModeloBase(modelo); // Esto ya actualiza el paso automáticamente
   };
+
+  const gabineteSeleccionado = useMemo(
+    () => componentes.find((c) => c.id === componentesSeleccionados?.gabinete),
+    [componentes, componentesSeleccionados]
+  );
+  const gabineteIncluyeFuente = useMemo(() => {
+    const specs = (gabineteSeleccionado as any)?.especificaciones || {};
+    return Boolean(
+      specs.incluyeFuente ||
+      specs.incluye_fuente ||
+      specs.fuenteIncluida ||
+      specs.psuIncluida ||
+      specs.psu_incluida
+    );
+  }, [gabineteSeleccionado]);
+
+  // Si el gabinete trae fuente incluida, limpiamos selección de fuente para evitar precios duplicados
+  useEffect(() => {
+    if (gabineteIncluyeFuente && componentesSeleccionados?.fuente) {
+      cambiarComponente('FUENTE', '');
+    }
+  }, [gabineteIncluyeFuente, componentesSeleccionados?.fuente, cambiarComponente]);
 
   // Validar si puede avanzar de paso
   const puedeAvanzar = useMemo(() => {
@@ -53,13 +96,17 @@ export default function CotizarPage() {
   const handleSiguiente = () => {
     if (pasoActual === 'modelo' && puedeAvanzar) setPaso('mejoras');
     else if (pasoActual === 'mejoras' && puedeAvanzar) setPaso('gabinete');
-    else if (pasoActual === 'gabinete' && puedeAvanzar) setPaso('resumen');
+    else if (pasoActual === 'gabinete' && puedeAvanzar) setPaso(gabineteIncluyeFuente ? 'monitor' : 'fuente');
+    else if (pasoActual === 'fuente') setPaso('monitor');
+    else if (pasoActual === 'monitor') setPaso('resumen');
   };
 
   const handleAnterior = () => {
     if (pasoActual === 'mejoras') setPaso('modelo');
     else if (pasoActual === 'gabinete') setPaso('mejoras');
-    else if (pasoActual === 'resumen') setPaso('gabinete');
+    else if (pasoActual === 'fuente') setPaso('gabinete');
+    else if (pasoActual === 'monitor') setPaso(gabineteIncluyeFuente ? 'gabinete' : 'fuente');
+    else if (pasoActual === 'resumen') setPaso('monitor');
   };
 
   // Expandir mejoras automáticamente en el paso de mejoras
@@ -98,23 +145,22 @@ export default function CotizarPage() {
   // Calcular precio total
   const precioTotal = useMemo(() => {
     if (!componentesSeleccionados) return 0;
-    const entries = Object.entries(componentesSeleccionados).filter(([tipo]) => tipo !== 'fuente');
-    const ids = entries.map(([_, id]) => id);
+    const ids = Object.values(componentesSeleccionados).filter(Boolean) as string[];
     return componentes
       .filter((comp) => ids.includes(comp.id))
       .reduce((sum, comp) => sum + (remotePrices[comp.id] ?? comp.precio), 0);
-  }, [componentesSeleccionados]);
+  }, [componentesSeleccionados, componentes, remotePrices]);
 
   // Obtener componentes seleccionados con detalles
   const componentesDetalle = useMemo(() => {
     if (!componentesSeleccionados) return [];
     return Object.entries(componentesSeleccionados)
-      .filter(([tipo]) => tipo !== 'fuente')
+      .filter(([, id]) => !!id)
       .map(([tipo, id]) => {
         const comp = componentes.find((c) => c.id === id);
         return { tipo, componente: comp };
       });
-  }, [componentesSeleccionados]);
+  }, [componentesSeleccionados, componentes]);
 
   // Navegación del carrusel (solo cambia el índice, NO selecciona)
   const nextModel = () => {
@@ -139,7 +185,7 @@ export default function CotizarPage() {
     try {
       const { default: jsPDF } = await import('jspdf');
       const autoTable = (await import('jspdf-autotable')).default;
-      const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+      const doc = new jsPDF({ unit: 'pt', format: 'a4', compress: true });
       const pageWidth = doc.internal.pageSize.getWidth();
       let y = 40;
 
@@ -183,28 +229,94 @@ export default function CotizarPage() {
       const tipoMap: Record<string, string> = {
         procesador: 'Procesador', placamadre: 'Placa Madre', placaMadre: 'Placa Madre',
         ram: 'Memoria RAM', almacenamiento: 'Almacenamiento', gpu: 'GPU',
-        fuente: 'Fuente', gabinete: 'Gabinete'
+        fuente: 'Fuente', gabinete: 'Gabinete', monitor: 'Monitor'
       };
-      const rows = componentesDetalle.map(({ tipo, componente }) => {
-        const base = componente ? (remotePrices[componente.id] ?? componente.precio) : 0;
-        const precio3 = Math.ceil((base || 0) * 1.10);
-        const e: any = componente?.especificaciones || {};
-        const detalle = tipo === 'ram' ? (e.capacidad || '')
-          : tipo === 'almacenamiento' ? `${e.capacidad || ''} ${e.tipo || ''}`.trim()
-          : tipo === 'gpu' ? (e.vram || '')
-          : tipo === 'fuente' ? `${e.potencia || ''} ${e.certificacion || ''}`.trim()
-          : tipo === 'gabinete' ? (e.formato || '')
-          : '';
-        return [tipoMap[tipo] || tipo, `${componente?.marca || ''} ${componente?.modelo || ''}`.trim(), detalle, formatPrecio(precio3)];
-      });
+
+      const fetchImageAsDataUrl = async (url?: string | null): Promise<string | null> => {
+        if (!url) return null;
+        try {
+          let optimized = url;
+          // Usar miniatura desde Supabase (ancho 120) para evitar imágenes pesadas
+          if (/supabase\.co\/storage\/v1\/object\/public\//i.test(url)) {
+            optimized = `${url}${url.includes('?') ? '&' : '?'}width=120&quality=60`;
+          }
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 1200);
+          const resp = await fetch(optimized, { signal: controller.signal });
+          clearTimeout(timeout);
+          if (!resp.ok) return null;
+          const blob = await resp.blob();
+          return await new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = reject;
+            reader.readAsDataURL(blob);
+          });
+        } catch {
+          return null;
+        }
+      };
+
+      let imagesRemaining = 6; // limitar imágenes embebidas para evitar OOM
+      // Limitar imágenes para evitar OOM
+      const rows = await Promise.all(
+        componentesDetalle.map(async ({ tipo, componente }) => {
+          const base = componente ? (remotePrices[componente.id] ?? componente.precio) : 0;
+          const precio3 = Math.ceil((base || 0) * 1.10);
+          const e: any = componente?.especificaciones || {};
+          const detalle = tipo === 'ram' ? (e.capacidad || '')
+            : tipo === 'almacenamiento' ? `${e.capacidad || ''} ${e.tipo || ''}`.trim()
+            : tipo === 'gpu' ? (e.vram_gb ? `${e.vram_gb}GB` : e.vram || '')
+            : tipo === 'fuente' ? `${e.potencia || e.potencia_w || ''} ${e.certificacion || ''}`.trim()
+            : tipo === 'gabinete' ? (e.formato || '')
+            : tipo === 'monitor' ? `${e.resolucion || ''} ${e.tamano_pulgadas ? `${e.tamano_pulgadas}"` : ''}`.trim()
+            : '';
+          let imgDataUrl = '';
+          if (componente?.imagenUrl && imagesRemaining > 0) {
+            const fetched = await fetchImageAsDataUrl(componente.imagenUrl);
+            if (fetched) {
+              imgDataUrl = fetched;
+              imagesRemaining -= 1;
+            }
+          }
+          return {
+            img: imgDataUrl || '',
+            tipo: tipoMap[tipo] || tipo,
+            nombre: `${componente?.marca || ''} ${componente?.modelo || ''}`.trim(),
+            detalle,
+            precio: formatPrecio(precio3),
+          };
+        })
+      );
 
       autoTable(doc, {
-        head: [['Componente', 'Marca/Modelo', 'Detalle', 'Precio 3 cuotas']],
+        head: [['', 'Componente', 'Marca/Modelo', 'Detalle', 'Precio 3 cuotas']],
+        columns: [
+          { header: '', dataKey: 'img' },
+          { header: 'Componente', dataKey: 'tipo' },
+          { header: 'Marca/Modelo', dataKey: 'nombre' },
+          { header: 'Detalle', dataKey: 'detalle' },
+          { header: 'Precio 3 cuotas', dataKey: 'precio' },
+        ],
         body: rows,
         startY: y,
         theme: 'striped',
-        styles: { fontSize: 9 },
-        headStyles: { fillColor: [224, 33, 39], textColor: 255 }
+        styles: { fontSize: 9, cellPadding: { top: 6, right: 4, bottom: 6, left: 4 }, minCellHeight: 32 },
+        headStyles: { fillColor: [224, 33, 39], textColor: 255 },
+        columnStyles: { img: { cellWidth: 42 } },
+        didDrawCell: (data: any) => {
+          if (data.column.dataKey === 'img' && data.cell.raw) {
+            const img = data.cell.raw as string;
+            const dim = 30;
+            const x = data.cell.x + 4;
+            const yImg = data.cell.y + 2;
+            try {
+              doc.addImage(img, 'JPEG', x, yImg, dim, dim);
+            } catch {
+              try { doc.addImage(img, 'PNG', x, yImg, dim, dim); } catch {}
+            }
+          }
+        },
       });
 
       const afterTableY = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY + 20 : y + 20;
@@ -260,12 +372,13 @@ export default function CotizarPage() {
       case 'gpu': return <MonitorUp className="h-3 w-3" />;
       case 'fuente': return <Zap className="h-3 w-3" />;
       case 'gabinete': return <Box className="h-3 w-3" />;
+      case 'monitor': return <MonitorUp className="h-3 w-3" />;
       default: return null;
     }
   };
 
   return (
-    <div className="flex flex-col min-h-screen overflow-x-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-slate-50">
+    <div className="flex flex-col h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50 to-slate-50">
       {/* Stepper */}
       <Stepper pasoActual={pasoActual} />
 
@@ -279,6 +392,8 @@ export default function CotizarPage() {
             {pasoActual === 'modelo' && 'Paso 1: Elegí tu modelo base'}
             {pasoActual === 'mejoras' && 'Paso 2: Personalizá tu PC'}
             {pasoActual === 'gabinete' && 'Paso 3: Elegí tu Gabinete'}
+            {pasoActual === 'fuente' && 'Paso 4: Seleccioná Fuente'}
+            {pasoActual === 'monitor' && 'Paso 5: Sumá un Monitor (opcional)'}
             {pasoActual === 'resumen' && 'Resumen Final'}
           </p>
         </div>
@@ -312,6 +427,7 @@ export default function CotizarPage() {
                         {tipo === 'gpu' && 'GPU'}
                         {tipo === 'fuente' && 'Fuente'}
                         {tipo === 'gabinete' && 'Gabinete'}
+                        {tipo === 'monitor' && 'Monitor'}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -359,218 +475,159 @@ export default function CotizarPage() {
         )}
       </div>
 
-      {/* Área Principal - Carrusel de Modelos y Mejoras */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+<div className="flex-1 flex flex-col overflow-hidden relative z-0">
         {/* Paso 1: Carrusel de Modelos */}
         {pasoActual === 'modelo' && (
         <div className="flex-1 flex flex-col items-center justify-center px-4 md:px-6 py-6 overflow-visible w-full">
-          {/* Carrusel Coverflow */}
-          <div
-            className="relative w-full max-w-7xl md:h-[480px] min-h-[340px] flex items-center justify-center mb-4"
-            style={{ perspective: '2500px', perspectiveOrigin: 'center' }}
-            onTouchStart={onTouchStart}
-            onTouchMove={onTouchMove}
-            onTouchEnd={onTouchEnd}
-          >
-            {/* Botones de navegación */}
+          <div className="relative w-full max-w-7xl" style={{ minHeight: maxCardHeight ? `${maxCardHeight + 40}px` : '550px' }}>
+            <div className="absolute inset-0 overflow-hidden">
+              <div
+                className="flex h-full items-center"
+                style={{
+                  transform: `translateX(calc(50% - ${currentModelIndex * 380}px - 190px))`,
+                  transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                }}
+                onTouchStart={onTouchStart}
+                onTouchMove={onTouchMove}
+                onTouchEnd={onTouchEnd}
+              >
+                {modelosOrdenados.map((modelo, index) => {
+                  const isCurrent = index === currentModelIndex;
+                  return (
+                    <div
+                      key={modelo.id}
+                      className="w-[380px] flex-shrink-0 px-4"
+                      onClick={() => {
+                        if (!isCurrent) {
+                          setCurrentModelIndex(index);
+                        }
+                      }}
+                    >
+                      <div
+                        ref={el => cardRefs.current[index] = el}
+                        className={`bg-white rounded-2xl text-center w-full relative transition-all duration-500 ease-in-out flex flex-col ${
+                          isCurrent ? 'shadow-[0_0_0_3px_rgba(224,33,39,0.3),0_20px_60px_-10px_rgba(224,33,39,0.4)]' : 'shadow-2xl scale-80 opacity-60'
+                        }`}
+                        style={{ 
+                          cursor: 'pointer',
+                          minHeight: maxCardHeight ? `${maxCardHeight}px` : undefined 
+                        }}
+                      >
+                        <div className="p-6 flex flex-col flex-grow">
+                          <div className="mb-3">
+                            {modelo.imagenUrl && (
+                              <div className="mx-auto mb-3 rounded-xl overflow-hidden shadow-lg w-full h-40">
+                                <img src={modelo.imagenUrl} alt={modelo.nombre} loading="lazy" className="w-full h-full object-cover" />
+                              </div>
+                            )}
+                          </div>
+                          <h2 className="text-lg font-bold text-slate-900 mb-2 truncate">{modelo.nombre}</h2>
+                          <p className="text-slate-600 mb-3 text-xs leading-relaxed px-2 flex-grow">{modelo.descripcion}</p>
+                          <div className="flex flex-wrap justify-center gap-1 mb-3">
+                            {modelo.usoRecomendado?.slice(0, 3).map((tag) => (
+                              <span key={tag} className="px-2 py-1 rounded-full bg-slate-100 text-[10px] text-slate-600 border border-slate-200">
+                                {tag}
+                              </span>
+                            ))}
+                          </div>
+                          <div className="grid grid-cols-2 gap-2 text-left text-[10px] text-slate-600 mb-3">
+                            <div className="flex items-center gap-1">
+                              <Cpu className="h-3 w-3 text-slate-500" />
+                              <span className="font-semibold text-slate-800 truncate">
+                                {modelo.componentes.procesador ? (componentes.find(c => c.id === modelo.componentes.procesador)?.modelo || 'CPU') : 'CPU'}
+                              </span>
+                            </div>
+                            {modelo.componentes.gpu && (
+                              <div className="flex items-center gap-1">
+                                <MonitorUp className="h-3 w-3 text-slate-500" />
+                                <span className="font-semibold text-slate-800 truncate">
+                                  {componentes.find(c => c.id === modelo.componentes.gpu)?.modelo || 'GPU dedicada'}
+                                </span>
+                              </div>
+                            )}
+                            <div className="flex items-center gap-1">
+                              <MemoryStick className="h-3 w-3 text-slate-500" />
+                              <span className="truncate">
+                                {(() => {
+                                  const ram = componentes.find(c => c.id === modelo.componentes.ram);
+                                  return ram ? `${ram.marca} ${ram.modelo}` : 'RAM';
+                                })()}
+                              </span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <HardDrive className="h-3 w-3 text-slate-500" />
+                              <span className="truncate">
+                                {(() => {
+                                  const storage = componentes.find(c => c.id === modelo.componentes.almacenamiento);
+                                  return storage ? `${storage.marca} ${storage.modelo}` : 'Almacenamiento';
+                                })()}
+                              </span>
+                            </div>
+                          </div>
+                          
+                          <div className="mb-4 mt-auto px-3 py-2 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200/50 shadow-sm">
+                            <div className="flex items-center justify-between">
+                              <div>
+                                <p className="text-[9px] text-slate-500 uppercase font-semibold tracking-wider mb-0.5">Contado / débito</p>
+                                <p className="text-lg font-bold text-slate-900">{formatPrecio(modelo.precioBase)}</p>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-[9px] text-slate-500 uppercase font-semibold tracking-wider mb-0.5">1 cuota</p>
+                                <p className="text-lg font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
+                                  {formatPrecio(Math.ceil(modelo.precioBase * 1.10))}
+                                </p>
+                              </div>
+                            </div>
+                          </div>
+                          <div>
+                            <button
+                              onClick={() => handleSeleccionarModelo(modelo)}
+                              className={`w-full px-5 py-2.5 rounded-xl text-xs font-bold shadow-lg transition-opacity duration-300 ${
+                                isCurrent ? 'opacity-100 bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white' : 'opacity-0 pointer-events-none'
+                              }`}
+                            >
+                              <span className="flex items-center justify-center gap-2">
+                                Seleccionar este Modelo
+                                <ArrowRight className="h-3.5 w-3.5" />
+                              </span>
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
             <button
               onClick={prevModel}
               disabled={isTransitioning}
-              className="absolute left-8 top-1/2 -translate-y-1/2 z-30 bg-white/95 backdrop-blur-md rounded-full p-3 shadow-xl hover:shadow-2xl transition-all duration-300 ease-out hover:scale-110 active:scale-95 hover:-translate-x-1 border-2 border-[#E02127]/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 group"
+              className="absolute left-8 top-1/2 -translate-y-1/2 z-30 bg-white/95 backdrop-blur-md rounded-full p-3 shadow-xl border-2 border-[#E02127]/30"
             >
-              <ChevronLeft className="h-5 w-5 text-[#E02127] transition-transform duration-200 group-hover:-translate-x-0.5" />
+              <ChevronLeft className="h-5 w-5 text-[#E02127]" />
             </button>
-
             <button
               onClick={nextModel}
               disabled={isTransitioning}
-              className="absolute right-8 top-1/2 -translate-y-1/2 z-30 bg-white/95 backdrop-blur-md rounded-full p-3 shadow-xl hover:shadow-2xl transition-all duration-300 ease-out hover:scale-110 active:scale-95 hover:translate-x-1 border-2 border-[#E02127]/30 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 group"
+              className="absolute right-8 top-1/2 -translate-y-1/2 z-30 bg-white/95 backdrop-blur-md rounded-full p-3 shadow-xl border-2 border-[#E02127]/30"
             >
-              <ChevronRight className="h-5 w-5 text-[#E02127] transition-transform duration-200 group-hover:translate-x-0.5" />
+              <ChevronRight className="h-5 w-5 text-[#E02127]" />
             </button>
 
-            {/* Container de Cards */}
-            <div className="relative w-full h-full flex items-center justify-center">
-              {modelosOrdenados.map((modelo, index) => {
-                const position = index - currentModelIndex;
-                const isVisible = Math.abs(position) <= 2;
-                
-                if (!isVisible) return null;
-                
-                return (
-                  <div
-                    key={modelo.id}
-                    className={`absolute ${
-                      position === 0 ? 'z-20' : 'z-0'
-                    }`}
-                    style={{
-                      transform: `
-                        translateX(${position * 360}px)
-                        scale(${position === 0 ? 0.9 : 0.75})
-                        rotateY(${position * -18}deg)
-                      `,
-                      opacity: position === 0 ? 1 : Math.max(0, 0.6 - Math.abs(position) * 0.2),
-                      pointerEvents: position === 0 ? 'auto' : 'none',
-                      transition: 'all 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                      filter: position !== 0 ? `blur(${Math.abs(position) * 2}px)` : 'blur(0px)',
-                      transformStyle: 'preserve-3d',
-                    }}
-                    onClick={() => position === 0 && handleSeleccionarModelo(modelo)}
-                  >
-                    {/* Card del Modelo */}
-                    <div 
-                      className={`bg-white rounded-2xl p-6 text-center w-[85vw] max-w-[360px] relative overflow-visible ${
-                        position === 0 ? 'shadow-[0_0_0_3px_rgba(224,33,39,0.3),0_20px_60px_-10px_rgba(224,33,39,0.4)] animate-glow-pulse' : 'shadow-2xl'
-                      }`}
-                      style={{
-                        cursor: position === 0 ? 'pointer' : 'default',
-                      }}
-                    >
-                      <div className="mb-3">
-                        {modelo.imagenUrl ? (
-                          <div
-                            className={`mx-auto mb-3 rounded-xl overflow-hidden shadow-lg transition-all duration-700 ${
-                              position === 0 ? 'animate-float scale-100' : 'scale-90 opacity-80'
-                            }`}
-                            style={{ width: 'min(220px,70vw)', height: 'min(120px,40vw)' }}
-                          >
-                            <img
-                              src={modelo.imagenUrl}
-                              alt={modelo.nombre}
-                              loading="lazy"
-                              className="w-full h-full object-cover"
-                            />
-                          </div>
-                        ) : (
-                          <div className={`w-16 h-16 bg-gradient-to-br from-[#E02127] to-[#0D1A4B] rounded-2xl mx-auto mb-3 flex items-center justify-center shadow-lg transition-all duration-700 ${
-                            position === 0 ? 'animate-float scale-100' : 'scale-90 opacity-80'
-                          }`}>
-                            <span className="text-3xl">🖥️</span>
-                          </div>
-                        )}
-                      </div>
-
-                      <h2 className="text-lg font-bold text-slate-900 mb-2">
-                        {modelo.nombre}
-                      </h2>
-                      <p className="text-slate-600 mb-4 text-xs leading-relaxed px-2">
-                        {modelo.descripcion}
-                      </p>
-
-                      {/* Resumen de componentes */}
-                      <div className="mb-4 p-3 bg-gradient-to-br from-slate-50 to-blue-50/50 rounded-xl border border-slate-200/70 shadow-sm">
-                        <h3 className="text-[9px] font-bold text-slate-700 mb-2 uppercase tracking-wide flex items-center justify-center gap-2">
-                          <span className="w-1 h-1 rounded-full bg-blue-500"></span>
-                          Incluye
-                          <span className="w-1 h-1 rounded-full bg-blue-500"></span>
-                        </h3>
-                        <div className="grid grid-cols-2 gap-2 text-left">
-                          {modelo.componentes.procesador && (
-                            <div className="flex items-start gap-1">
-                              <Cpu className="h-3 w-3 text-[#E02127] mt-0.5 flex-shrink-0" />
-                              <div>
-                                <p className="text-[11px] text-slate-500 uppercase">Procesador</p>
-                                <p className="text-[11px] font-semibold text-slate-800 leading-tight">
-                                  {componentes.find(c => c.id === modelo.componentes.procesador)?.modelo || 'Incluido'}
-                                </p>
-                              </div>
-                            </div>
-                          )}
-                          {modelo.componentes.ram && (
-                            <div className="flex items-start gap-1">
-                              <MemoryStick className="h-3 w-3 text-purple-600 mt-0.5 flex-shrink-0" />
-                              <div>
-                                <p className="text-[11px] text-slate-500 uppercase">RAM</p>
-                                <p className="text-[11px] font-semibold text-slate-800">
-                                  {componentes.find(c => c.id === modelo.componentes.ram)?.especificaciones.capacidad || 'Incluido'}
-                                </p>
-                              </div>
-                            </div>
-                          )}
-                          {modelo.componentes.almacenamiento && (
-                            <div className="flex items-start gap-1">
-                              <HardDrive className="h-3 w-3 text-emerald-600 mt-0.5 flex-shrink-0" />
-                              <div>
-                                <p className="text-[11px] text-slate-500 uppercase">Storage</p>
-                                <p className="text-[11px] font-semibold text-slate-800">
-                                  {componentes.find(c => c.id === modelo.componentes.almacenamiento)?.especificaciones.capacidad || 'Incluido'}
-                                </p>
-                              </div>
-                            </div>
-                          )}
-                          {modelo.componentes.gpu && (
-                            <div className="flex items-start gap-1">
-                              <MonitorUp className="h-3 w-3 text-orange-600 mt-0.5 flex-shrink-0" />
-                              <div>
-                                <p className="text-[11px] text-slate-500 uppercase">GPU</p>
-                                <p className="text-[11px] font-semibold text-slate-800 leading-tight">
-                                  {componentes.find(c => c.id === modelo.componentes.gpu)?.modelo || 'Incluida'}
-                                </p>
-                              </div>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-
-                      <div className="flex flex-wrap gap-1.5 justify-center mb-4">
-                        {modelo.usoRecomendado.map((uso) => (
-                          <span
-                            key={uso}
-                            className="px-2 py-1 bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 rounded-full text-[9px] font-semibold border border-blue-200/70 shadow-sm hover:shadow-md hover:scale-105 transition-all duration-200"
-                          >
-                            {uso}
-                          </span>
-                        ))}
-                      </div>
-
-                      <div className="mb-4 px-3 py-2 bg-gradient-to-br from-blue-50 via-indigo-50 to-purple-50 rounded-xl border-2 border-blue-200/50 shadow-sm">
-                        <p className="text-[9px] text-slate-500 uppercase font-semibold tracking-wider mb-0.5">Precio base desde</p>
-                        <p className="text-2xl font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
-                          {formatPrecio(modelo.precioBase)}
-                        </p>
-                        <p className="text-[8px] text-slate-500 mt-0.5">Sin gabinete ni fuente</p>
-                      </div>
-
-                      {position === 0 && (
-                        <button
-                          onClick={() => handleSeleccionarModelo(modelo)}
-                          className="w-full px-5 py-2.5 bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white rounded-xl hover:from-blue-700 hover:via-indigo-700 hover:to-purple-700 transition-all text-xs font-bold shadow-lg hover:shadow-2xl hover:scale-[1.02] active:scale-95 transform duration-200 relative overflow-hidden group"
-                        >
-                          <span className="relative z-10 flex items-center justify-center gap-2">
-                            Seleccionar este Modelo
-                            <ArrowRight className="h-3.5 w-3.5 group-hover:translate-x-1 transition-transform duration-200" />
-                          </span>
-                          <div className="absolute inset-0 bg-gradient-to-r from-[#c01d23] to-[#0a1339] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                        </button>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex gap-2">
+              {modelosOrdenados.map((_, index) => (
+                <button
+                  key={index}
+                  onClick={() => setCurrentModelIndex(index)}
+                  disabled={isTransitioning}
+                  className={`h-2 rounded-full transition-all duration-500 ease-out ${
+                    index === currentModelIndex ? 'w-10 bg-gradient-to-r from-[#E02127] to-[#0D1A4B] shadow-lg' : 'w-2 bg-slate-300'
+                  }`}
+                  aria-label={`Ver modelo ${index + 1}`}
+                />
+              ))}
             </div>
-          </div>
-
-          {/* Indicadores */}
-          <div className="flex gap-2 mt-6 animate-in fade-in slide-in-from-bottom duration-700 delay-300">
-            {modelosOrdenados.map((_, index) => (
-              <button
-                key={index}
-                onClick={() => {
-                  if (!isTransitioning) {
-                    setIsTransitioning(true);
-                    setCurrentModelIndex(index);
-                    setTimeout(() => setIsTransitioning(false), 800);
-                  }
-                }}
-                disabled={isTransitioning}
-                className={`h-2 rounded-full transition-all duration-500 ease-out ${
-                  index === currentModelIndex
-                    ? 'w-10 bg-gradient-to-r from-[#E02127] to-[#0D1A4B] shadow-lg shadow-red-500/50 scale-110'
-                    : 'w-2 bg-slate-300 hover:bg-slate-400 hover:scale-150 hover:shadow-md'
-                }`}
-                aria-label={`Ver modelo ${index + 1}`}
-              />
-            ))}
           </div>
         </div>
         )}
@@ -613,25 +670,38 @@ export default function CotizarPage() {
           {/* Contenido Expandible */}
           {mejorasExpanded && modeloSeleccionado && (
             <div className="h-full overflow-y-auto overflow-x-hidden px-4 py-3 animate-in fade-in slide-in-from-top-4 duration-500" style={{ maxHeight: 'calc(100vh - 140px)', minHeight: '60vh' }}>
-              <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Categoría: RAM */}
                 <div className="bg-gradient-to-br from-purple-50/50 to-pink-50/50 rounded-lg p-3 border border-purple-100 hover:shadow-lg hover:scale-[1.02] transition-all duration-300">
                   <div className="flex items-center gap-1.5 mb-2.5">
                     <MemoryStick className="h-4 w-4 text-purple-600" />
                     <h3 className="text-xs font-bold text-slate-800">Memoria RAM</h3>
+                    {placaActual?.especificaciones?.ram_tipo && (
+                      <span className="px-2 py-0.5 bg-white text-purple-700 text-[9px] font-semibold rounded-full border border-purple-200">
+                        Compatible: {placaActual.especificaciones.ram_tipo}
+                      </span>
+                    )}
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     {componentes
                       .filter((c) => c.tipo === 'RAM')
                       .map((comp) => (
+                        (() => {
+                          const ramTipoActual = placaActual?.especificaciones?.ram_tipo;
+                          const compatible = !ramTipoActual || comp.especificaciones?.tipo === ramTipoActual;
+                          return (
                         <button
                           key={comp.id}
                           className={`relative p-2.5 rounded-lg text-left transition-all duration-300 hover:scale-105 active:scale-95 ${
                             componentesSeleccionados?.ram === comp.id
                               ? 'bg-gradient-to-br from-purple-500 to-pink-500 shadow-lg ring-2 ring-purple-300 scale-105'
-                              : 'bg-white border border-slate-200 hover:border-purple-300 hover:shadow-md'
+                              : `bg-white border ${compatible ? 'border-slate-200 hover:border-purple-300 hover:shadow-md' : 'border-red-200'}`
                           }`}
-                          onClick={() => cambiarComponente('RAM', comp.id)}
+                          onClick={() => {
+                            if (!compatible) return;
+                            cambiarComponente('RAM', comp.id);
+                          }}
+                          disabled={!compatible}
                         >
                           {comp.imagenUrl && (
                             <img src={comp.imagenUrl} alt={`${comp.marca} ${comp.modelo}`} className="w-full h-24 object-cover rounded mb-2 border" loading="lazy" />
@@ -639,6 +709,11 @@ export default function CotizarPage() {
                           {componentesSeleccionados?.ram === comp.id && (
                             <div className="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow animate-in zoom-in duration-300">
                               <Check className="h-2.5 w-2.5 text-purple-600" />
+                            </div>
+                          )}
+                          {!compatible && (
+                            <div className="absolute -top-1 -left-1 bg-red-500 text-white text-[8px] font-semibold px-1.5 py-0.5 rounded-full shadow">
+                              No {ramTipoActual}
                             </div>
                           )}
                           <p className={`font-semibold text-[10px] truncate ${
@@ -651,17 +726,40 @@ export default function CotizarPage() {
                           }`}>
                             {comp.modelo}
                           </p>
-                          <p className={`text-[9px] mt-1 ${
-                            componentesSeleccionados?.ram === comp.id ? 'text-white/90' : 'text-slate-600'
-                          }`}>
-                            {comp.especificaciones.capacidad}
-                          </p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {comp.especificaciones.capacidad && (
+                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold ${componentesSeleccionados?.ram === comp.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
+                                {comp.especificaciones.capacidad}
+                              </span>
+                            )}
+                            {comp.especificaciones.tipo && (
+                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold ${componentesSeleccionados?.ram === comp.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
+                                {comp.especificaciones.tipo}
+                              </span>
+                            )}
+                            {comp.especificaciones.velocidad_mhz && (
+                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold ${componentesSeleccionados?.ram === comp.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
+                                {comp.especificaciones.velocidad_mhz} MHz
+                              </span>
+                            )}
+                          </div>
                           <p className={`font-bold text-[11px] mt-1.5 ${
                             componentesSeleccionados?.ram === comp.id ? 'text-white' : 'text-purple-600'
                           }`}>
-                            {formatPrecio(Math.ceil((remotePrices[comp.id] ?? comp.precio) * 1.10))}
+                            {componentesSeleccionados?.ram === comp.id ? 'Seleccionado' : (
+                              (() => {
+                                const selectedComp = componentes.find(c => c.id === componentesSeleccionados?.ram);
+                                const currentCompPrice = selectedComp ? (remotePrices[selectedComp.id] ?? selectedComp.precio) : 0;
+                                const diff = (remotePrices[comp.id] ?? comp.precio) - currentCompPrice;
+                                if (componentesSeleccionados?.ram === comp.id) return 'Seleccionado';
+                                if (diff === 0) return '$0';
+                                return (diff > 0 ? '+' : '-') + formatPrecio(Math.abs(diff));
+                              })()
+                            )}
                           </p>
                         </button>
+                          );
+                        })()
                       ))}
                   </div>
                 </div>
@@ -675,15 +773,22 @@ export default function CotizarPage() {
                   <div className="grid grid-cols-2 gap-2">
                     {componentes
                       .filter((c) => c.tipo === 'ALMACENAMIENTO')
-                      .map((comp) => (
+                      .map((comp) => {
+                        const interfazPlaca = placaActual?.especificaciones?.interfaz || placaActual?.especificaciones?.almacenamiento_interfaz;
+                        const compatible = !interfazPlaca || comp.especificaciones?.interfaz === interfazPlaca || comp.especificaciones?.tipo === interfazPlaca;
+                        return (
                         <button
                           key={comp.id}
                           className={`relative p-2.5 rounded-lg text-left transition-all duration-300 hover:scale-105 active:scale-95 ${
                             componentesSeleccionados?.almacenamiento === comp.id
                               ? 'bg-gradient-to-br from-emerald-500 to-teal-500 shadow-lg ring-2 ring-emerald-300 scale-105'
-                              : 'bg-white border border-slate-200 hover:border-emerald-300 hover:shadow-md'
+                              : `bg-white border ${compatible ? 'border-slate-200 hover:border-emerald-300 hover:shadow-md' : 'border-red-200'}`
                           }`}
-                          onClick={() => cambiarComponente('ALMACENAMIENTO', comp.id)}
+                          onClick={() => {
+                            if (!compatible) return;
+                            cambiarComponente('ALMACENAMIENTO', comp.id);
+                          }}
+                          disabled={!compatible}
                         >
                           {comp.imagenUrl && (
                             <img src={comp.imagenUrl} alt={`${comp.marca} ${comp.modelo}`} className="w-full h-24 object-cover rounded mb-2 border" loading="lazy" />
@@ -703,18 +808,44 @@ export default function CotizarPage() {
                           }`}>
                             {comp.modelo}
                           </p>
-                          <p className={`text-[9px] mt-1 truncate ${
-                            componentesSeleccionados?.almacenamiento === comp.id ? 'text-white/90' : 'text-slate-600'
-                          }`}>
-                            {comp.especificaciones.tipo} - {comp.especificaciones.capacidad}
-                          </p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {comp.especificaciones.tipo && (
+                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold ${componentesSeleccionados?.almacenamiento === comp.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
+                                {comp.especificaciones.tipo}
+                              </span>
+                            )}
+                            {comp.especificaciones.capacidad && (
+                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold ${componentesSeleccionados?.almacenamiento === comp.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
+                                {comp.especificaciones.capacidad}
+                              </span>
+                            )}
+                            {comp.especificaciones.interfaz && (
+                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold ${componentesSeleccionados?.almacenamiento === comp.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
+                                {comp.especificaciones.interfaz}
+                              </span>
+                            )}
+                            {!compatible && interfazPlaca && (
+                              <span className="px-2 py-0.5 rounded-full text-[9px] font-semibold bg-red-500 text-white">
+                                No {interfazPlaca}
+                              </span>
+                            )}
+                          </div>
                           <p className={`font-bold text-[11px] mt-1.5 ${
                             componentesSeleccionados?.almacenamiento === comp.id ? 'text-white' : 'text-emerald-600'
                           }`}>
-                            {formatPrecio(Math.ceil((remotePrices[comp.id] ?? comp.precio) * 1.10))}
+                            {componentesSeleccionados?.almacenamiento === comp.id ? 'Seleccionado' : (
+                              (() => {
+                                const selectedComp = componentes.find(c => c.id === componentesSeleccionados?.almacenamiento);
+                                const currentCompPrice = selectedComp ? (remotePrices[selectedComp.id] ?? selectedComp.precio) : 0;
+                                const diff = (remotePrices[comp.id] ?? comp.precio) - currentCompPrice;
+                                if (diff === 0) return '$0';
+                                return (diff > 0 ? '+' : '-') + formatPrecio(Math.abs(diff));
+                              })()
+                            )}
                           </p>
                         </button>
-                      ))}
+                        );
+                      })}
                   </div>
                 </div>
 
@@ -730,7 +861,9 @@ export default function CotizarPage() {
                   <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
                     {componentes
                       .filter((c) => c.tipo === 'GPU')
-                      .map((comp) => (
+                      .map((comp) => {
+                        const esRecomendada = modeloSeleccionado?.componentes?.gpu === comp.id;
+                        return (
                         <button
                           key={comp.id}
                           className={`relative p-2.5 rounded-lg text-left transition-all duration-300 hover:scale-105 active:scale-95 ${
@@ -748,6 +881,16 @@ export default function CotizarPage() {
                               <Check className="h-2.5 w-2.5 text-orange-600" />
                             </div>
                           )}
+                          {modeloSeleccionado?.componentes?.gpu === comp.id && (
+                            <div className="absolute -top-1 -left-1 bg-amber-500 text-white text-[8px] font-semibold px-1.5 py-0.5 rounded-full shadow">
+                              Recomendada
+                            </div>
+                          )}
+                          {esRecomendada && (
+                            <div className="absolute -top-1 -left-1 bg-amber-500 text-white text-[8px] font-semibold px-1.5 py-0.5 rounded-full shadow">
+                              Recomendada
+                            </div>
+                          )}
                           <p className={`font-semibold text-[10px] truncate ${
                             componentesSeleccionados?.gpu === comp.id ? 'text-white' : 'text-slate-800'
                           }`}>
@@ -758,18 +901,49 @@ export default function CotizarPage() {
                           }`}>
                             {comp.modelo}
                           </p>
-                          <p className={`text-[9px] mt-1 ${
-                            componentesSeleccionados?.gpu === comp.id ? 'text-white/90' : 'text-slate-600'
-                          }`}>
-                            {comp.especificaciones.vram}
-                          </p>
+                          <div className="flex flex-wrap gap-1 mt-1">
+                            {comp.especificaciones.vram_gb && (
+                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold ${componentesSeleccionados?.gpu === comp.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
+                                {comp.especificaciones.vram_gb} GB
+                              </span>
+                            )}
+                            {comp.especificaciones.tdp_w && (
+                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold ${componentesSeleccionados?.gpu === comp.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
+                                {comp.especificaciones.tdp_w} W
+                              </span>
+                            )}
+                            {comp.especificaciones.min_psu_w && (
+                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold ${componentesSeleccionados?.gpu === comp.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
+                                PSU {comp.especificaciones.min_psu_w} W
+                              </span>
+                            )}
+                            {comp.especificaciones.boost_clock_mhz && (
+                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold ${componentesSeleccionados?.gpu === comp.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
+                                {comp.especificaciones.boost_clock_mhz} MHz
+                              </span>
+                            )}
+                            {comp.especificaciones.tipo_memoria && (
+                              <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold ${componentesSeleccionados?.gpu === comp.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
+                                {comp.especificaciones.tipo_memoria}
+                              </span>
+                            )}
+                          </div>
                           <p className={`font-bold text-[11px] mt-1.5 ${
                             componentesSeleccionados?.gpu === comp.id ? 'text-white' : 'text-orange-600'
                           }`}>
-                            {formatPrecio(Math.ceil((remotePrices[comp.id] ?? comp.precio) * 1.10))}
+                            {componentesSeleccionados?.gpu === comp.id ? 'Seleccionado' : (
+                              (() => {
+                                const selectedComp = componentes.find(c => c.id === componentesSeleccionados?.gpu);
+                                const currentCompPrice = selectedComp ? (remotePrices[selectedComp.id] ?? selectedComp.precio) : 0;
+                                const diff = (remotePrices[comp.id] ?? comp.precio) - currentCompPrice;
+                                if (diff === 0) return '$0';
+                                return (diff > 0 ? '+' : '-') + formatPrecio(Math.abs(diff));
+                              })()
+                            )}
                           </p>
                         </button>
-                      ))}
+                        );
+                      })}
                   </div>
                 </div>
               </div>
@@ -792,9 +966,13 @@ export default function CotizarPage() {
         {/* Paso 3: Gabinete */}
         {pasoActual === 'gabinete' && <GabineteSelector />}
 
+        {/* Paso 4: Fuente */}
+        {pasoActual === 'fuente' && <FuenteSelector />}
 
+        {/* Paso 5: Monitor (opcional) */}
+        {pasoActual === 'monitor' && <MonitorSelector />}
 
-        {/* Paso 5: Resumen */}
+        {/* Paso 6: Resumen */}
         {pasoActual === 'resumen' && (
           <div className="flex-1 overflow-y-auto px-6 py-6 bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
             <div className="max-w-6xl mx-auto">
@@ -862,6 +1040,7 @@ export default function CotizarPage() {
                                 {tipo === 'gpu' && 'Tarjeta Gráfica'}
                                 {tipo === 'fuente' && 'Fuente de Poder'}
                                 {tipo === 'gabinete' && 'Gabinete'}
+                                {tipo === 'monitor' && 'Monitor'}
                               </p>
                               <p className="font-semibold text-slate-900 text-sm truncate">
                                 {componente?.marca} {componente?.modelo}
@@ -873,14 +1052,15 @@ export default function CotizarPage() {
                                   {tipo === 'gpu' && componente.especificaciones.vram}
                                   {tipo === 'fuente' && `${componente.especificaciones.potencia} ${componente.especificaciones.certificacion}`}
                                   {tipo === 'gabinete' && componente.especificaciones.formato}
+                                  {tipo === 'monitor' && (componente.especificaciones.resolucion || componente.especificaciones.tamano || componente.especificaciones.tamaño)}
                                 </p>
                               )}
                             </div>
                           </div>
                           <div className="text-right">
-                            <p className="font-bold text-[#E02127] text-sm">
-                              {formatPrecio(Math.ceil((((componente ? (remotePrices[componente.id] ?? componente.precio) : 0) || 0) * 1.10)))}
-                            </p>
+                      <p className="font-bold text-[#E02127] text-sm">
+                        {formatPrecio(Math.ceil((((componente ? (remotePrices[componente.id] ?? componente.precio) : 0) || 0) * 1.10)))}
+                      </p>
                           </div>
                         </div>
                       ))}
@@ -1097,7 +1277,13 @@ export default function CotizarPage() {
                   : 'bg-slate-200 text-slate-400 cursor-not-allowed'
               }`}
             >
-              {pasoActual === 'gabinete' ? 'Ver Resumen' : 'Continuar'}
+              {pasoActual === 'gabinete'
+                ? (gabineteIncluyeFuente ? 'Elegir Monitor' : 'Elegir Fuente')
+                : pasoActual === 'fuente'
+                ? 'Elegir Monitor'
+                : pasoActual === 'monitor'
+                ? 'Ver Resumen'
+                : 'Continuar'}
               <ArrowRight className="h-4 w-4" />
             </button>
           </div>
