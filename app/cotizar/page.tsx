@@ -181,181 +181,105 @@ export default function CotizarPage() {
 
   const total = precioTotal;
 
-  const handleDescargarPDF = async () => {
-    try {
-      const { default: jsPDF } = await import('jspdf');
-      const autoTable = (await import('jspdf-autotable')).default;
-      const doc = new jsPDF({ unit: 'pt', format: 'a4', compress: true });
-      const pageWidth = doc.internal.pageSize.getWidth();
-      let y = 40;
-
-      // Header bar
-      doc.setFillColor(224, 33, 39);
-      doc.rect(0, 0, pageWidth, 8, 'F');
-
-      // Logo
+      const handleDescargarPDF = async () => {
       try {
-        const logoResp = await fetch('https://wckxhidltmnvpbrswnmz.supabase.co/storage/v1/object/public/componentes/branding/microhouse-logo.png');
-        const logoBlob = await logoResp.blob();
-        const logoDataUrl: string = await new Promise((resolve, reject) => {
-          const reader = new FileReader();
-          reader.onload = () => resolve(reader.result as string);
-          reader.onerror = reject;
-          reader.readAsDataURL(logoBlob);
-        });
-        // place logo on the right top area
-        doc.addImage(logoDataUrl, 'PNG', pageWidth - 200, 14, 160, 36);
-      } catch {}
+        const { default: jsPDF } = await import('jspdf');
+        const autoTable = (await import('jspdf-autotable')).default;
+        const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+        const pageWidth = doc.internal.pageSize.getWidth();
+        let y = 40;
 
-      // Title and date
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(18);
-      doc.text('Cotización PC - MicroHouse', 40, y);
-      doc.setFontSize(10);
-      doc.setFont('helvetica', 'normal');
-      const fecha = new Date();
-      doc.text(`Emitida: ${fecha.toLocaleString()}`, 40, y + 16);
-      y += 40;
+        doc.setFillColor(224, 33, 39);
+        doc.rect(0, 0, pageWidth, 8, 'F');
 
-      // Modelo
-      if (modeloSeleccionado?.nombre) {
-        doc.setFont('helvetica', 'bold');
-        doc.setFontSize(12);
-        doc.text(`Modelo: ${modeloSeleccionado.nombre}`, 40, y);
-        y += 16;
-      }
-
-      // Tabla de componentes (precio mostrado: 3 cuotas +10%)
-      const tipoMap: Record<string, string> = {
-        procesador: 'Procesador', placamadre: 'Placa Madre', placaMadre: 'Placa Madre',
-        ram: 'Memoria RAM', almacenamiento: 'Almacenamiento', gpu: 'GPU',
-        fuente: 'Fuente', gabinete: 'Gabinete', monitor: 'Monitor'
-      };
-
-      const fetchImageAsDataUrl = async (url?: string | null): Promise<string | null> => {
-        if (!url) return null;
         try {
-          let optimized = url;
-          // Usar miniatura desde Supabase (ancho 120) para evitar imágenes pesadas
-          if (/supabase\.co\/storage\/v1\/object\/public\//i.test(url)) {
-            optimized = `${url}${url.includes('?') ? '&' : '?'}width=120&quality=60`;
-          }
-          const controller = new AbortController();
-          const timeout = setTimeout(() => controller.abort(), 1200);
-          const resp = await fetch(optimized, { signal: controller.signal });
-          clearTimeout(timeout);
-          if (!resp.ok) return null;
-          const blob = await resp.blob();
-          return await new Promise((resolve, reject) => {
+          const logoResp = await fetch('https://wckxhidltmnvpbrswnmz.supabase.co/storage/v1/object/public/componentes/branding/microhouse-logo.png');
+          const logoBlob = await logoResp.blob();
+          const logoDataUrl: string = await new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.onload = () => resolve(reader.result as string);
             reader.onerror = reject;
-            reader.readAsDataURL(blob);
+            reader.readAsDataURL(logoBlob);
           });
-        } catch {
-          return null;
-        }
-      };
+          doc.addImage(logoDataUrl, 'PNG', pageWidth - 200, 14, 160, 36);
+        } catch {}
 
-      let imagesRemaining = 6; // limitar imágenes embebidas para evitar OOM
-      // Limitar imágenes para evitar OOM
-      const rows = await Promise.all(
-        componentesDetalle.map(async ({ tipo, componente }) => {
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(18);
+        doc.text('Cotización PC - MicroHouse', 40, y);
+        doc.setFontSize(10);
+        doc.setFont('helvetica', 'normal');
+        const fecha = new Date();
+        doc.text(`Emitida: ${fecha.toLocaleString()}`, 40, y + 16);
+        y += 40;
+
+        if (modeloSeleccionado?.nombre) {
+          doc.setFont('helvetica', 'bold');
+          doc.setFontSize(12);
+          doc.text(`Modelo: ${modeloSeleccionado.nombre}`, 40, y);
+          y += 16;
+        }
+
+        const tipoMap: Record<string, string> = {
+          procesador: 'Procesador', placamadre: 'Placa Madre', placaMadre: 'Placa Madre',
+          ram: 'Memoria RAM', almacenamiento: 'Almacenamiento', gpu: 'GPU',
+          fuente: 'Fuente', gabinete: 'Gabinete', monitor: 'Monitor'
+        };
+        const rows = componentesDetalle.map(({ tipo, componente }) => {
           const base = componente ? (remotePrices[componente.id] ?? componente.precio) : 0;
           const precio3 = Math.ceil((base || 0) * 1.10);
           const e: any = componente?.especificaciones || {};
           const detalle = tipo === 'ram' ? (e.capacidad || '')
             : tipo === 'almacenamiento' ? `${e.capacidad || ''} ${e.tipo || ''}`.trim()
-            : tipo === 'gpu' ? (e.vram_gb ? `${e.vram_gb}GB` : e.vram || '')
-            : tipo === 'fuente' ? `${e.potencia || e.potencia_w || ''} ${e.certificacion || ''}`.trim()
+            : tipo === 'gpu' ? (e.vram || '')
+            : tipo === 'fuente' ? `${e.potencia || ''} ${e.certificacion || ''}`.trim()
             : tipo === 'gabinete' ? (e.formato || '')
             : tipo === 'monitor' ? `${e.resolucion || ''} ${e.tamano_pulgadas ? `${e.tamano_pulgadas}"` : ''}`.trim()
             : '';
-          let imgDataUrl = '';
-          if (componente?.imagenUrl && imagesRemaining > 0) {
-            const fetched = await fetchImageAsDataUrl(componente.imagenUrl);
-            if (fetched) {
-              imgDataUrl = fetched;
-              imagesRemaining -= 1;
-            }
-          }
-          return {
-            img: imgDataUrl || '',
-            tipo: tipoMap[tipo] || tipo,
-            nombre: `${componente?.marca || ''} ${componente?.modelo || ''}`.trim(),
-            detalle,
-            precio: formatPrecio(precio3),
-          };
-        })
-      );
+          return [tipoMap[tipo] || tipo, `${componente?.marca || ''} ${componente?.modelo || ''}`.trim(), detalle, formatPrecio(precio3)];
+        });
 
-      autoTable(doc, {
-        head: [['', 'Componente', 'Marca/Modelo', 'Detalle', 'Precio 3 cuotas']],
-        columns: [
-          { header: '', dataKey: 'img' },
-          { header: 'Componente', dataKey: 'tipo' },
-          { header: 'Marca/Modelo', dataKey: 'nombre' },
-          { header: 'Detalle', dataKey: 'detalle' },
-          { header: 'Precio 3 cuotas', dataKey: 'precio' },
-        ],
-        body: rows,
-        startY: y,
-        theme: 'striped',
-        styles: { fontSize: 9, cellPadding: { top: 6, right: 4, bottom: 6, left: 4 }, minCellHeight: 32 },
-        headStyles: { fillColor: [224, 33, 39], textColor: 255 },
-        columnStyles: { img: { cellWidth: 42 } },
-        didDrawCell: (data: any) => {
-          if (data.column.dataKey === 'img' && data.cell.raw) {
-            const img = data.cell.raw as string;
-            const dim = 30;
-            const x = data.cell.x + 4;
-            const yImg = data.cell.y + 2;
-            try {
-              doc.addImage(img, 'JPEG', x, yImg, dim, dim);
-            } catch {
-              try { doc.addImage(img, 'PNG', x, yImg, dim, dim); } catch {}
-            }
-          }
-        },
-      });
+        autoTable(doc, {
+          head: [['Componente', 'Marca/Modelo', 'Detalle', 'Precio 3 cuotas']],
+          body: rows,
+          startY: y,
+          headStyles: { fillColor: [224, 33, 39], textColor: 255 }
+        });
 
-      const afterTableY = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY + 20 : y + 20;
+        const afterTableY = (doc as any).lastAutoTable ? (doc as any).lastAutoTable.finalY + 20 : y + 20;
 
-      // Totales y métodos de pago
-      const contado = Math.ceil(total);
-      const unoCuota = Math.ceil(total * 1.10); // 1 cuota sin interés igual que resumen
-      const tresTotal = Math.ceil(total * 1.10);
-      const seisTotal = Math.ceil(contado * 1.2603);
-      const nueveTotal = Math.ceil(contado * 1.3805);
-      const doceTotal = Math.ceil(contado * 1.51);
+        const contado = Math.ceil(total);
+        const unoCuota = Math.ceil(total * 1.10);
+        const tresTotal = Math.ceil(total * 1.10);
+        const seisTotal = Math.ceil(contado * 1.2603);
+        const nueveTotal = Math.ceil(contado * 1.3805);
+        const doceTotal = Math.ceil(contado * 1.51);
 
-      doc.setFont('helvetica', 'bold');
-      doc.setFontSize(12);
-      doc.text('Opciones de pago', 40, afterTableY);
-      let py = afterTableY + 16;
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(11);
-      doc.text(`Contado / Débito / Transferencia (Mejor precio): ${formatPrecio(contado)}`, 40, py); py += 16;
-      doc.text(`1 cuota (sin interés): ${formatPrecio(unoCuota)}`, 40, py); py += 16;
-      doc.text(`3 cuotas (sin interés): ${formatPrecio(Math.ceil(tresTotal / 3))} / mes — Total: ${formatPrecio(tresTotal)}`, 40, py); py += 16;
-      doc.text(`6 cuotas: ${formatPrecio(Math.ceil(seisTotal / 6))} / mes — Total: ${formatPrecio(seisTotal)}`, 40, py); py += 16;
-      doc.text(`9 cuotas: ${formatPrecio(Math.ceil(nueveTotal / 9))} / mes — Total: ${formatPrecio(nueveTotal)}`, 40, py); py += 16;
-      doc.text(`12 cuotas: ${formatPrecio(Math.ceil(doceTotal / 12))} / mes — Total: ${formatPrecio(doceTotal)}`, 40, py); py += 24;
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(12);
+        doc.text('Opciones de pago', 40, afterTableY);
+        let py = afterTableY + 16;
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(11);
+        doc.text(`Contado / Débito / Transferencia (Mejor precio): ${formatPrecio(contado)}`, 40, py); py += 16;
+        doc.text(`1 cuota (sin interés): ${formatPrecio(unoCuota)}`, 40, py); py += 16;
+        doc.text(`3 cuotas (sin interés): ${formatPrecio(Math.ceil(tresTotal / 3))} / mes - Total: ${formatPrecio(tresTotal)}`, 40, py); py += 16;
+        doc.text(`6 cuotas: ${formatPrecio(Math.ceil(seisTotal / 6))} / mes - Total: ${formatPrecio(seisTotal)}`, 40, py); py += 16;
+        doc.text(`9 cuotas: ${formatPrecio(Math.ceil(nueveTotal / 9))} / mes - Total: ${formatPrecio(nueveTotal)}`, 40, py); py += 16;
+        doc.text(`12 cuotas: ${formatPrecio(Math.ceil(doceTotal / 12))} / mes - Total: ${formatPrecio(doceTotal)}`, 40, py); py += 24;
 
-      // Aclaración
-      doc.setFontSize(9);
-      doc.setTextColor(100);
-      doc.text('El precio del presupuesto es válido al momento de la emisión y está sujeto a cambios sin previo aviso.', 40, py, { maxWidth: pageWidth - 80 });
+        doc.setFontSize(9);
+        doc.setTextColor(100);
+        doc.text('El precio del presupuesto es válido al momento de la emisión y está sujeto a cambios sin previo aviso.', 40, py, { maxWidth: pageWidth - 80 });
 
-      // Guardar
-      const pad = (n: number) => n.toString().padStart(2, '0');
-      const name = `Cotizacion-MicroHouse-${fecha.getFullYear()}${pad(fecha.getMonth() + 1)}${pad(fecha.getDate())}-${pad(fecha.getHours())}${pad(fecha.getMinutes())}.pdf`;
-      doc.save(name);
-    } catch (e) {
-      console.error(e);
-      alert('No se pudo generar el PDF.');
-    }
-  };
+        const pad = (n: number) => n.toString().padStart(2, '0');
+        const name = `Cotizacion-MicroHouse-${fecha.getFullYear()}${pad(fecha.getMonth() + 1)}${pad(fecha.getDate())}-${pad(fecha.getHours())}${pad(fecha.getMinutes())}.pdf`;
+        doc.save(name);
+      } catch (e) {
+        console.error(e);
+        alert('No se pudo generar el PDF.');
+      }
+    };
 
   const handleCompartirWhatsApp = () => {
     const mensaje = `🖥️ *Cotización PC - MicroHouse*\n\n*Modelo:* ${modeloSeleccionado?.nombre}\n*Total:* ${formatPrecio(total)}\n\n¡Consultá disponibilidad!`;
