@@ -9,26 +9,28 @@ import { useRemotePrices } from '@/lib/pricing';
 
 export default function MonitorSelector() {
   const { componentesSeleccionados, cambiarComponente } = useCotizadorStore();
-  
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [monitoresDb, setMonitoresDb] = useState<any[]>([])
-  
+
   const [maxCardHeight, setMaxCardHeight] = useState<number | null>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  useEffect(() => { (async () => {
-    try {
-      const { data } = await supabase
-        .from('componentes')
-        .select('*')
-        .eq('tipo','MONITOR')
-        .throwOnError()
-      setMonitoresDb((data as any) || [])
-    } catch (err) {
-      console.error('Error fetching monitores:', (err as any)?.message || err, err)
-    }
-  })() }, [])
+  useEffect(() => {
+    (async () => {
+      try {
+        const { data } = await supabase
+          .from('componentes')
+          .select('*')
+          .eq('tipo', 'MONITOR')
+          .throwOnError()
+        setMonitoresDb((data as any) || [])
+      } catch (err) {
+        console.error('Error fetching monitores:', (err as any)?.message || err, err)
+      }
+    })()
+  }, [])
 
   const monitores = monitoresDb;
   const remotePrices = useRemotePrices(monitores);
@@ -84,7 +86,7 @@ export default function MonitorSelector() {
 
       <div className="relative w-full max-w-7xl" style={{ minHeight: maxCardHeight ? `${maxCardHeight + 40}px` : '520px' }}>
         <div className="absolute inset-0 overflow-hidden">
-          <div 
+          <div
             className="flex h-full items-center"
             style={{
               transform: `translateX(calc(50% - ${currentIndex * 320}px - 160px))`,
@@ -104,11 +106,10 @@ export default function MonitorSelector() {
                   }}
                 >
                   <div
-                    ref={el => cardRefs.current[index] = el}
-                    className={`bg-white rounded-2xl text-center relative transition-all duration-500 ease-in-out ${
-                      isCurrent ? 'shadow-[0_0_0_3px_rgba(224,33,39,0.3),0_20px_60px_-10px_rgba(224,33,39,0.4)]' : 'shadow-2xl scale-80 opacity-60'
-                    }`}
-                    style={{ 
+                    ref={(el) => { cardRefs.current[index] = el; }}
+                    className={`bg-white rounded-2xl text-center relative transition-all duration-500 ease-in-out ${isCurrent ? 'shadow-[0_0_0_3px_rgba(224,33,39,0.3),0_20px_60px_-10px_rgba(224,33,39,0.4)]' : 'shadow-2xl scale-80 opacity-60'
+                      }`}
+                    style={{
                       cursor: 'pointer',
                       minHeight: maxCardHeight ? `${maxCardHeight}px` : undefined,
                     }}
@@ -132,7 +133,7 @@ export default function MonitorSelector() {
                         </div>
                       );
                     })()}
-                    
+
                     <div className="p-4 space-y-2">
                       <h2 className="text-base font-bold text-slate-900 truncate h-6">
                         {monitor.marca} {monitor.modelo}
@@ -141,18 +142,17 @@ export default function MonitorSelector() {
                         {formatPrecio(Math.ceil(((remotePrices[monitor.id] ?? monitor.precio) as number) * 1.10))}
                       </p>
                       <div className="pt-2">
-                         <button
+                        <button
                           onClick={(e) => {
                             if (isCurrent) {
                               e.stopPropagation();
                               cambiarComponente('MONITOR', monitor.id);
                             }
                           }}
-                          className={`w-full px-5 py-2.5 rounded-xl transition-all text-xs font-bold shadow-lg hover:shadow-xl active:scale-95 transform duration-200 relative overflow-hidden group ${
-                            componentesSeleccionados?.monitor === monitor.id
+                          className={`w-full px-5 py-2.5 rounded-xl transition-all text-xs font-bold shadow-lg hover:shadow-xl active:scale-95 transform duration-200 relative overflow-hidden group ${componentesSeleccionados?.monitor === monitor.id
                               ? 'bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white'
                               : 'bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700'
-                          }`}
+                            }`}
                         >
                           <span className="relative z-10 flex items-center justify-center gap-2">
                             {componentesSeleccionados?.monitor === monitor.id ? (
@@ -197,11 +197,10 @@ export default function MonitorSelector() {
               key={index}
               onClick={() => setCurrentIndex(index)}
               disabled={isTransitioning}
-              className={`h-2 rounded-full transition-all duration-500 ease-out ${
-                index === currentIndex
+              className={`h-2 rounded-full transition-all duration-500 ease-out ${index === currentIndex
                   ? 'w-10 bg-gradient-to-r from-[#E02127] to-[#0D1A4B] shadow-lg'
                   : 'w-2 bg-slate-300 hover:bg-slate-400'
-              }`}
+                }`}
               aria-label={`Ver monitor ${index + 1}`}
             />
           ))}
