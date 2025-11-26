@@ -1,0 +1,7 @@
+- Gamer & Multitarea R7 | 8 GB | 240 SSD (Slug: gamer-multitarea-r7)
+- Gamer Avanzado R5 | 16 GB | 240 SSD (Slug: gamer-avanzado-r5)
+- Gamer Core | Ryzen 3 | 8 GB | 240 SSD (Slug: gamer-core-r3)
+- Gamer Equilibrado R5 | 16 GB | 240 SSD (Slug: gamer-equilibrado-r5)
+- Gamer Premium R7 | 16 GB | 240 SSD (Slug: gamer-premium-r7)
+- Hogar y Estudio i3 | 8 GB | 240 SSD (Slug: hogar-estudio-i3)
+- Oficina y Hogar i5 | 8 GB | 240 SSD (Slug: oficina-hogar-i5)

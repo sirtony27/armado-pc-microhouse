@@ -27,7 +27,7 @@ function getAdminClient(): SupabaseClient {
   return createClient(url, key)
 }
 
-async function fetchDuxBySku(sku: string): Promise<DuxResponse> {
+export async function fetchDuxBySku(sku: string): Promise<DuxResponse> {
   const endpoint = `https://catalogo.duxsoftware.com.ar/api/proxy/product_info?page=0&size=10&key_catalogo=armado_pc_microhouse&producto=${encodeURIComponent(
     sku
   )}`
@@ -41,7 +41,7 @@ async function fetchDuxBySku(sku: string): Promise<DuxResponse> {
 async function selectProductos() {
   const supabase = getAdminClient()
   const { data, error } = await supabase
-    .from('productos')
+    .from('componentes')
     .select('id, sku')
     .not('sku', 'is', null)
 
@@ -55,7 +55,7 @@ async function updateProducto(
   dux: DuxResponse
 ) {
   const { error } = await supabase
-    .from('productos')
+    .from('componentes')
     .update({
       precio: dux.total,
       precio_neto: dux.total_sin_impuestos,

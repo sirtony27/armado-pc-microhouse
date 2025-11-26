@@ -3,52 +3,20 @@
 import { formatPrecio } from '@/lib/utils';
 import { Check, Zap, ChevronLeft, ChevronRight, ArrowRight, AlertCircle } from 'lucide-react';
 import { useCotizadorStore } from '@/store/cotizadorStore';
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { useRemotePrices } from '@/lib/pricing';
-import { supabase } from '@/lib/supabase';
+import { Componente } from '@/types';
 
-export default function FuenteSelector() {
+interface FuenteSelectorProps {
+  fuentes: Componente[];
+}
+
+export default function FuenteSelector({ fuentes }: FuenteSelectorProps) {
   const { componentesSeleccionados, cambiarComponente } = useCotizadorStore();
-  
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [componentesDb, setComponentesDb] = useState<any[]>([]);
 
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        const { data, error } = await supabase
-          .from('componentes')
-          .select('*')
-          .eq('activo', true)
-          .order('created_at', { ascending: false });
-        if (!cancelled && !error && data) setComponentesDb(data as any);
-      } catch (err) {
-        console.error('Error fetching fuentes:', (err as any)?.message || err);
-      }
-    })();
-    return () => { cancelled = true; };
-  }, []);
-
-  // Calcular potencia requerida
-  const potenciaRequerida = useMemo(() => {
-    let watts = 0;
-    const ids = Object.values(componentesSeleccionados || {}).filter(Boolean).map(String);
-
-    componentesDb
-      .filter((c: any) => ids.includes(String(c.id)))
-      .forEach((comp: any) => {
-        const compat = comp.compatibilidad || {};
-        const val = Number(compat.consumoWatts ?? compat.consumo_w ?? compat.potencia);
-        if (!Number.isNaN(val)) watts += val;
-      });
-
-    // Agregar margen de seguridad del 30%
-    return Math.ceil(watts * 1.3);
-  }, [componentesSeleccionados, componentesDb]);
-
-  const fuentes = useMemo(() => componentesDb.filter((c: any) => c.tipo === 'FUENTE'), [componentesDb]);
   const remotePrices = useRemotePrices(fuentes);
 
   const nextFuente = () => {
@@ -69,22 +37,6 @@ export default function FuenteSelector() {
 
   return (
     <div className="flex-1 flex flex-col items-center justify-center px-6 py-6 overflow-hidden">
-      {/* Advertencia de Potencia */}
-      <div className="max-w-4xl w-full mb-4 p-3 bg-gradient-to-r from-amber-50 to-orange-50 border-l-4 border-amber-500 rounded-xl shadow-sm animate-in fade-in slide-in-from-top duration-500">
-        <div className="flex items-start gap-3">
-          <AlertCircle className="h-5 w-5 text-amber-600 flex-shrink-0 mt-0.5" />
-          <div>
-            <h3 className="text-sm font-bold text-amber-900 mb-1">
-              Potencia Recomendada
-            </h3>
-            <p className="text-xs text-amber-800">
-              Tu configuración requiere al menos <span className="font-bold">{potenciaRequerida}W</span>.
-              Te recomendamos una fuente de al menos <span className="font-bold">{Math.ceil(potenciaRequerida / 50) * 50}W</span> para mayor estabilidad.
-            </p>
-          </div>
-        </div>
-      </div>
-
       <div className="text-center mb-6 animate-in fade-in slide-in-from-top duration-700">
         <div className="flex items-center justify-center gap-2 mb-2">
           <Zap className="h-7 w-7 text-amber-600" />
@@ -92,10 +44,10 @@ export default function FuenteSelector() {
             Elegí tu Fuente de Poder
           </h1>
         </div>
-        <p className="text-slate-600 text-xs">Seleccioná la fuente adecuada para tu configuración (mínimo {Math.ceil(potenciaRequerida / 50) * 50}W)</p>
+        <p className="text-slate-600 text-xs">Seleccioná la fuente adecuada para tu configuración</p>
       </div>
 
-      <div 
+      <div
         className="relative w-full max-w-7xl h-[480px] flex items-center justify-center mb-4"
         style={{ perspective: '2500px', perspectiveOrigin: 'center' }}
       >
@@ -115,24 +67,23 @@ export default function FuenteSelector() {
           <ChevronRight className="h-5 w-5 text-amber-600 transition-transform duration-200 group-hover:translate-x-0.5" />
         </button>
 
-        <div className="relative w-full h-full flex items-center justify-center">
+        <div className="relative w-full h-full flex items-center justify-center" style={{ '--card-width': 'min(360px, 85vw)' } as React.CSSProperties}>
           {fuentes.map((fuente, index) => {
             const position = index - currentIndex;
             const isVisible = Math.abs(position) <= 2;
-            const potenciaRaw = (fuente.especificaciones?.potencia || '').toString();
-            const potencia = parseInt(potenciaRaw.replace(/[^0-9]/g, '') || '0');
-            const esRecomendada = potencia >= potenciaRequerida;
-            const esInsuficiente = potencia < potenciaRequerida;
-            
+            // Placeholder for compatibility logic, can be enhanced later
+            const esInsuficiente = false;
+            const esRecomendada = false;
+
             if (!isVisible) return null;
-            
+
             return (
               <div
                 key={fuente.id}
                 className={`absolute ${position === 0 ? 'z-20' : 'z-0'}`}
                 style={{
                   transform: `
-                    translateX(${position * 360}px)
+                    translateX(calc(${position} * var(--card-width)))
                     scale(${position === 0 ? 1 : 0.75})
                     rotateY(${position * -18}deg)
                   `,
@@ -144,15 +95,17 @@ export default function FuenteSelector() {
                 }}
                 onClick={() => position === 0 && !esInsuficiente && cambiarComponente('FUENTE', fuente.id)}
               >
-                <div 
-                  className={`bg-white rounded-2xl p-6 text-center w-[360px] relative overflow-visible ${
-                    position === 0 && !esInsuficiente
-                      ? 'shadow-[0_0_0_3px_rgba(251,191,36,0.3),0_20px_60px_-10px_rgba(251,191,36,0.4)] animate-glow-pulse'
-                      : esInsuficiente && position === 0
+                <div
+                  className={`bg-white rounded-2xl p-6 text-center relative overflow-visible ${position === 0 && !esInsuficiente
+                    ? 'shadow-[0_0_0_3px_rgba(251,191,36,0.3),0_20px_60px_-10px_rgba(251,191,36,0.4)] animate-glow-pulse'
+                    : esInsuficiente && position === 0
                       ? 'shadow-xl opacity-60 border-2 border-red-300'
                       : 'shadow-2xl'
-                  }`}
-                  style={{ cursor: position === 0 && !esInsuficiente ? 'pointer' : 'default' }}
+                    }`}
+                  style={{
+                    cursor: position === 0 && !esInsuficiente ? 'pointer' : 'default',
+                    width: 'var(--card-width)'
+                  }}
                 >
                   {esInsuficiente && position === 0 && (
                     <div className="absolute -top-2 -right-2 bg-red-500 text-white text-[8px] font-bold px-2 py-1 rounded-full shadow-lg z-10">
@@ -165,9 +118,8 @@ export default function FuenteSelector() {
                     </div>
                   )}
 
-                  <div className={`w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl mx-auto mb-3 flex items-center justify-center shadow-lg transition-all duration-700 ${
-                    position === 0 && !esInsuficiente ? 'animate-float' : 'scale-90 opacity-80'
-                  }`}>
+                  <div className={`w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl mx-auto mb-3 flex items-center justify-center shadow-lg transition-all duration-700 ${position === 0 && !esInsuficiente ? 'animate-float' : 'scale-90 opacity-80'
+                    }`}>
                     <Zap className="h-8 w-8 text-white" />
                   </div>
 
@@ -203,13 +155,12 @@ export default function FuenteSelector() {
                         if (!esInsuficiente) cambiarComponente('FUENTE', fuente.id);
                       }}
                       disabled={esInsuficiente}
-                      className={`w-full px-5 py-2.5 rounded-xl transition-all text-xs font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transform duration-200 relative overflow-hidden group ${
-                        esInsuficiente
-                          ? 'bg-gradient-to-r from-slate-300 to-slate-400 text-slate-600 cursor-not-allowed'
-                          : componentesSeleccionados?.fuente === fuente.id
+                      className={`w-full px-5 py-2.5 rounded-xl transition-all text-xs font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transform duration-200 relative overflow-hidden group ${esInsuficiente
+                        ? 'bg-gradient-to-r from-slate-300 to-slate-400 text-slate-600 cursor-not-allowed'
+                        : componentesSeleccionados?.fuente === fuente.id
                           ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white'
                           : 'bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700 hover:from-amber-600 hover:to-orange-600 hover:text-white'
-                      }`}
+                        }`}
                     >
                       <span className="relative z-10 flex items-center justify-center gap-2">
                         {esInsuficiente ? (
@@ -250,11 +201,10 @@ export default function FuenteSelector() {
               }
             }}
             disabled={isTransitioning}
-            className={`h-2 rounded-full transition-all duration-500 ease-out ${
-              index === currentIndex
-                ? 'w-10 bg-gradient-to-r from-amber-600 to-orange-600 shadow-lg shadow-amber-500/50 scale-110'
-                : 'w-2 bg-slate-300 hover:bg-slate-400 hover:scale-150 hover:shadow-md'
-            }`}
+            className={`h-2 rounded-full transition-all duration-500 ease-out ${index === currentIndex
+              ? 'w-10 bg-gradient-to-r from-amber-600 to-orange-600 shadow-lg shadow-amber-500/50 scale-110'
+              : 'w-2 bg-slate-300 hover:bg-slate-400 hover:scale-150 hover:shadow-md'
+              }`}
             aria-label={`Ver fuente ${index + 1}`}
           />
         ))}
@@ -262,4 +212,3 @@ export default function FuenteSelector() {
     </div>
   );
 }
-

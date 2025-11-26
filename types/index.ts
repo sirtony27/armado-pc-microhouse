@@ -1,15 +1,16 @@
-export type TipoComponente = 
-  | 'CPU' 
-  | 'GPU' 
-  | 'RAM' 
-  | 'ALMACENAMIENTO' 
-  | 'PLACA_MADRE' 
-  | 'FUENTE' 
+export type TipoComponente =
+  | 'CPU'
+  | 'GPU'
+  | 'RAM'
+  | 'ALMACENAMIENTO'
+  | 'PLACA_MADRE'
+  | 'FUENTE'
   | 'GABINETE'
   | 'MONITOR';
 
 export interface Componente {
   id: string;
+  sku?: string;
   tipo: TipoComponente;
   marca: string;
   modelo: string;

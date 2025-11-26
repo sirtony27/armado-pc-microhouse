@@ -4,40 +4,30 @@ import { formatPrecio } from '@/lib/utils';
 import { Check, Box, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { useCotizadorStore } from '@/store/cotizadorStore';
 import { useState, useEffect, useRef, useLayoutEffect, useCallback, useMemo } from 'react';
-import { supabase } from '@/lib/supabase'
 import { useRemotePrices } from '@/lib/pricing';
+import { Componente } from '@/types';
 
-export default function GabineteSelector() {
+interface GabineteSelectorProps {
+  gabinetes: Componente[];
+}
+
+export default function GabineteSelector({ gabinetes: gabinetesInitial }: GabineteSelectorProps) {
   const { componentesSeleccionados, cambiarComponente } = useCotizadorStore();
-  
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
-  const [gabinetesDb, setGabinetesDb] = useState<any[]>([])
-  
+
   const [maxCardHeight, setMaxCardHeight] = useState<number | null>(null);
   const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  useEffect(() => { (async () => {
-    try {
-      const { data } = await supabase
-        .from('componentes')
-        .select('*')
-        .eq('tipo','GABINETE')
-        .throwOnError()
-      setGabinetesDb((data as any) || [])
-    } catch (err) {
-      console.error('Error fetching gabinetes:', (err as any)?.message || err, err)
-    }
-  })() }, [])
-
-  const remotePrices = useRemotePrices(gabinetesDb);
+  const remotePrices = useRemotePrices(gabinetesInitial);
   const gabinetes = useMemo(() => {
-    return [...gabinetesDb].sort((a, b) => {
+    return [...gabinetesInitial].sort((a, b) => {
       const pa = Number(remotePrices[a.id] ?? a.precio ?? 0);
       const pb = Number(remotePrices[b.id] ?? b.precio ?? 0);
       return pa - pb;
     });
-  }, [gabinetesDb, remotePrices]);
+  }, [gabinetesInitial, remotePrices]);
 
   const measureAndSetHeight = useCallback(() => {
     let maxHeight = 0;
@@ -91,12 +81,13 @@ export default function GabineteSelector() {
 
       <div className="relative w-full max-w-7xl" style={{ minHeight: maxCardHeight ? `${maxCardHeight + 80}px` : '640px' }}>
         <div className="absolute inset-0 overflow-hidden">
-          <div 
+          <div
             className="flex h-full items-center"
             style={{
-              transform: `translateX(calc(50% - ${currentIndex * 320}px - 160px))`,
+              '--card-width': 'min(320px, 85vw)',
+              transform: `translateX(calc(50% - (${currentIndex} + 0.5) * var(--card-width)))`,
               transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-            }}
+            } as React.CSSProperties}
           >
             {gabinetes.map((gabinete, index) => {
               const isCurrent = index === currentIndex;
@@ -111,7 +102,8 @@ export default function GabineteSelector() {
               return (
                 <div
                   key={gabinete.id}
-                  className="w-[320px] flex-shrink-0 px-4"
+                  className="flex-shrink-0 px-4"
+                  style={{ width: 'var(--card-width)' }}
                   onClick={() => {
                     if (!isCurrent) {
                       setCurrentIndex(index);
@@ -120,10 +112,9 @@ export default function GabineteSelector() {
                 >
                   <div
                     ref={el => cardRefs.current[index] = el}
-                    className={`bg-white rounded-2xl text-center relative transition-all duration-500 ease-in-out overflow-hidden ${
-                      isCurrent ? 'shadow-[0_0_0_3px_rgba(224,33,39,0.3),0_20px_60px_-10px_rgba(224,33,39,0.4)] ring-1 ring-[#E02127]/20' : 'shadow-2xl scale-80 opacity-60'
-                    }`}
-                    style={{ 
+                    className={`bg-white rounded-2xl text-center relative transition-all duration-500 ease-in-out overflow-hidden ${isCurrent ? 'shadow-[0_0_0_3px_rgba(224,33,39,0.3),0_20px_60px_-10px_rgba(224,33,39,0.4)] ring-1 ring-[#E02127]/20' : 'shadow-2xl scale-80 opacity-60'
+                      }`}
+                    style={{
                       cursor: 'pointer',
                       minHeight: maxCardHeight ? `${maxCardHeight}px` : undefined,
                     }}
@@ -153,7 +144,7 @@ export default function GabineteSelector() {
                         </div>
                       );
                     })()}
-                    
+
                     <div className="p-4 space-y-3 text-left">
                       <h2 className="text-base font-bold text-slate-900 truncate h-6">
                         {gabinete.marca} {gabinete.modelo}
@@ -200,18 +191,17 @@ export default function GabineteSelector() {
                         </div>
                       </div>
                       <div className="pt-2">
-                         <button
+                        <button
                           onClick={(e) => {
                             if (isCurrent) {
                               e.stopPropagation();
                               cambiarComponente('GABINETE', gabinete.id);
                             }
                           }}
-                          className={`w-full px-5 py-2.5 rounded-xl transition-all text-xs font-bold shadow-lg hover:shadow-xl active:scale-95 transform duration-200 relative overflow-hidden group ${
-                            componentesSeleccionados?.gabinete === gabinete.id
+                          className={`w-full px-5 py-2.5 rounded-xl transition-all text-xs font-bold shadow-lg hover:shadow-xl active:scale-95 transform duration-200 relative overflow-hidden group ${componentesSeleccionados?.gabinete === gabinete.id
                               ? 'bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white'
                               : 'bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700'
-                          }`}
+                            }`}
                         >
                           <span className="relative z-10 flex items-center justify-center gap-2">
                             {componentesSeleccionados?.gabinete === gabinete.id ? (
@@ -256,11 +246,10 @@ export default function GabineteSelector() {
               key={index}
               onClick={() => setCurrentIndex(index)}
               disabled={isTransitioning}
-              className={`h-2 rounded-full transition-all duration-500 ease-out ${
-                index === currentIndex
+              className={`h-2 rounded-full transition-all duration-500 ease-out ${index === currentIndex
                   ? 'w-10 bg-gradient-to-r from-[#E02127] to-[#0D1A4B] shadow-lg'
                   : 'w-2 bg-slate-300 hover:bg-slate-400'
-              }`}
+                }`}
               aria-label={`Ver gabinete ${index + 1}`}
             />
           ))}
@@ -269,3 +258,4 @@ export default function GabineteSelector() {
     </div>
   );
 }
+
