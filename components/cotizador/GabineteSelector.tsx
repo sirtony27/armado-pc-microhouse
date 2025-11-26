@@ -111,7 +111,7 @@ export default function GabineteSelector({ gabinetes: gabinetesInitial }: Gabine
                   }}
                 >
                   <div
-                    ref={el => cardRefs.current[index] = el}
+                    ref={(el) => { cardRefs.current[index] = el; }}
                     className={`bg-white rounded-2xl text-center relative transition-all duration-500 ease-in-out overflow-hidden ${isCurrent ? 'shadow-[0_0_0_3px_rgba(224,33,39,0.3),0_20px_60px_-10px_rgba(224,33,39,0.4)] ring-1 ring-[#E02127]/20' : 'shadow-2xl scale-80 opacity-60'
                       }`}
                     style={{
@@ -199,8 +199,8 @@ export default function GabineteSelector({ gabinetes: gabinetesInitial }: Gabine
                             }
                           }}
                           className={`w-full px-5 py-2.5 rounded-xl transition-all text-xs font-bold shadow-lg hover:shadow-xl active:scale-95 transform duration-200 relative overflow-hidden group ${componentesSeleccionados?.gabinete === gabinete.id
-                              ? 'bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white'
-                              : 'bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700'
+                            ? 'bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white'
+                            : 'bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700'
                             }`}
                         >
                           <span className="relative z-10 flex items-center justify-center gap-2">
@@ -247,8 +247,8 @@ export default function GabineteSelector({ gabinetes: gabinetesInitial }: Gabine
               onClick={() => setCurrentIndex(index)}
               disabled={isTransitioning}
               className={`h-2 rounded-full transition-all duration-500 ease-out ${index === currentIndex
-                  ? 'w-10 bg-gradient-to-r from-[#E02127] to-[#0D1A4B] shadow-lg'
-                  : 'w-2 bg-slate-300 hover:bg-slate-400'
+                ? 'w-10 bg-gradient-to-r from-[#E02127] to-[#0D1A4B] shadow-lg'
+                : 'w-2 bg-slate-300 hover:bg-slate-400'
                 }`}
               aria-label={`Ver gabinete ${index + 1}`}
             />
