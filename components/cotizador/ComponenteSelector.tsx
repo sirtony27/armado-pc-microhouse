@@ -21,6 +21,7 @@ const tipoLabels: Record<TipoComponente, string> = {
   PLACA_MADRE: 'Placa Madre',
   FUENTE: 'Fuente de Poder',
   GABINETE: 'Gabinete',
+  MONITOR: 'Monitor',
 };
 
 export default function ComponenteSelector({
@@ -53,9 +54,8 @@ export default function ComponenteSelector({
             )}
           </div>
           <ChevronDown
-            className={`h-5 w-5 text-gray-400 transition-transform ${
-              expanded ? 'rotate-180' : ''
-            }`}
+            className={`h-5 w-5 text-gray-400 transition-transform ${expanded ? 'rotate-180' : ''
+              }`}
           />
         </button>
 
@@ -69,11 +69,10 @@ export default function ComponenteSelector({
                     onSelect(componente.id);
                     setExpanded(false);
                   }}
-                  className={`w-full text-left p-4 rounded-lg border-2 transition-all ${
-                    componente.id === seleccionadoId
+                  className={`w-full text-left p-4 rounded-lg border-2 transition-all ${componente.id === seleccionadoId
                       ? 'border-blue-600 bg-blue-50'
                       : 'border-gray-200 bg-white hover:border-gray-300'
-                  }`}
+                    }`}
                 >
                   <div className="flex items-start justify-between">
                     {componente.imagenUrl && (
@@ -86,7 +85,7 @@ export default function ComponenteSelector({
                         {componente.marca} {componente.modelo}
                       </p>
                       <p className="text-sm text-gray-600 mt-1">{componente.descripcion}</p>
-                      
+
                       {/* Specs destacadas */}
                       <div className="mt-2 flex flex-wrap gap-2">
                         {Object.entries(componente.especificaciones)
@@ -101,7 +100,7 @@ export default function ComponenteSelector({
                           ))}
                       </div>
                     </div>
-                    
+
                     <div className="ml-4 text-right">
                       <p className="font-bold text-gray-900">{formatPrecio(componente.precio)}</p>
                       {componente.id === seleccionadoId && (
