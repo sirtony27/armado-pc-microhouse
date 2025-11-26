@@ -86,6 +86,25 @@ export default function CotizarPage() {
     }
   }, [gabineteIncluyeFuente, componentesSeleccionados?.fuente, cambiarComponente]);
 
+  // Handle URL query params for pre-selecting model (from Wizard)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const modelSlug = params.get('model');
+    const stepParam = params.get('step');
+
+    if (modelSlug && modelosBase.length > 0) {
+      const foundModel = modelosBase.find(m => m.slug === modelSlug);
+      if (foundModel) {
+        setModeloBase(foundModel);
+
+        // If step param is present (e.g. 'resumen'), override the default step
+        if (stepParam === 'resumen') {
+          setTimeout(() => setPaso('resumen'), 0);
+        }
+      }
+    }
+  }, [modelosBase, setModeloBase, setPaso]);
+
   // Validar si puede avanzar de paso
   const puedeAvanzar = useMemo(() => {
     if (pasoActual === 'modelo') return !!modeloSeleccionado;
@@ -822,43 +841,10 @@ export default function CotizarPage() {
                                         No {ramTipoActual}
                                       </div>
                                     )}
-                                    <p className={`font-semibold text-[10px] truncate ${componentesSeleccionados?.ram === comp.id ? 'text-white' : 'text-slate-800'
-                                      }`}>
-                                      {comp.marca}
-                                    </p>
-                                    <p className={`text-[11px] truncate font-medium ${componentesSeleccionados?.ram === comp.id ? 'text-white' : 'text-slate-900'
-                                      }`}>
-                                      {comp.modelo}
-                                    </p>
-                                    <div className="flex flex-wrap gap-1 mt-1">
-                                      {comp.especificaciones.capacidad && (
-                                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold ${componentesSeleccionados?.ram === comp.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
-                                          {comp.especificaciones.capacidad}
-                                        </span>
-                                      )}
-                                      {comp.especificaciones.tipo && (
-                                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold ${componentesSeleccionados?.ram === comp.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
-                                          {comp.especificaciones.tipo}
-                                        </span>
-                                      )}
-                                      {comp.especificaciones.velocidad_mhz && (
-                                        <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold ${componentesSeleccionados?.ram === comp.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
-                                          {comp.especificaciones.velocidad_mhz} MHz
-                                        </span>
-                                      )}
-                                    </div>
-                                    <p className={`font-bold text-[11px] mt-1.5 ${componentesSeleccionados?.ram === comp.id ? 'text-white' : 'text-purple-600'
-                                      }`}>
-                                      {componentesSeleccionados?.ram === comp.id ? 'Seleccionado' : (
-                                        (() => {
-                                          const selectedComp = componentes.find(c => c.id === componentesSeleccionados?.ram);
-                                          const currentCompPrice = selectedComp ? (remotePrices[selectedComp.id] ?? selectedComp.precio) : 0;
-                                          const diff = (remotePrices[comp.id] ?? comp.precio) - currentCompPrice;
-                                          if (componentesSeleccionados?.ram === comp.id) return 'Seleccionado';
-                                          if (diff === 0) return '$0';
-                                          return (diff > 0 ? '+' : '-') + formatPrecio(Math.abs(diff));
-                                        })()
-                                      )}
+                                    <p className="text-[10px] font-bold text-slate-900 leading-tight mb-0.5">{comp.marca} {comp.modelo}</p>
+                                    <p className="text-[9px] text-slate-500 mb-1">{comp.especificaciones?.capacidad}</p>
+                                    <p className="text-[10px] font-bold text-purple-600">
+                                      {formatPrecio(remotePrices[comp.id] ?? comp.precio)}
                                     </p>
                                   </button>
                                 );
@@ -868,532 +854,321 @@ export default function CotizarPage() {
                       </div>
 
                       {/* Categoría: Almacenamiento */}
-                      <div className="bg-gradient-to-br from-emerald-50/50 to-teal-50/50 rounded-lg p-3 border border-emerald-100 hover:shadow-lg hover:scale-[1.02] transition-all duration-300">
+                      <div className="bg-gradient-to-br from-blue-50/50 to-cyan-50/50 rounded-lg p-3 border border-blue-100 hover:shadow-lg hover:scale-[1.02] transition-all duration-300">
                         <div className="flex items-center gap-1.5 mb-2.5">
-                          <HardDrive className="h-4 w-4 text-emerald-600" />
+                          <HardDrive className="h-4 w-4 text-blue-600" />
                           <h3 className="text-xs font-bold text-slate-800">Almacenamiento</h3>
                         </div>
                         <div className="grid grid-cols-2 gap-2">
                           {componentes
                             .filter((c) => c.tipo === 'ALMACENAMIENTO')
-                            .map((comp) => {
-                              const interfazPlaca = placaActual?.especificaciones?.interfaz || placaActual?.especificaciones?.almacenamiento_interfaz;
-                              const compatible = !interfazPlaca || comp.especificaciones?.interfaz === interfazPlaca || comp.especificaciones?.tipo === interfazPlaca;
-                              return (
-                                <button
-                                  key={comp.id}
-                                  className={`relative p-2.5 rounded-lg text-left transition-all duration-300 hover:scale-105 active:scale-95 ${componentesSeleccionados?.almacenamiento === comp.id
-                                    ? 'bg-gradient-to-br from-emerald-500 to-teal-500 shadow-lg ring-2 ring-emerald-300 scale-105'
-                                    : `bg-white border ${compatible ? 'border-slate-200 hover:border-emerald-300 hover:shadow-md' : 'border-red-200'}`
-                                    }`}
-                                  onClick={() => {
-                                    if (!compatible) return;
-                                    cambiarComponente('ALMACENAMIENTO', comp.id);
-                                  }}
-                                  disabled={!compatible}
-                                >
-                                  {comp.imagenUrl && (
-                                    <img src={comp.imagenUrl} alt={`${comp.marca} ${comp.modelo}`} className="w-full h-24 object-cover rounded mb-2 border" loading="lazy" />
-                                  )}
-                                  {componentesSeleccionados?.almacenamiento === comp.id && (
-                                    <div className="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow animate-in zoom-in duration-300">
-                                      <Check className="h-2.5 w-2.5 text-emerald-600" />
-                                    </div>
-                                  )}
-                                  <p className={`font-semibold text-[10px] truncate ${componentesSeleccionados?.almacenamiento === comp.id ? 'text-white' : 'text-slate-800'
-                                    }`}>
-                                    {comp.marca}
-                                  </p>
-                                  <p className={`text-[11px] truncate font-medium ${componentesSeleccionados?.almacenamiento === comp.id ? 'text-white' : 'text-slate-900'
-                                    }`}>
-                                    {comp.modelo}
-                                  </p>
-                                  <div className="flex flex-wrap gap-1 mt-1">
-                                    {comp.especificaciones.tipo && (
-                                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold ${componentesSeleccionados?.almacenamiento === comp.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
-                                        {comp.especificaciones.tipo}
-                                      </span>
-                                    )}
-                                    {comp.especificaciones.capacidad && (
-                                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold ${componentesSeleccionados?.almacenamiento === comp.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
-                                        {comp.especificaciones.capacidad}
-                                      </span>
-                                    )}
-                                    {comp.especificaciones.interfaz && (
-                                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold ${componentesSeleccionados?.almacenamiento === comp.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
-                                        {comp.especificaciones.interfaz}
-                                      </span>
-                                    )}
-                                    {!compatible && interfazPlaca && (
-                                      <span className="px-2 py-0.5 rounded-full text-[9px] font-semibold bg-red-500 text-white">
-                                        No {interfazPlaca}
-                                      </span>
-                                    )}
+                            .map((comp) => (
+                              <button
+                                key={comp.id}
+                                className={`relative p-2.5 rounded-lg text-left transition-all duration-300 hover:scale-105 active:scale-95 ${componentesSeleccionados?.almacenamiento === comp.id
+                                  ? 'bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg ring-2 ring-blue-300 scale-105'
+                                  : 'bg-white border border-slate-200 hover:border-blue-300 hover:shadow-md'
+                                  }`}
+                                onClick={() => cambiarComponente('ALMACENAMIENTO', comp.id)}
+                              >
+                                {comp.imagenUrl && (
+                                  <img src={comp.imagenUrl} alt={`${comp.marca} ${comp.modelo}`} className="w-full h-24 object-cover rounded mb-2 border" loading="lazy" />
+                                )}
+                                {componentesSeleccionados?.almacenamiento === comp.id && (
+                                  <div className="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow animate-in zoom-in duration-300">
+                                    <Check className="h-2.5 w-2.5 text-blue-600" />
                                   </div>
-                                  <p className={`font-bold text-[11px] mt-1.5 ${componentesSeleccionados?.almacenamiento === comp.id ? 'text-white' : 'text-emerald-600'
-                                    }`}>
-                                    {componentesSeleccionados?.almacenamiento === comp.id ? 'Seleccionado' : (
-                                      (() => {
-                                        const selectedComp = componentes.find(c => c.id === componentesSeleccionados?.almacenamiento);
-                                        const currentCompPrice = selectedComp ? (remotePrices[selectedComp.id] ?? selectedComp.precio) : 0;
-                                        const diff = (remotePrices[comp.id] ?? comp.precio) - currentCompPrice;
-                                        if (diff === 0) return '$0';
-                                        return (diff > 0 ? '+' : '-') + formatPrecio(Math.abs(diff));
-                                      })()
-                                    )}
-                                  </p>
-                                </button>
-                              );
-                            })}
+                                )}
+                                <p className="text-[10px] font-bold text-slate-900 leading-tight mb-0.5">{comp.marca} {comp.modelo}</p>
+                                <p className="text-[9px] text-slate-500 mb-1">{comp.especificaciones?.capacidad} {comp.especificaciones?.tipo}</p>
+                                <p className="text-[10px] font-bold text-blue-600">
+                                  {formatPrecio(remotePrices[comp.id] ?? comp.precio)}
+                                </p>
+                              </button>
+                            ))}
                         </div>
                       </div>
 
-                      {/* Categoría: GPU - Opcional */}
-                      <div className="bg-gradient-to-br from-orange-50/50 to-red-50/50 rounded-lg p-3 border border-orange-100 xl:col-span-2 hover:shadow-lg hover:scale-[1.01] transition-all duration-300">
+                      {/* Categoría: Gráfica (GPU) */}
+                      <div className="col-span-1 lg:col-span-2 bg-gradient-to-br from-orange-50/50 to-red-50/50 rounded-lg p-3 border border-orange-100 hover:shadow-lg hover:scale-[1.01] transition-all duration-300">
                         <div className="flex items-center gap-1.5 mb-2.5">
                           <MonitorUp className="h-4 w-4 text-orange-600" />
-                          <h3 className="text-xs font-bold text-slate-800">Tarjeta Gráfica</h3>
-                          <span className="px-2 py-0.5 bg-amber-100 text-amber-700 text-[9px] font-semibold rounded-full border border-amber-200">
-                            Opcional - Mejora el rendimiento gráfico
-                          </span>
+                          <h3 className="text-xs font-bold text-slate-800">Placa de Video (GPU)</h3>
                         </div>
-                        <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-2">
+                        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
                           {componentes
                             .filter((c) => c.tipo === 'GPU')
-                            .map((comp) => {
-                              const esRecomendada = modeloSeleccionado?.componentes?.gpu === comp.id;
-                              return (
-                                <button
-                                  key={comp.id}
-                                  className={`relative p-2.5 rounded-lg text-left transition-all duration-300 hover:scale-105 active:scale-95 ${componentesSeleccionados?.gpu === comp.id
-                                    ? 'bg-gradient-to-br from-orange-500 to-red-500 shadow-lg ring-2 ring-orange-300 scale-105'
-                                    : 'bg-white border border-slate-200 hover:border-orange-300 hover:shadow-md'
-                                    }`}
-                                  onClick={() => cambiarComponente('GPU', comp.id)}
-                                >
-                                  {comp.imagenUrl && (
-                                    <img src={comp.imagenUrl} alt={`${comp.marca} ${comp.modelo}`} className="w-full h-24 object-cover rounded mb-2 border" loading="lazy" />
-                                  )}
-                                  {componentesSeleccionados?.gpu === comp.id && (
-                                    <div className="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow animate-in zoom-in duration-300">
-                                      <Check className="h-2.5 w-2.5 text-orange-600" />
-                                    </div>
-                                  )}
-                                  {modeloSeleccionado?.componentes?.gpu === comp.id && (
-                                    <div className="absolute -top-1 -left-1 bg-amber-500 text-white text-[8px] font-semibold px-1.5 py-0.5 rounded-full shadow">
-                                      Recomendada
-                                    </div>
-                                  )}
-                                  {esRecomendada && (
-                                    <div className="absolute -top-1 -left-1 bg-amber-500 text-white text-[8px] font-semibold px-1.5 py-0.5 rounded-full shadow">
-                                      Recomendada
-                                    </div>
-                                  )}
-                                  <p className={`font-semibold text-[10px] truncate ${componentesSeleccionados?.gpu === comp.id ? 'text-white' : 'text-slate-800'
-                                    }`}>
-                                    {comp.marca}
-                                  </p>
-                                  <p className={`text-[11px] truncate font-medium ${componentesSeleccionados?.gpu === comp.id ? 'text-white' : 'text-slate-900'
-                                    }`}>
-                                    {comp.modelo}
-                                  </p>
-                                  <div className="flex flex-wrap gap-1 mt-1">
-                                    {comp.especificaciones.vram_gb && (
-                                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold ${componentesSeleccionados?.gpu === comp.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
-                                        {comp.especificaciones.vram_gb} GB
-                                      </span>
-                                    )}
-                                    {comp.especificaciones.tdp_w && (
-                                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold ${componentesSeleccionados?.gpu === comp.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
-                                        {comp.especificaciones.tdp_w} W
-                                      </span>
-                                    )}
-                                    {comp.especificaciones.min_psu_w && (
-                                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold ${componentesSeleccionados?.gpu === comp.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
-                                        PSU {comp.especificaciones.min_psu_w} W
-                                      </span>
-                                    )}
-                                    {comp.especificaciones.boost_clock_mhz && (
-                                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold ${componentesSeleccionados?.gpu === comp.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
-                                        {comp.especificaciones.boost_clock_mhz} MHz
-                                      </span>
-                                    )}
-                                    {comp.especificaciones.tipo_memoria && (
-                                      <span className={`px-2 py-0.5 rounded-full text-[9px] font-semibold ${componentesSeleccionados?.gpu === comp.id ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-700'}`}>
-                                        {comp.especificaciones.tipo_memoria}
-                                      </span>
-                                    )}
+                            .map((comp) => (
+                              <button
+                                key={comp.id}
+                                className={`relative p-2.5 rounded-lg text-left transition-all duration-300 hover:scale-105 active:scale-95 ${componentesSeleccionados?.gpu === comp.id
+                                  ? 'bg-gradient-to-br from-orange-500 to-red-500 shadow-lg ring-2 ring-orange-300 scale-105'
+                                  : 'bg-white border border-slate-200 hover:border-orange-300 hover:shadow-md'
+                                  }`}
+                                onClick={() => cambiarComponente('GPU', comp.id)}
+                              >
+                                {comp.imagenUrl && (
+                                  <img src={comp.imagenUrl} alt={`${comp.marca} ${comp.modelo}`} className="w-full h-24 object-cover rounded mb-2 border" loading="lazy" />
+                                )}
+                                {componentesSeleccionados?.gpu === comp.id && (
+                                  <div className="absolute -top-1 -right-1 bg-white rounded-full p-0.5 shadow animate-in zoom-in duration-300">
+                                    <Check className="h-2.5 w-2.5 text-orange-600" />
                                   </div>
-                                  <p className={`font-bold text-[11px] mt-1.5 ${componentesSeleccionados?.gpu === comp.id ? 'text-white' : 'text-orange-600'
-                                    }`}>
-                                    {componentesSeleccionados?.gpu === comp.id ? 'Seleccionado' : (
-                                      (() => {
-                                        const selectedComp = componentes.find(c => c.id === componentesSeleccionados?.gpu);
-                                        const currentCompPrice = selectedComp ? (remotePrices[selectedComp.id] ?? selectedComp.precio) : 0;
-                                        const diff = (remotePrices[comp.id] ?? comp.precio) - currentCompPrice;
-                                        if (diff === 0) return '$0';
-                                        return (diff > 0 ? '+' : '-') + formatPrecio(Math.abs(diff));
-                                      })()
-                                    )}
-                                  </p>
-                                </button>
-                              );
-                            })}
+                                )}
+                                <p className="text-[10px] font-bold text-slate-900 leading-tight mb-0.5">{comp.marca} {comp.modelo}</p>
+                                <p className="text-[9px] text-slate-500 mb-1">{comp.especificaciones?.vram}</p>
+                                <p className="text-[10px] font-bold text-orange-600">
+                                  {formatPrecio(remotePrices[comp.id] ?? comp.precio)}
+                                </p>
+                              </button>
+                            ))}
                         </div>
                       </div>
                     </div>
                   </div>
                 )}
+              </div>
 
-                {/* Mensaje cuando no hay modelo seleccionado */}
-                {mejorasExpanded && !modeloSeleccionado && (
-                  <div className="flex flex-col items-center justify-center py-8 px-4">
-                    <div className="w-12 h-12 bg-slate-100 rounded-xl mb-2 flex items-center justify-center">
-                      <Cpu className="h-6 w-6 text-slate-400" />
-                    </div>
-                    <p className="text-slate-500 text-[10px] text-center">Primero seleccioná un modelo base para poder personalizarlo</p>
-                  </div>
-                )}
+              {/* Botones de Navegación (Mejoras) */}
+              <div className="p-4 bg-white/95 backdrop-blur-sm border-t border-slate-200/50 flex justify-between items-center shadow-lg z-10">
+                <button
+                  onClick={handleAnterior}
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 hover:text-slate-900 transition-all duration-300 flex items-center gap-2"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Volver
+                </button>
+                <button
+                  onClick={handleSiguiente}
+                  className="px-6 py-2 rounded-xl bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white font-bold text-xs shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center gap-2"
+                >
+                  Siguiente
+                  <ChevronRight className="h-4 w-4" />
+                </button>
               </div>
             </div>
           )}
 
           {/* Paso 3: Gabinete */}
-          {pasoActual === 'gabinete' && <GabineteSelector gabinetes={gabinetes} />}
+          {pasoActual === 'gabinete' && (
+            <div className="flex-1 overflow-hidden flex flex-col">
+              <GabineteSelector
+                gabinetes={gabinetes}
+                seleccionado={componentesSeleccionados?.gabinete || null}
+                onSelect={(id) => cambiarComponente('GABINETE', id)}
+                remotePrices={remotePrices}
+              />
+              <div className="p-4 bg-white/95 backdrop-blur-sm border-t border-slate-200/50 flex justify-between items-center shadow-lg z-10">
+                <button
+                  onClick={handleAnterior}
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 hover:text-slate-900 transition-all duration-300 flex items-center gap-2"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Volver
+                </button>
+                <button
+                  onClick={handleSiguiente}
+                  disabled={!componentesSeleccionados?.gabinete}
+                  className={`px-6 py-2 rounded-xl font-bold text-xs shadow-lg transition-all duration-300 flex items-center gap-2 ${componentesSeleccionados?.gabinete
+                    ? 'bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white hover:shadow-xl hover:scale-105'
+                    : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                    }`}
+                >
+                  Siguiente
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
 
-          {/* Paso 4: Fuente */}
-          {pasoActual === 'fuente' && <FuenteSelector fuentes={fuentes} />}
+          {/* Paso 4: Fuente (Solo si no está incluida) */}
+          {pasoActual === 'fuente' && (
+            <div className="flex-1 overflow-hidden flex flex-col">
+              <FuenteSelector
+                fuentes={fuentes}
+                seleccionado={componentesSeleccionados?.fuente || null}
+                onSelect={(id) => cambiarComponente('FUENTE', id)}
+                remotePrices={remotePrices}
+              />
+              <div className="p-4 bg-white/95 backdrop-blur-sm border-t border-slate-200/50 flex justify-between items-center shadow-lg z-10">
+                <button
+                  onClick={handleAnterior}
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 hover:text-slate-900 transition-all duration-300 flex items-center gap-2"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Volver
+                </button>
+                <button
+                  onClick={handleSiguiente}
+                  disabled={!componentesSeleccionados?.fuente}
+                  className={`px-6 py-2 rounded-xl font-bold text-xs shadow-lg transition-all duration-300 flex items-center gap-2 ${componentesSeleccionados?.fuente
+                    ? 'bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white hover:shadow-xl hover:scale-105'
+                    : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                    }`}
+                >
+                  Siguiente
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
 
-          {/* Paso 5: Monitor (opcional) */}
-          {pasoActual === 'monitor' && <MonitorSelector />}
-
-          {/* Paso 6: Resumen */}
-          {pasoActual === 'resumen' && (
-            <div className="flex-1 overflow-y-auto px-6 py-6 bg-gradient-to-br from-slate-50 via-blue-50/30 to-slate-50">
-              <div className="max-w-6xl mx-auto">
-                {/* Header */}
-                <div className="text-center mb-6 animate-in fade-in slide-in-from-top duration-700">
-                  <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-green-500 to-emerald-600 rounded-full mb-3 shadow-lg">
-                    <Check className="h-8 w-8 text-white" />
-                  </div>
-                  <h1 className="text-3xl font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent mb-2">
-                    ¡Configuración Lista!
-                  </h1>
-                  <p className="text-slate-600 text-sm">Tu PC personalizada está lista para ser armada</p>
-                </div>
-
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* Columna Izquierda - Configuración */}
-                  <div className="lg:col-span-2 space-y-4">
-                    {/* Modelo Base */}
-                    <div className="bg-white rounded-xl shadow-lg p-6 animate-in fade-in slide-in-from-left duration-500">
-                      <div className="flex items-center gap-3 mb-4">
-                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
-                          <span className="text-2xl">🖥️</span>
-                        </div>
-                        <div>
-                          <h2 className="text-xl font-bold text-slate-900">{modeloSeleccionado?.nombre}</h2>
-                          <p className="text-xs text-slate-500">Modelo base seleccionado</p>
-                        </div>
-                      </div>
-                      <p className="text-sm text-slate-600 leading-relaxed">{modeloSeleccionado?.descripcion}</p>
-                    </div>
-
-                    {/* Componentes */}
-                    <div className="bg-white rounded-xl shadow-lg p-6 animate-in fade-in slide-in-from-left duration-500 delay-100">
-                      <h3 className="text-lg font-bold text-slate-900 mb-4 flex items-center gap-2">
-                        <Cpu className="h-5 w-5 text-[#E02127]" />
-                        Componentes de tu PC
-                      </h3>
-
-                      <div className="space-y-3">
-                        {componentesDetalle.map(({ tipo, componente }, index) => (
-                          <div
-                            key={tipo}
-                            className="group flex items-center justify-between p-3 rounded-lg hover:bg-slate-50 transition-all duration-300 border border-slate-100 hover:border-blue-200 hover:shadow-sm"
-                            style={{ animationDelay: `${index * 50}ms` }}
-                          >
-                            <div className="flex items-center gap-3 flex-1">
-                              {componente?.imagenUrl ? (
-                                <img
-                                  src={componente.imagenUrl}
-                                  alt={`${componente.marca} ${componente.modelo}`}
-                                  loading="lazy"
-                                  className="flex-shrink-0 w-10 h-10 rounded object-cover border border-slate-200"
-                                />
-                              ) : (
-                                <div className="flex-shrink-0 w-10 h-10 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-lg flex items-center justify-center group-hover:scale-110 transition-transform duration-300">
-                                  {getComponentIcon(tipo)}
-                                </div>
-                              )}
-                              <div className="flex-1 min-w-0">
-                                <p className="text-[10px] text-slate-500 uppercase font-semibold tracking-wide">
-                                  {tipo === 'procesador' && 'Procesador'}
-                                  {tipo === 'placaMadre' && 'Placa Madre'}
-                                  {tipo === 'ram' && 'Memoria RAM'}
-                                  {tipo === 'almacenamiento' && 'Almacenamiento'}
-                                  {tipo === 'gpu' && 'Tarjeta Gráfica'}
-                                  {tipo === 'fuente' && 'Fuente de Poder'}
-                                  {tipo === 'gabinete' && 'Gabinete'}
-                                  {tipo === 'monitor' && 'Monitor'}
-                                </p>
-                                <p className="font-semibold text-slate-900 text-sm truncate">
-                                  {componente?.marca} {componente?.modelo}
-                                </p>
-                                {componente?.especificaciones && (
-                                  <p className="text-xs text-slate-500 truncate">
-                                    {tipo === 'ram' && componente.especificaciones.capacidad}
-                                    {tipo === 'almacenamiento' && `${componente.especificaciones.capacidad} ${componente.especificaciones.tipo}`}
-                                    {tipo === 'gpu' && componente.especificaciones.vram}
-                                    {tipo === 'fuente' && `${componente.especificaciones.potencia} ${componente.especificaciones.certificacion}`}
-                                    {tipo === 'gabinete' && componente.especificaciones.formato}
-                                    {tipo === 'monitor' && (componente.especificaciones.resolucion || componente.especificaciones.tamano || componente.especificaciones.tamaño)}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                            <div className="text-right">
-                              <p className="font-bold text-[#E02127] text-sm">
-                                {formatPrecio(Math.ceil((((componente ? (remotePrices[componente.id] ?? componente.precio) : 0) || 0) * 1.10)))}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* Info Adicional */}
-                    <div className="grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-left duration-500 delay-200">
-                      <div className="bg-gradient-to-br from-green-50 to-emerald-50 rounded-xl p-4 border border-green-200">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Check className="h-5 w-5 text-green-600" />
-                          <h4 className="font-bold text-green-900 text-sm">Garantía Incluida</h4>
-                        </div>
-                        <p className="text-xs text-green-700">12 meses de garantía en todos los componentes</p>
-                      </div>
-                      <div className="bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl p-4 border border-blue-200">
-                        <div className="flex items-center gap-2 mb-2">
-                          <Box className="h-5 w-5 text-[#E02127]" />
-                          <h4 className="font-bold text-blue-900 text-sm">Armado Profesional</h4>
-                        </div>
-                        <p className="text-xs text-blue-700">Probado y optimizado antes de entrega</p>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Columna Derecha - Resumen y Acciones */}
-                  <div className="space-y-4">
-                    {/* Resumen de Precios */}
-                    <div className="bg-white rounded-xl shadow-lg p-6 sticky top-4 animate-in fade-in slide-in-from-right duration-500">
-                      <h3 className="text-lg font-bold text-slate-900 mb-4">Resumen de Compra</h3>
-
-                      <div className="space-y-3 mb-4">
-                        <div className="flex justify-between items-center">
-                          <span className="text-lg font-bold text-slate-900">Total</span>
-                          <div className="text-right">
-                            <p className="text-2xl font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
-                              {formatPrecio(Math.ceil(total * 1.10))}
-                            </p>
-                            <p className="text-xs text-slate-500">Precio final</p>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Opciones de pago */}
-                      <div className="bg-gradient-to-br from-purple-50 to-pink-50 rounded-lg p-4 mb-4 border border-purple-200">
-                        <p className="text-xs font-bold text-purple-900 mb-3 flex items-center gap-2">
-                          💳 Opciones de pago
-                        </p>
-                        <div className="space-y-2">
-                          {/* Contado / Débito / Transferencia - 25% OFF */}
-                          <div className="bg-white rounded-lg p-2.5 border border-emerald-200">
-                            <div className="flex justify-between items-center">
-                              <span className="text-xs text-emerald-700 font-semibold">Contado / Débito / Transferencia</span>
-                              <span className="inline-flex items-center px-2 py-0.5 bg-emerald-50 text-emerald-700 rounded-full text-[9px] font-bold">Mejor precio</span>
-                            </div>
-                            <p className="text-base font-bold text-emerald-900 mt-1">
-                              {formatPrecio(Math.ceil(total))} <span className="text-[10px] font-normal">final</span>
-                            </p>
-                          </div>
-
-                          {/* 1 cuota (sin interés) */}
-                          <div className="bg-white/70 rounded-lg p-2.5 border border-purple-200/50">
-                            <div className="flex justify-between items-center">
-                              <span className="text-xs text-purple-700 font-semibold">1 cuota</span>
-                              <span className="inline-flex items-center px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[9px] font-bold">SIN INTERÉS</span>
-                            </div>
-                            <p className="text-base font-bold text-purple-900 mt-1">
-                              {formatPrecio(Math.ceil(total * 1.10))} <span className="text-xs font-normal">/única</span>
-                            </p>
-                            <p className="text-[10px] text-slate-500">Total: {formatPrecio(Math.ceil(total * 1.10))}</p>
-                          </div>
-
-                          {/* 3 cuotas (sin interés) */}
-                          <div className="bg-white/70 rounded-lg p-2.5 border border-purple-200/50">
-                            <div className="flex justify-between items-center">
-                              <span className="text-xs text-purple-700 font-semibold">3 cuotas</span>
-                              <span className="inline-flex items-center px-2 py-0.5 bg-green-100 text-green-700 rounded-full text-[9px] font-bold">SIN INTERÉS</span>
-                            </div>
-                            <p className="text-base font-bold text-purple-900 mt-1">
-                              {formatPrecio(Math.ceil(total * 1.10 / 3))} <span className="text-xs font-normal">/mes</span>
-                            </p>
-                            <p className="text-[10px] text-slate-500">Total: {formatPrecio(Math.ceil(total * 1.10))}</p>
-                          </div>
-
-                          {/* 6 cuotas */}
-                          <div className="bg-white/70 rounded-lg p-2.5 border border-purple-200/50">
-                            <div className="flex justify-between items-center">
-                              <span className="text-xs text-purple-700 font-semibold">6 cuotas</span>
-                            </div>
-                            <p className="text-base font-bold text-purple-900 mt-1">
-                              {formatPrecio(Math.ceil(total * 1.2603 / 6))} <span className="text-xs font-normal">/mes</span>
-                            </p>
-                            <p className="text-[10px] text-slate-500">Total: {formatPrecio(Math.ceil(total * 1.2603))}</p>
-                          </div>
-
-                          {/* 9 cuotas */}
-                          <div className="bg-white/70 rounded-lg p-2.5 border border-purple-200/50">
-                            <div className="flex justify-between items-center">
-                              <span className="text-xs text-purple-700 font-semibold">9 cuotas</span>
-                            </div>
-                            <p className="text-base font-bold text-purple-900 mt-1">
-                              {formatPrecio(Math.ceil(total * 1.3805 / 9))} <span className="text-xs font-normal">/mes</span>
-                            </p>
-                            <p className="text-[10px] text-slate-500">Total: {formatPrecio(Math.ceil(total * 1.3805))}</p>
-                          </div>
-
-                          {/* 12 cuotas */}
-                          <div className="bg-white/70 rounded-lg p-2.5 border border-purple-200/50">
-                            <div className="flex justify-between items-center">
-                              <span className="text-xs text-purple-700 font-semibold">12 cuotas</span>
-                            </div>
-                            <p className="text-base font-bold text-purple-900 mt-1">
-                              {formatPrecio(Math.ceil(total * 1.51 / 12))} <span className="text-xs font-normal">/mes</span>
-                            </p>
-                            <p className="text-[10px] text-slate-500">Total: {formatPrecio(Math.ceil(total * 1.51))}</p>
-                          </div>
-                        </div>
-
-                        <p className="text-[9px] text-purple-600 mt-2 text-center">
-                          Precios de cuotas sin interés provistos por el proveedor. Descuento aplicable solo en contado/débito/transferencia.
-                        </p>
-                      </div>
-
-                      {/* Botones de Acción */}
-                      <div className="space-y-2">
-                        <button
-                          onClick={handleCompartirWhatsApp}
-                          className="w-full px-4 py-3 bg-gradient-to-r from-green-500 to-emerald-600 text-white rounded-lg hover:from-green-600 hover:to-emerald-700 transition-all text-sm font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transform duration-200 flex items-center justify-center gap-2"
-                        >
-                          <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
-                            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-                          </svg>
-                          Consultar por WhatsApp
-                        </button>
-
-                        <button
-                          onClick={handleDescargarPDF}
-                          className="w-full px-4 py-3 bg-gradient-to-r from-red-500 to-pink-600 text-white rounded-lg hover:from-red-600 hover:to-pink-700 transition-all text-sm font-bold shadow-lg hover:shadow-xl hover:scale-[1.02] active:scale-95 transform duration-200 flex items-center justify-center gap-2"
-                        >
-                          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                          </svg>
-                          Descargar Cotización PDF
-                        </button>
-
-                        <button
-                          onClick={() => {
-                            if (confirm('¿Estás seguro de que querés empezar un nuevo presupuesto? Se perderán los cambios actuales.')) {
-                              resetear();
-                            }
-                          }}
-                          className="w-full px-4 py-2.5 bg-slate-100 text-slate-700 rounded-lg hover:bg-red-50 hover:text-red-600 transition-all text-sm font-semibold flex items-center justify-center gap-2"
-                        >
-                          <RotateCcw className="h-4 w-4" />
-                          Nuevo Presupuesto
-                        </button>
-                      </div>
-
-                      {/* Nota legal */}
-                      <p className="text-[10px] text-slate-500 mt-4 text-center">
-                        Los precios están sujetos a disponibilidad de stock y pueden variar sin previo aviso.
-                      </p>
-                    </div>
-
-                    {/* Banner de soporte */}
-                    <div className="bg-gradient-to-br from-[#E02127] to-[#0D1A4B] rounded-xl p-6 text-white animate-in fade-in slide-in-from-right duration-500 delay-100">
-                      <h4 className="font-bold text-lg mb-2">¿Necesitás ayuda?</h4>
-                      <p className="text-sm text-white/90 mb-4">
-                        Nuestro equipo está disponible para asesorarte
-                      </p>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex items-center gap-2">
-                          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M2 3a1 1 0 011-1h2.153a1 1 0 01.986.836l.74 4.435a1 1 0 01-.54 1.06l-1.548.773a11.037 11.037 0 006.105 6.105l.774-1.548a1 1 0 011.059-.54l4.435.74a1 1 0 01.836.986V17a1 1 0 01-1 1h-2C7.82 18 2 12.18 2 5V3z" />
-                          </svg>
-                          <span>Lun a Vie 9:00 - 18:00</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <svg className="h-4 w-4" fill="currentColor" viewBox="0 0 20 20">
-                            <path d="M2.003 5.884L10 9.882l7.997-3.998A2 2 0 0016 4H4a2 2 0 00-1.997 1.884z" />
-                            <path d="M18 8.118l-8 4-8-4V14a2 2 0 002 2h12a2 2 0 002-2V8.118z" />
-                          </svg>
-                          <span>info@microhouse.com</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
+          {/* Paso 5: Monitor */}
+          {pasoActual === 'monitor' && (
+            <div className="flex-1 overflow-hidden flex flex-col">
+              <MonitorSelector
+                monitores={componentes.filter(c => c.tipo === 'MONITOR')}
+                seleccionado={componentesSeleccionados?.monitor || null}
+                onSelect={(id) => cambiarComponente('MONITOR', id)}
+                remotePrices={remotePrices}
+              />
+              <div className="p-4 bg-white/95 backdrop-blur-sm border-t border-slate-200/50 flex justify-between items-center shadow-lg z-10">
+                <button
+                  onClick={handleAnterior}
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 hover:text-slate-900 transition-all duration-300 flex items-center gap-2"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Volver
+                </button>
+                <div className="flex gap-3">
+                  <button
+                    onClick={() => {
+                      cambiarComponente('MONITOR', ''); // Omitir monitor
+                      handleSiguiente();
+                    }}
+                    className="px-4 py-2 rounded-xl border border-slate-200 text-slate-500 font-bold text-xs hover:bg-slate-50 hover:text-slate-800 transition-all duration-300"
+                  >
+                    Omitir
+                  </button>
+                  <button
+                    onClick={handleSiguiente}
+                    className="px-6 py-2 rounded-xl bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white font-bold text-xs shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center gap-2"
+                  >
+                    Finalizar
+                    <Check className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
             </div>
           )}
-        </div>
 
-        {/* Botones de Navegación */}
-        {pasoActual !== 'resumen' && (
-          <div className="border-t border-slate-200 bg-white px-4 md:px-6 py-4 animate-in fade-in slide-in-from-bottom-2 duration-500">
-            <div className="max-w-6xl mx-auto flex justify-between items-center">
-              <button
-                onClick={handleAnterior}
-                disabled={pasoActual === 'modelo'}
-                className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 ${pasoActual === 'modelo'
-                  ? 'bg-slate-100 text-slate-400 cursor-not-allowed'
-                  : 'bg-slate-200 text-slate-700 hover:bg-slate-300 hover:scale-105 active:scale-95 hover:-translate-x-1'
-                  }`}
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Anterior
-              </button>
+          {/* Paso 6: Resumen Final */}
+          {pasoActual === 'resumen' && (
+            <div className="flex-1 overflow-y-auto p-4 md:p-8">
+              <div className="max-w-4xl mx-auto space-y-8">
+                <div className="text-center space-y-2 animate-in fade-in slide-in-from-bottom duration-700">
+                  <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg animate-bounce">
+                    <Check className="h-8 w-8 text-green-600" />
+                  </div>
+                  <h2 className="text-3xl font-bold text-slate-900">¡Configuración Lista!</h2>
+                  <p className="text-slate-500">Revisá tu presupuesto y elegí cómo querés continuar.</p>
+                </div>
 
-              <button
-                onClick={handleSiguiente}
-                disabled={!puedeAvanzar}
-                className={`flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all duration-300 ${puedeAvanzar
-                  ? 'bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white hover:from-blue-700 hover:to-indigo-700 shadow-md hover:shadow-2xl hover:scale-110 active:scale-95 hover:translate-x-1'
-                  : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                  }`}
-              >
-                {pasoActual === 'gabinete'
-                  ? (gabineteIncluyeFuente ? 'Elegir Monitor' : 'Elegir Fuente')
-                  : pasoActual === 'fuente'
-                    ? 'Elegir Monitor'
-                    : pasoActual === 'monitor'
-                      ? 'Ver Resumen'
-                      : 'Continuar'}
-                <ArrowRight className="h-4 w-4" />
-              </button>
+                {/* Mobile Summary (Visible only on mobile) */}
+                <div className="md:hidden">
+                  <MobileSummary
+                    modeloSeleccionado={modeloSeleccionado}
+                    componentesDetalle={componentesDetalle}
+                    total={total}
+                    onBack={handleAnterior}
+                  />
+                </div>
+
+                {/* Desktop Summary Table (Hidden on mobile as it's in sidebar, but we can show a detailed view here too) */}
+                <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom duration-700 delay-100">
+                  <div className="p-6 border-b border-slate-100 bg-slate-50/50">
+                    <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                      <Cpu className="h-5 w-5 text-[#E02127]" />
+                      Detalle de Componentes
+                    </h3>
+                  </div>
+                  <div className="divide-y divide-slate-100">
+                    {componentesDetalle.map(({ tipo, componente }) => (
+                      <div key={tipo} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                        <div className="flex items-center gap-4">
+                          <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
+                            {getComponentIcon(tipo)}
+                          </div>
+                          <div>
+                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-0.5">
+                              {tipo === 'procesador' && 'Procesador'}
+                              {tipo === 'placamadre' && 'Placa Madre'}
+                              {tipo === 'ram' && 'Memoria RAM'}
+                              {tipo === 'almacenamiento' && 'Almacenamiento'}
+                              {tipo === 'gpu' && 'Gráfica'}
+                              {tipo === 'fuente' && 'Fuente'}
+                              {tipo === 'gabinete' && 'Gabinete'}
+                              {tipo === 'monitor' && 'Monitor'}
+                            </p>
+                            <p className="font-medium text-slate-900">{componente?.marca} {componente?.modelo}</p>
+                          </div>
+                        </div>
+                        <p className="font-bold text-slate-700">
+                          {formatPrecio(Math.ceil((((componente ? (remotePrices[componente.id] ?? componente.precio) : 0) || 0) * 1.10)))}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="p-6 bg-slate-50 border-t border-slate-200">
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg font-bold text-slate-900">Total Estimado (Lista)</span>
+                      <span className="text-3xl font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
+                        {formatPrecio(Math.ceil(total * 1.10))}
+                      </span>
+                    </div>
+                    <p className="text-right text-xs text-slate-500 mt-2">
+                      * Precio de lista en 1 pago. Consultá por descuentos en efectivo/transferencia.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Actions */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom duration-700 delay-200">
+                  <button
+                    onClick={handleDescargarPDF}
+                    className="p-4 bg-white border-2 border-slate-200 rounded-xl hover:border-[#E02127] hover:shadow-lg transition-all duration-300 group text-left"
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="p-2 bg-red-50 rounded-lg text-[#E02127] group-hover:bg-[#E02127] group-hover:text-white transition-colors">
+                        <HardDrive className="h-6 w-6" />
+                      </div>
+                      <h3 className="font-bold text-slate-900">Descargar PDF</h3>
+                    </div>
+                    <p className="text-sm text-slate-500">Guardá el presupuesto para verlo después o imprimirlo.</p>
+                  </button>
+
+                  <button
+                    onClick={handleCompartirWhatsApp}
+                    className="p-4 bg-[#25D366] text-white rounded-xl hover:bg-[#128C7E] hover:shadow-lg transition-all duration-300 group text-left shadow-green-200"
+                  >
+                    <div className="flex items-center gap-3 mb-2">
+                      <div className="p-2 bg-white/20 rounded-lg">
+                        <MonitorUp className="h-6 w-6" />
+                      </div>
+                      <h3 className="font-bold">Consultar por WhatsApp</h3>
+                    </div>
+                    <p className="text-sm text-white/90">Envianos tu configuración para confirmar stock y comprar.</p>
+                  </button>
+                </div>
+
+                <div className="flex justify-center pt-8 pb-8">
+                  <button
+                    onClick={() => {
+                      resetear();
+                      // Optional: redirect to home or just reset
+                    }}
+                    className="text-slate-400 hover:text-slate-600 text-sm flex items-center gap-2 transition-colors"
+                  >
+                    <RotateCcw className="w-4 h-4" />
+                    Empezar una nueva cotización
+                  </button>
+                </div>
+
+              </div>
             </div>
-          </div>
-        )}
+          )}
+        </div>
       </div>
-      <MobileSummary
-        modeloSeleccionado={modeloSeleccionado}
-        componentesDetalle={componentesDetalle}
-        total={total}
-        remotePrices={remotePrices}
-        getComponentIcon={getComponentIcon}
-      />
     </div>
   );
 }
-
