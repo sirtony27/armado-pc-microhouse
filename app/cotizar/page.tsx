@@ -1004,6 +1004,7 @@ export default function CotizarPage() {
                 </button>
               </div>
             </div>
+          )}
           {/* Paso 3: Gabinete */}
           {pasoActual === 'gabinete' && (
             <div className="flex-1 overflow-hidden flex flex-col">
@@ -1033,80 +1034,39 @@ export default function CotizarPage() {
             </div>
           )}
 
-          {/* Paso 4: Fuente (Solo si no está incluida) */}
-          {
-            pasoActual === 'fuente' && (
-              <div className="flex-1 overflow-hidden flex flex-col">
-                <FuenteSelector
-                  fuentes={fuentes}
-                  seleccionado={componentesSeleccionados?.fuente || null}
-                  onSelect={(id) => cambiarComponente('FUENTE', id)}
-                  remotePrices={remotePrices}
-                />
-                <div className="p-4 bg-white/95 backdrop-blur-sm border-t border-slate-200/50 flex justify-between items-center shadow-lg z-10">
+          {/* Paso 5: Monitor */}
+          {pasoActual === 'monitor' && (
+            <div className="flex-1 overflow-hidden flex flex-col">
+              <MonitorSelector />
+              <div className="p-4 bg-white/95 backdrop-blur-sm border-t border-slate-200/50 flex justify-between items-center shadow-lg z-10">
+                <button
+                  onClick={handleAnterior}
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 hover:text-slate-900 transition-all duration-300 flex items-center gap-2"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Volver
+                </button>
+                <div className="flex gap-3">
                   <button
-                    onClick={handleAnterior}
-                    className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 hover:text-slate-900 transition-all duration-300 flex items-center gap-2"
+                    onClick={() => {
+                      cambiarComponente('MONITOR', ''); // Omitir monitor
+                      handleSiguiente();
+                    }}
+                    className="px-4 py-2 rounded-xl border border-slate-200 text-slate-500 font-bold text-xs hover:bg-slate-50 hover:text-slate-800 transition-all duration-300"
                   >
-                    <ChevronLeft className="h-4 w-4" />
-                    Volver
+                    Omitir
                   </button>
                   <button
                     onClick={handleSiguiente}
-                    disabled={!componentesSeleccionados?.fuente}
-                    className={`px-6 py-2 rounded-xl font-bold text-xs shadow-lg transition-all duration-300 flex items-center gap-2 ${componentesSeleccionados?.fuente
-                      ? 'bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white hover:shadow-xl hover:scale-105'
-                      : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-                      }`}
+                    className="px-6 py-2 rounded-xl bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white font-bold text-xs shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center gap-2"
                   >
-                    Siguiente
-                    <ChevronRight className="h-4 w-4" />
+                    Finalizar
+                    <Check className="h-4 w-4" />
                   </button>
                 </div>
               </div>
-            )
-          }
-
-          {/* Paso 5: Monitor */}
-          {
-            pasoActual === 'monitor' && (
-              <div className="flex-1 overflow-hidden flex flex-col">
-                <MonitorSelector
-                  monitores={componentes.filter(c => c.tipo === 'MONITOR')}
-                  seleccionado={componentesSeleccionados?.monitor || null}
-                  onSelect={(id) => cambiarComponente('MONITOR', id)}
-                  remotePrices={remotePrices}
-                />
-                <div className="p-4 bg-white/95 backdrop-blur-sm border-t border-slate-200/50 flex justify-between items-center shadow-lg z-10">
-                  <button
-                    onClick={handleAnterior}
-                    className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 hover:text-slate-900 transition-all duration-300 flex items-center gap-2"
-                  >
-                    <ChevronLeft className="h-4 w-4" />
-                    Volver
-                  </button>
-                  <div className="flex gap-3">
-                    <button
-                      onClick={() => {
-                        cambiarComponente('MONITOR', ''); // Omitir monitor
-                        handleSiguiente();
-                      }}
-                      className="px-4 py-2 rounded-xl border border-slate-200 text-slate-500 font-bold text-xs hover:bg-slate-50 hover:text-slate-800 transition-all duration-300"
-                    >
-                      Omitir
-                    </button>
-                    <button
-                      onClick={handleSiguiente}
-                      className="px-6 py-2 rounded-xl bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white font-bold text-xs shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center gap-2"
-                    >
-                      Finalizar
-                      <Check className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            )
-          }
+            </div>
+          )}
 
           {/* Paso 6: Resumen Final */}
           {
@@ -1119,64 +1079,49 @@ export default function CotizarPage() {
                     </div>
                     <h2 className="text-3xl font-bold text-slate-900">¡Configuración Lista!</h2>
                     <p className="text-slate-500">Revisá tu presupuesto y elegí cómo querés continuar.</p>
+                    <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                      <Cpu className="h-5 w-5 text-[#E02127]" />
+                      Detalle de Componentes
+                    </h3>
                   </div>
-
-                  {/* Mobile Summary (Visible only on mobile) */}
-                  <div className="md:hidden">
-                    <MobileSummary
-                      modeloSeleccionado={modeloSeleccionado}
-                      componentesDetalle={componentesDetalle}
-                      total={total}
-                      onBack={handleAnterior}
-                    />
-                  </div>
-
-                  {/* Desktop Summary Table (Hidden on mobile as it's in sidebar, but we can show a detailed view here too) */}
-                  <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom duration-700 delay-100">
-                    <div className="p-6 border-b border-slate-100 bg-slate-50/50">
-                      <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                        <Cpu className="h-5 w-5 text-[#E02127]" />
-                        Detalle de Componentes
-                      </h3>
-                    </div>
-                    <div className="divide-y divide-slate-100">
-                      {componentesDetalle.map(({ tipo, componente }) => (
-                        <div key={tipo} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                          <div className="flex items-center gap-4">
-                            <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
-                              {getComponentIcon(tipo)}
-                            </div>
-                            <div>
-                              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-0.5">
-                                {tipo === 'procesador' && 'Procesador'}
-                                {tipo === 'placamadre' && 'Placa Madre'}
-                                {tipo === 'ram' && 'Memoria RAM'}
-                                {tipo === 'almacenamiento' && 'Almacenamiento'}
-                                {tipo === 'gpu' && 'Gráfica'}
-                                {tipo === 'fuente' && 'Fuente'}
-                                {tipo === 'gabinete' && 'Gabinete'}
-                                {tipo === 'monitor' && 'Monitor'}
-                              </p>
-                              <p className="font-medium text-slate-900">{componente?.marca} {componente?.modelo}</p>
-                            </div>
+                  <div className="divide-y divide-slate-100">
+                    {componentesDetalle.map(({ tipo, componente }) => (
+                      <div key={tipo} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                        <div className="flex items-center gap-4">
+                          <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
+                            {getComponentIcon(tipo)}
                           </div>
-                          <p className="font-bold text-slate-700">
-                            {formatPrecio(Math.ceil((((componente ? (remotePrices[componente.id] ?? componente.precio) : 0) || 0) * 1.10)))}
-                          </p>
+                          <div>
+                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-0.5">
+                              {tipo === 'procesador' && 'Procesador'}
+                              {tipo === 'placamadre' && 'Placa Madre'}
+                              {tipo === 'ram' && 'Memoria RAM'}
+                              {tipo === 'almacenamiento' && 'Almacenamiento'}
+                              {tipo === 'gpu' && 'Gráfica'}
+                              {tipo === 'fuente' && 'Fuente'}
+                              {tipo === 'gabinete' && 'Gabinete'}
+                              {tipo === 'monitor' && 'Monitor'}
+                            </p>
+                            <p className="font-medium text-slate-900">{componente?.marca} {componente?.modelo}</p>
+                          </div>
                         </div>
-                      ))}
-                    </div>
-                    <div className="p-6 bg-slate-50 border-t border-slate-200">
-                      <div className="flex justify-between items-center">
-                        <span className="text-lg font-bold text-slate-900">Total Estimado (Lista)</span>
-                        <span className="text-3xl font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
-                          {formatPrecio(Math.ceil(total * 1.10))}
-                        </span>
+                        <p className="font-bold text-slate-700">
+                          {formatPrecio(Math.ceil((((componente ? (remotePrices[componente.id] ?? componente.precio) : 0) || 0) * 1.10)))}
+                        </p>
                       </div>
-                      <p className="text-right text-xs text-slate-500 mt-2">
-                        * Precio de lista en 1 pago. Consultá por descuentos en efectivo/transferencia.
-                      </p>
+                    ))}
+                  </div>
+                  <div className="p-6 bg-slate-50 border-t border-slate-200">
+                    <div className="flex justify-between items-center">
+                      <span className="text-lg font-bold text-slate-900">Total Estimado (Lista)</span>
+                      <span className="text-3xl font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
+                        {formatPrecio(Math.ceil(total * 1.10))}
+                      </span>
                     </div>
+                    <p className="text-right text-xs text-slate-500 mt-2">
+                      * Precio de lista en 1 pago. Consultá por descuentos en efectivo/transferencia.
+                    </p>
+
                   </div>
 
                   {/* Actions */}
