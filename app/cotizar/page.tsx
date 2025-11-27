@@ -1004,217 +1004,227 @@ export default function CotizarPage() {
                 </button>
               </div>
             </div>
+          {/* Paso 3: Gabinete */}
+          {pasoActual === 'gabinete' && (
+            <div className="flex-1 overflow-hidden flex flex-col">
+              <GabineteSelector
+                gabinetes={gabinetes}
+              />
+              <div className="p-4 bg-white/95 backdrop-blur-sm border-t border-slate-200/50 flex justify-between items-center shadow-lg z-10">
+                <button
+                  onClick={handleAnterior}
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 hover:text-slate-900 transition-all duration-300 flex items-center gap-2"
+                >
                   <ChevronLeft className="h-4 w-4" />
                   Volver
-        </button>
-        <button
-          onClick={handleSiguiente}
-          disabled={!componentesSeleccionados?.gabinete}
-          className={`px-6 py-2 rounded-xl font-bold text-xs shadow-lg transition-all duration-300 flex items-center gap-2 ${componentesSeleccionados?.gabinete
-            ? 'bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white hover:shadow-xl hover:scale-105'
-            : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-            }`}
-        >
-          Siguiente
-          <ChevronRight className="h-4 w-4" />
-        </button>
-      </div>
-    </div>
-  )
-}
+                </button>
+                <button
+                  onClick={handleSiguiente}
+                  disabled={!componentesSeleccionados?.gabinete}
+                  className={`px-6 py-2 rounded-xl font-bold text-xs shadow-lg transition-all duration-300 flex items-center gap-2 ${componentesSeleccionados?.gabinete
+                    ? 'bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white hover:shadow-xl hover:scale-105'
+                    : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                    }`}
+                >
+                  Siguiente
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
 
-{/* Paso 4: Fuente (Solo si no está incluida) */ }
-{
-  pasoActual === 'fuente' && (
-    <div className="flex-1 overflow-hidden flex flex-col">
-      <FuenteSelector
-        fuentes={fuentes}
-        seleccionado={componentesSeleccionados?.fuente || null}
-        onSelect={(id) => cambiarComponente('FUENTE', id)}
-        remotePrices={remotePrices}
-      />
-      <div className="p-4 bg-white/95 backdrop-blur-sm border-t border-slate-200/50 flex justify-between items-center shadow-lg z-10">
-        <button
-          onClick={handleAnterior}
-          className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 hover:text-slate-900 transition-all duration-300 flex items-center gap-2"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Volver
-        </button>
-        <button
-          onClick={handleSiguiente}
-          disabled={!componentesSeleccionados?.fuente}
-          className={`px-6 py-2 rounded-xl font-bold text-xs shadow-lg transition-all duration-300 flex items-center gap-2 ${componentesSeleccionados?.fuente
-            ? 'bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white hover:shadow-xl hover:scale-105'
-            : 'bg-slate-200 text-slate-400 cursor-not-allowed'
-            }`}
-        >
-          Siguiente
-          <ChevronRight className="h-4 w-4" />
-        </button>
-      </div>
-    </div>
-  )
-}
+          {/* Paso 4: Fuente (Solo si no está incluida) */}
+          {
+            pasoActual === 'fuente' && (
+              <div className="flex-1 overflow-hidden flex flex-col">
+                <FuenteSelector
+                  fuentes={fuentes}
+                  seleccionado={componentesSeleccionados?.fuente || null}
+                  onSelect={(id) => cambiarComponente('FUENTE', id)}
+                  remotePrices={remotePrices}
+                />
+                <div className="p-4 bg-white/95 backdrop-blur-sm border-t border-slate-200/50 flex justify-between items-center shadow-lg z-10">
+                  <button
+                    onClick={handleAnterior}
+                    className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 hover:text-slate-900 transition-all duration-300 flex items-center gap-2"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Volver
+                  </button>
+                  <button
+                    onClick={handleSiguiente}
+                    disabled={!componentesSeleccionados?.fuente}
+                    className={`px-6 py-2 rounded-xl font-bold text-xs shadow-lg transition-all duration-300 flex items-center gap-2 ${componentesSeleccionados?.fuente
+                      ? 'bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white hover:shadow-xl hover:scale-105'
+                      : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                      }`}
+                  >
+                    Siguiente
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            )
+          }
 
-{/* Paso 5: Monitor */ }
-{
-  pasoActual === 'monitor' && (
-    <div className="flex-1 overflow-hidden flex flex-col">
-      <MonitorSelector
-        monitores={componentes.filter(c => c.tipo === 'MONITOR')}
-        seleccionado={componentesSeleccionados?.monitor || null}
-        onSelect={(id) => cambiarComponente('MONITOR', id)}
-        remotePrices={remotePrices}
-      />
-      <div className="p-4 bg-white/95 backdrop-blur-sm border-t border-slate-200/50 flex justify-between items-center shadow-lg z-10">
-        <button
-          onClick={handleAnterior}
-          className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 hover:text-slate-900 transition-all duration-300 flex items-center gap-2"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Volver
-        </button>
-        <div className="flex gap-3">
-          <button
-            onClick={() => {
-              cambiarComponente('MONITOR', ''); // Omitir monitor
-              handleSiguiente();
-            }}
-            className="px-4 py-2 rounded-xl border border-slate-200 text-slate-500 font-bold text-xs hover:bg-slate-50 hover:text-slate-800 transition-all duration-300"
-          >
-            Omitir
-          </button>
-          <button
-            onClick={handleSiguiente}
-            className="px-6 py-2 rounded-xl bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white font-bold text-xs shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center gap-2"
-          >
-            Finalizar
-            <Check className="h-4 w-4" />
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-{/* Paso 6: Resumen Final */ }
-{
-  pasoActual === 'resumen' && (
-    <div className="flex-1 overflow-y-auto p-4 md:p-8">
-      <div className="max-w-4xl mx-auto space-y-8">
-        <div className="text-center space-y-2 animate-in fade-in slide-in-from-bottom duration-700">
-          <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg animate-bounce">
-            <Check className="h-8 w-8 text-green-600" />
-          </div>
-          <h2 className="text-3xl font-bold text-slate-900">¡Configuración Lista!</h2>
-          <p className="text-slate-500">Revisá tu presupuesto y elegí cómo querés continuar.</p>
-        </div>
-
-        {/* Mobile Summary (Visible only on mobile) */}
-        <div className="md:hidden">
-          <MobileSummary
-            modeloSeleccionado={modeloSeleccionado}
-            componentesDetalle={componentesDetalle}
-            total={total}
-            onBack={handleAnterior}
-          />
-        </div>
-
-        {/* Desktop Summary Table (Hidden on mobile as it's in sidebar, but we can show a detailed view here too) */}
-        <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom duration-700 delay-100">
-          <div className="p-6 border-b border-slate-100 bg-slate-50/50">
-            <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-              <Cpu className="h-5 w-5 text-[#E02127]" />
-              Detalle de Componentes
-            </h3>
-          </div>
-          <div className="divide-y divide-slate-100">
-            {componentesDetalle.map(({ tipo, componente }) => (
-              <div key={tipo} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                <div className="flex items-center gap-4">
-                  <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
-                    {getComponentIcon(tipo)}
-                  </div>
-                  <div>
-                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-0.5">
-                      {tipo === 'procesador' && 'Procesador'}
-                      {tipo === 'placamadre' && 'Placa Madre'}
-                      {tipo === 'ram' && 'Memoria RAM'}
-                      {tipo === 'almacenamiento' && 'Almacenamiento'}
-                      {tipo === 'gpu' && 'Gráfica'}
-                      {tipo === 'fuente' && 'Fuente'}
-                      {tipo === 'gabinete' && 'Gabinete'}
-                      {tipo === 'monitor' && 'Monitor'}
-                    </p>
-                    <p className="font-medium text-slate-900">{componente?.marca} {componente?.modelo}</p>
+          {/* Paso 5: Monitor */}
+          {
+            pasoActual === 'monitor' && (
+              <div className="flex-1 overflow-hidden flex flex-col">
+                <MonitorSelector
+                  monitores={componentes.filter(c => c.tipo === 'MONITOR')}
+                  seleccionado={componentesSeleccionados?.monitor || null}
+                  onSelect={(id) => cambiarComponente('MONITOR', id)}
+                  remotePrices={remotePrices}
+                />
+                <div className="p-4 bg-white/95 backdrop-blur-sm border-t border-slate-200/50 flex justify-between items-center shadow-lg z-10">
+                  <button
+                    onClick={handleAnterior}
+                    className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 hover:text-slate-900 transition-all duration-300 flex items-center gap-2"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    Volver
+                  </button>
+                  <div className="flex gap-3">
+                    <button
+                      onClick={() => {
+                        cambiarComponente('MONITOR', ''); // Omitir monitor
+                        handleSiguiente();
+                      }}
+                      className="px-4 py-2 rounded-xl border border-slate-200 text-slate-500 font-bold text-xs hover:bg-slate-50 hover:text-slate-800 transition-all duration-300"
+                    >
+                      Omitir
+                    </button>
+                    <button
+                      onClick={handleSiguiente}
+                      className="px-6 py-2 rounded-xl bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white font-bold text-xs shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300 flex items-center gap-2"
+                    >
+                      Finalizar
+                      <Check className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
-                <p className="font-bold text-slate-700">
-                  {formatPrecio(Math.ceil((((componente ? (remotePrices[componente.id] ?? componente.precio) : 0) || 0) * 1.10)))}
-                </p>
               </div>
-            ))}
-          </div>
-          <div className="p-6 bg-slate-50 border-t border-slate-200">
-            <div className="flex justify-between items-center">
-              <span className="text-lg font-bold text-slate-900">Total Estimado (Lista)</span>
-              <span className="text-3xl font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
-                {formatPrecio(Math.ceil(total * 1.10))}
-              </span>
-            </div>
-            <p className="text-right text-xs text-slate-500 mt-2">
-              * Precio de lista en 1 pago. Consultá por descuentos en efectivo/transferencia.
-            </p>
-          </div>
-        </div>
+            )
+          }
 
-        {/* Actions */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom duration-700 delay-200">
-          <button
-            onClick={handleDescargarPDF}
-            className="p-4 bg-white border-2 border-slate-200 rounded-xl hover:border-[#E02127] hover:shadow-lg transition-all duration-300 group text-left"
-          >
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-red-50 rounded-lg text-[#E02127] group-hover:bg-[#E02127] group-hover:text-white transition-colors">
-                <HardDrive className="h-6 w-6" />
+          {/* Paso 6: Resumen Final */}
+          {
+            pasoActual === 'resumen' && (
+              <div className="flex-1 overflow-y-auto p-4 md:p-8">
+                <div className="max-w-4xl mx-auto space-y-8">
+                  <div className="text-center space-y-2 animate-in fade-in slide-in-from-bottom duration-700">
+                    <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg animate-bounce">
+                      <Check className="h-8 w-8 text-green-600" />
+                    </div>
+                    <h2 className="text-3xl font-bold text-slate-900">¡Configuración Lista!</h2>
+                    <p className="text-slate-500">Revisá tu presupuesto y elegí cómo querés continuar.</p>
+                  </div>
+
+                  {/* Mobile Summary (Visible only on mobile) */}
+                  <div className="md:hidden">
+                    <MobileSummary
+                      modeloSeleccionado={modeloSeleccionado}
+                      componentesDetalle={componentesDetalle}
+                      total={total}
+                      onBack={handleAnterior}
+                    />
+                  </div>
+
+                  {/* Desktop Summary Table (Hidden on mobile as it's in sidebar, but we can show a detailed view here too) */}
+                  <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden animate-in fade-in slide-in-from-bottom duration-700 delay-100">
+                    <div className="p-6 border-b border-slate-100 bg-slate-50/50">
+                      <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
+                        <Cpu className="h-5 w-5 text-[#E02127]" />
+                        Detalle de Componentes
+                      </h3>
+                    </div>
+                    <div className="divide-y divide-slate-100">
+                      {componentesDetalle.map(({ tipo, componente }) => (
+                        <div key={tipo} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                          <div className="flex items-center gap-4">
+                            <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
+                              {getComponentIcon(tipo)}
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-0.5">
+                                {tipo === 'procesador' && 'Procesador'}
+                                {tipo === 'placamadre' && 'Placa Madre'}
+                                {tipo === 'ram' && 'Memoria RAM'}
+                                {tipo === 'almacenamiento' && 'Almacenamiento'}
+                                {tipo === 'gpu' && 'Gráfica'}
+                                {tipo === 'fuente' && 'Fuente'}
+                                {tipo === 'gabinete' && 'Gabinete'}
+                                {tipo === 'monitor' && 'Monitor'}
+                              </p>
+                              <p className="font-medium text-slate-900">{componente?.marca} {componente?.modelo}</p>
+                            </div>
+                          </div>
+                          <p className="font-bold text-slate-700">
+                            {formatPrecio(Math.ceil((((componente ? (remotePrices[componente.id] ?? componente.precio) : 0) || 0) * 1.10)))}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                    <div className="p-6 bg-slate-50 border-t border-slate-200">
+                      <div className="flex justify-between items-center">
+                        <span className="text-lg font-bold text-slate-900">Total Estimado (Lista)</span>
+                        <span className="text-3xl font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
+                          {formatPrecio(Math.ceil(total * 1.10))}
+                        </span>
+                      </div>
+                      <p className="text-right text-xs text-slate-500 mt-2">
+                        * Precio de lista en 1 pago. Consultá por descuentos en efectivo/transferencia.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* Actions */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom duration-700 delay-200">
+                    <button
+                      onClick={handleDescargarPDF}
+                      className="p-4 bg-white border-2 border-slate-200 rounded-xl hover:border-[#E02127] hover:shadow-lg transition-all duration-300 group text-left"
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="p-2 bg-red-50 rounded-lg text-[#E02127] group-hover:bg-[#E02127] group-hover:text-white transition-colors">
+                          <HardDrive className="h-6 w-6" />
+                        </div>
+                        <h3 className="font-bold text-slate-900">Descargar PDF</h3>
+                      </div>
+                      <p className="text-sm text-slate-500">Guardá el presupuesto para verlo después o imprimirlo.</p>
+                    </button>
+
+                    <button
+                      onClick={handleCompartirWhatsApp}
+                      className="p-4 bg-[#25D366] text-white rounded-xl hover:bg-[#128C7E] hover:shadow-lg transition-all duration-300 group text-left shadow-green-200"
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="p-2 bg-white/20 rounded-lg">
+                          <MonitorUp className="h-6 w-6" />
+                        </div>
+                        <h3 className="font-bold">Consultar por WhatsApp</h3>
+                      </div>
+                      <p className="text-sm text-white/90">Envianos tu configuración para confirmar stock y comprar.</p>
+                    </button>
+                  </div>
+
+                  <div className="flex justify-center pt-8 pb-8">
+                    <button
+                      onClick={() => {
+                        resetear();
+                        // Optional: redirect to home or just reset
+                      }}
+                      className="text-slate-400 hover:text-slate-600 text-sm flex items-center gap-2 transition-colors"
+                    >
+                      <RotateCcw className="w-4 h-4" />
+                      Empezar una nueva cotización
+                    </button>
+                  </div>
+
+                </div>
               </div>
-              <h3 className="font-bold text-slate-900">Descargar PDF</h3>
-            </div>
-            <p className="text-sm text-slate-500">Guardá el presupuesto para verlo después o imprimirlo.</p>
-          </button>
-
-          <button
-            onClick={handleCompartirWhatsApp}
-            className="p-4 bg-[#25D366] text-white rounded-xl hover:bg-[#128C7E] hover:shadow-lg transition-all duration-300 group text-left shadow-green-200"
-          >
-            <div className="flex items-center gap-3 mb-2">
-              <div className="p-2 bg-white/20 rounded-lg">
-                <MonitorUp className="h-6 w-6" />
-              </div>
-              <h3 className="font-bold">Consultar por WhatsApp</h3>
-            </div>
-            <p className="text-sm text-white/90">Envianos tu configuración para confirmar stock y comprar.</p>
-          </button>
-        </div>
-
-        <div className="flex justify-center pt-8 pb-8">
-          <button
-            onClick={() => {
-              resetear();
-              // Optional: redirect to home or just reset
-            }}
-            className="text-slate-400 hover:text-slate-600 text-sm flex items-center gap-2 transition-colors"
-          >
-            <RotateCcw className="w-4 h-4" />
-            Empezar una nueva cotización
-          </button>
-        </div>
-
-      </div>
-    </div>
-  )
-}
+            )
+          }
         </div >
       </div >
     </div >
