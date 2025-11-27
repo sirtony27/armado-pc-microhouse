@@ -85,26 +85,6 @@ export default function CotizarPage() {
       cambiarComponente('FUENTE', '');
     }
   }, [gabineteIncluyeFuente, componentesSeleccionados?.fuente, cambiarComponente]);
-
-  // Handle URL query params for pre-selecting model (from Wizard)
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const modelSlug = params.get('model');
-    const stepParam = params.get('step');
-
-    if (modelSlug && modelosBase.length > 0) {
-      const foundModel = modelosBase.find(m => m.slug === modelSlug);
-      if (foundModel) {
-        setModeloBase(foundModel);
-
-        // If step param is present (e.g. 'resumen'), override the default step
-        if (stepParam === 'resumen') {
-          setTimeout(() => setPaso('resumen'), 0);
-        }
-      }
-    }
-  }, [modelosBase, setModeloBase, setPaso]);
-
   // Validar si puede avanzar de paso
   const puedeAvanzar = useMemo(() => {
     if (pasoActual === 'modelo') return !!modeloSeleccionado;
@@ -114,6 +94,83 @@ export default function CotizarPage() {
     }
     return true;
   }, [pasoActual, modeloSeleccionado, componentesSeleccionados]);
+
+  // Handle URL query params for pre-selecting model (from Wizard)
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const modelSlug = params.get('model');
+    const stepParam = params.get('step');
+    const gpuParam = params.get('gpu');
+    const caseParam = params.get('case');
+
+    if (modelSlug && modelosBase.length > 0) {
+      const foundModel = modelosBase.find(m => m.slug === modelSlug);
+      if (foundModel) {
+        setModeloBase(foundModel);
+
+        // Apply overrides after a tick to ensure model is set
+        setTimeout(() => {
+          // 1. Case Override
+          if (caseParam) {
+            const availableCases = componentes.filter(c => c.tipo === 'GABINETE' && c.disponible);
+            let targetCaseId = '';
+            // Try direct ID match
+            const directMatch = availableCases.find(c => c.id === caseParam);
+            if (directMatch) targetCaseId = directMatch.id;
+
+            if (targetCaseId) {
+              cambiarComponente('GABINETE', targetCaseId);
+            }
+          }
+
+          // 2. GPU Override
+          if (gpuParam === 'dedicated') {
+            // Check if we already have a GPU (from model)
+            if (!foundModel.componentes.gpu) {
+              const availableGpus = componentes.filter(c => c.tipo === 'GPU' && c.disponible);
+              // Sort by price ascending
+              availableGpus.sort((a, b) => (remotePrices[a.id] ?? a.precio) - (remotePrices[b.id] ?? b.precio));
+
+              let selectedGpuId = '';
+              const budgetLevel = params.get('budget') || 'MID';
+
+              if (availableGpus.length > 0) {
+                if (budgetLevel === 'ENTRY') {
+                  // Cheapest dedicated
+                  selectedGpuId = availableGpus[0].id;
+                } else if (budgetLevel === 'MID') {
+                  // Mid-range (approx 30-50 percentile of price)
+                  const midIndex = Math.floor(availableGpus.length * 0.3);
+                  selectedGpuId = availableGpus[Math.min(midIndex, availableGpus.length - 1)].id;
+                } else if (budgetLevel === 'HIGH') {
+                  // High-end (approx 60-80 percentile)
+                  const highIndex = Math.floor(availableGpus.length * 0.7);
+                  selectedGpuId = availableGpus[Math.min(highIndex, availableGpus.length - 1)].id;
+                } else if (budgetLevel === 'ULTRA') {
+                  // Top tier (most expensive)
+                  selectedGpuId = availableGpus[availableGpus.length - 1].id;
+                } else {
+                  selectedGpuId = availableGpus[0].id;
+                }
+              }
+
+              if (selectedGpuId) {
+                cambiarComponente('GPU', selectedGpuId);
+              }
+            }
+          } else if (gpuParam === 'integrated') {
+            // Remove dedicated GPU if present
+            cambiarComponente('GPU', '');
+          }
+
+          // 3. Step Override
+          if (stepParam === 'resumen') {
+            setPaso('resumen');
+          }
+        }, 500);
+      }
+    }
+  }, [modelosBase, componentes, remotePrices, setModeloBase, cambiarComponente, setPaso]);
 
   const handleSiguiente = () => {
     if (pasoActual === 'modelo' && puedeAvanzar) setPaso('mejoras');
@@ -224,7 +281,7 @@ export default function CotizarPage() {
 
       // Logo (Izquierda)
       try {
-        const logoResp = await fetch('https://wckxhidltmnvpbrswnmz.supabase.co/storage/v1/object/public/componentes/branding/microhouse-logo.png');
+        const logoResp = await fetch('https://wckxhidltmnvpbrswnmz.supabase.co/storage/v1/object/public/componentes/branding/microhouse-logo.png?v=2');
         const logoBlob = await logoResp.blob();
         const logoDataUrl: string = await new Promise((resolve, reject) => {
           const reader = new FileReader();
