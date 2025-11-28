@@ -271,7 +271,7 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
                                         <ChevronLeft className="w-6 h-6 md:w-8 md:h-8 text-slate-700 group-hover:text-white" />
                                     </button>
 
-                                    <div className="relative w-full h-full overflow-hidden flex items-center justify-center">
+                                    <div className="relative w-full h-full overflow-hidden">
                                         <div
                                             className="flex h-full items-center"
                                             style={{
