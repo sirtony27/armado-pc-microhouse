@@ -130,10 +130,10 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
             <div className="flex-1 flex flex-col items-center justify-center p-[2vh] max-w-5xl mx-auto w-full overflow-y-auto overflow-x-hidden custom-scrollbar">
 
                 {step === 1 && (
-                    <div className="w-full flex flex-col gap-[3vh] animate-in fade-in slide-in-from-right duration-500 py-[1vh]">
-                        <div className="text-center space-y-[1vh]">
-                            <h2 className="text-[clamp(1.5rem,3vh,2.5rem)] font-bold text-slate-900">¿Para qué vas a usar la PC?</h2>
-                            <p className="text-[clamp(1rem,2vh,1.25rem)] text-slate-500">Elegí la opción que mejor te describa.</p>
+                    <div className="w-full flex flex-col gap-[var(--space-lg)] animate-in fade-in slide-in-from-right duration-500 py-[var(--space-sm)]">
+                        <div className="text-center space-y-[var(--space-xs)]">
+                            <h2 className="text-[clamp(2.5rem,5vw,4rem)] font-black text-slate-900 leading-tight">¿Para qué vas a usar la PC?</h2>
+                            <p className="text-[var(--text-lg)] text-slate-700 font-medium">Elegí la opción que mejor te describa.</p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-3 gap-[2vh]">
@@ -160,10 +160,10 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
                 )}
 
                 {step === 2 && (
-                    <div className="w-full flex flex-col gap-[3vh] animate-in fade-in slide-in-from-right duration-500 py-[1vh]">
-                        <div className="text-center space-y-[1vh]">
-                            <h2 className="text-[clamp(1.5rem,3vh,2.5rem)] font-bold text-slate-900">¿Qué nivel de rendimiento buscás?</h2>
-                            <p className="text-[clamp(0.875rem,1.8vh,1.125rem)] text-slate-500">Esto nos ayuda a ajustar el presupuesto.</p>
+                    <div className="w-full flex flex-col gap-[var(--space-lg)] animate-in fade-in slide-in-from-right duration-500 py-[var(--space-sm)]">
+                        <div className="text-center space-y-[var(--space-xs)]">
+                            <h2 className="text-[clamp(2.5rem,5vw,4rem)] font-black text-slate-900 leading-tight">¿Qué nivel de rendimiento buscás?</h2>
+                            <p className="text-[var(--text-base)] text-slate-700 font-medium">Esto nos ayuda a ajustar el presupuesto.</p>
                         </div>
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[2vh]">
@@ -226,10 +226,10 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
                 )}
 
                 {step === 3 && usage !== 'OFFICE' && (
-                    <div className="w-full flex flex-col gap-[3vh] animate-in fade-in slide-in-from-right duration-500 py-[1vh]">
-                        <div className="text-center space-y-[1vh]">
-                            <h2 className="text-[clamp(1.5rem,3vh,2.5rem)] font-bold text-slate-900">¿Querés una Placa de Video Dedicada?</h2>
-                            <p className="text-[clamp(0.875rem,1.8vh,1.125rem)] text-slate-500">Para mayor rendimiento en juegos y renderizado.</p>
+                    <div className="w-full flex flex-col gap-[var(--space-lg)] animate-in fade-in slide-in-from-right duration-500 py-[var(--space-sm)]">
+                        <div className="text-center space-y-[var(--space-xs)]">
+                            <h2 className="text-[clamp(2.5rem,5vw,4rem)] font-black text-slate-900 leading-tight">¿Querés una Placa de Video Dedicada?</h2>
+                            <p className="text-[var(--text-base)] text-slate-700 font-medium">Para mayor rendimiento en juegos y renderizado.</p>
                         </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-[2vh] max-w-3xl mx-auto w-full">
@@ -252,13 +252,13 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
 
                 {step === 4 && (
                     <div className="w-full flex flex-col items-center animate-in fade-in slide-in-from-right duration-500 h-full justify-center">
-                        <div className="text-center space-y-[1vh] mb-[2vh] shrink-0">
-                            <h2 className="text-[clamp(1.5rem,3vh,2.5rem)] font-bold text-slate-900">Elegí tu Gabinete</h2>
-                            <p className="text-[clamp(0.875rem,1.8vh,1.125rem)] text-slate-500">Deslizá para ver las opciones disponibles.</p>
+                        <div className="text-center space-y-[var(--space-xs)] mb-[var(--space-md)] shrink-0">
+                            <h2 className="text-[clamp(2.5rem,5vw,4rem)] font-black text-slate-900 leading-tight">Elegí tu Gabinete</h2>
+                            <p className="text-[var(--text-base)] text-slate-700 font-medium">Deslizá para ver las opciones disponibles.</p>
                         </div>
 
                         {/* Carousel */}
-                        <div className="relative w-full max-w-[95vw] md:max-w-[1400px] h-[60svh] shrink-0 mx-auto">
+                        <div className="relative w-full max-w-[95vw] md:max-w-[1400px] h-[75vh] shrink-0 mx-auto">
                             {sortedGabinetes.length === 0 ? (
                                 <div className="flex h-full items-center justify-center text-slate-500 animate-pulse">Cargando gabinetes...</div>
                             ) : (
@@ -275,7 +275,7 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
                                         <div
                                             className="flex h-full items-center"
                                             style={{
-                                                '--card-width': 'min(45vh, 85vw)',
+                                                '--card-width': 'min(42vh, 85vw)',
                                                 transform: `translateX(calc(50% - (${currentCaseIndex} + 0.5) * var(--card-width)))`,
                                                 transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
                                             } as React.CSSProperties}
@@ -299,11 +299,11 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
                                                         style={{ width: 'var(--card-width)' }}
                                                     >
                                                         <div className={`
-                                                            bg-white rounded-[2vh] overflow-hidden flex flex-col h-full transition-all duration-500 ease-in-out
+                                                            bg-white rounded-[2vh] overflow-hidden flex flex-col h-[90%] transition-all duration-500 ease-in-out
                                                             ${isCurrent ? 'shadow-[0_0_0_3px_rgba(224,33,39,0.3),0_20px_60px_-10px_rgba(224,33,39,0.4)] ring-1 ring-[#E02127]/20 scale-100 opacity-100' : 'shadow-2xl scale-90 opacity-60 blur-[1px] grayscale-[0.5]'}
                                                         `}>
                                                             {/* Image Area */}
-                                                            <div className="h-[45%] bg-gradient-to-b from-slate-50 to-white p-4 flex items-center justify-center relative group">
+                                                            <div className="h-[35%] bg-gradient-to-b from-slate-50 to-white p-4 flex items-center justify-center relative group">
                                                                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                                                                 {gabinete.imagenUrl ? (
                                                                     <img
@@ -330,7 +330,7 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
                                                             </div>
 
                                                             {/* Content Area */}
-                                                            <div className="p-4 flex-1 flex flex-col justify-between bg-white relative">
+                                                            <div className="p-[var(--space-sm)] flex-1 flex flex-col justify-between bg-white relative">
                                                                 <div>
                                                                     <h3 className="font-black text-slate-900 text-base md:text-xl mb-1 leading-tight line-clamp-2">{gabinete.modelo}</h3>
                                                                     <div className="flex items-center gap-2 flex-wrap mt-1">
@@ -386,14 +386,14 @@ function OptionCard({ icon, title, description, onClick, className = '' }: any) 
     return (
         <button
             onClick={onClick}
-            className={`bg-white p-[3vh] rounded-2xl border-2 border-slate-100 shadow-lg hover:shadow-2xl hover:border-[#E02127] hover:-translate-y-1 transition-all duration-300 text-left group flex flex-col gap-[1.5vh] w-full ${className}`}
+            className={`bg-white p-[var(--space-md)] rounded-2xl border-2 border-slate-100 shadow-lg hover:shadow-2xl hover:border-[#E02127] hover:-translate-y-1 transition-all duration-300 text-left group flex flex-col gap-[var(--space-sm)] w-full ${className}`}
         >
-            <div className="p-[1.5vh] bg-slate-50 rounded-xl w-fit group-hover:bg-red-50 transition-colors">
+            <div className="p-[var(--space-xs)] bg-slate-50 rounded-xl w-fit group-hover:bg-red-50 transition-colors">
                 {icon}
             </div>
             <div>
-                <h3 className="text-lg md:text-xl font-bold text-slate-900 group-hover:text-[#E02127] transition-colors">{title}</h3>
-                <p className="text-sm md:text-base text-slate-500 mt-1 md:mt-2 leading-relaxed">{description}</p>
+                <h3 className="text-[var(--text-lg)] md:text-[var(--text-xl)] font-bold !text-slate-800 group-hover:text-[#E02127] transition-colors">{title}</h3>
+                <p className="text-[var(--text-sm)] md:text-[var(--text-base)] !text-slate-600 font-medium mt-1 md:mt-2 leading-relaxed">{description}</p>
             </div>
         </button>
     );

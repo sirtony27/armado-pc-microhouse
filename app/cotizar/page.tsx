@@ -605,7 +605,7 @@ export default function CotizarPage() {
 
       <div className="flex flex-1 overflow-hidden flex-col md:flex-row pb-16 md:pb-0">
         {/* Panel Lateral Izquierdo - Resumen (Desktop Only) */}
-        <div className="hidden md:flex w-full md:w-80 bg-white/95 backdrop-blur-sm shadow-xl md:border-r border-slate-200/50 flex-col md:max-h-full md:overflow-hidden">
+        <div className="hidden md:flex w-[var(--sidebar-width)] bg-white/95 backdrop-blur-sm shadow-xl md:border-r border-slate-200/50 flex-col md:max-h-full md:overflow-hidden shrink-0">
           {/* Header */}
           <div className="px-4 py-3 bg-gradient-to-r from-[#E02127] to-[#0D1A4B]">
             <img src="https://wckxhidltmnvpbrswnmz.supabase.co/storage/v1/object/public/componentes/branding/microhouse-logo.png" alt="MicroHouse" className="h-8 w-auto object-contain" loading="eager" />
@@ -620,8 +620,8 @@ export default function CotizarPage() {
           </div>
 
           {/* Resumen de Componentes */}
-          <div className="flex-1 overflow-y-auto px-4 py-3 max-h-[42vh] md:max-h-none">
-            <h3 className="text-xs font-semibold text-slate-700 mb-2 uppercase tracking-wider">Tu Configuración</h3>
+          <div className="flex-1 overflow-y-auto px-[var(--space-sm)] py-[var(--space-xs)] max-h-[42vh] md:max-h-none custom-scrollbar">
+            <h3 className="text-[var(--text-xs)] font-semibold text-slate-700 mb-2 uppercase tracking-wider">Tu Configuración</h3>
 
             {modeloSeleccionado ? (
               <>
@@ -699,8 +699,8 @@ export default function CotizarPage() {
         <div className="flex-1 flex flex-col overflow-hidden relative z-0">
           {/* Paso 1: Carrusel de Modelos */}
           {pasoActual === 'modelo' && (
-            <div className="flex-1 flex flex-col items-center justify-center px-[2vh] py-[1vh] overflow-hidden w-full min-h-0">
-              <div className="relative w-full max-w-7xl flex-1 min-h-0 flex flex-col">
+            <div className="flex-1 flex flex-col items-center justify-center px-[var(--space-sm)] py-[var(--space-xs)] overflow-hidden w-full min-h-0">
+              <div className="relative w-full max-w-[var(--container-max)] flex-1 min-h-0 flex flex-col">
                 <div className="absolute inset-0 overflow-hidden">
                   <div
                     className="flex h-full items-center"
@@ -742,9 +742,9 @@ export default function CotizarPage() {
                                   </div>
                                 )}
                               </div>
-                              <h2 className="text-lg font-bold text-slate-900 mb-1 truncate shrink-0">{modelo.nombre}</h2>
+                              <h2 className="text-[var(--text-lg)] font-bold text-slate-900 mb-1 truncate shrink-0">{modelo.nombre}</h2>
                               <div className="flex-1 overflow-y-auto min-h-0 mb-2 custom-scrollbar">
-                                <p className="text-slate-600 text-xs leading-relaxed px-2">{modelo.descripcion}</p>
+                                <p className="text-slate-600 text-[var(--text-xs)] leading-relaxed px-2">{modelo.descripcion}</p>
                               </div>
                               <div className="flex flex-wrap justify-center gap-1 mb-2 shrink-0">
                                 {modelo.usoRecomendado?.slice(0, 3).map((tag) => (
@@ -792,11 +792,11 @@ export default function CotizarPage() {
                                 <div className="flex items-center justify-between">
                                   <div className="shrink-0">
                                     <p className="text-[9px] text-slate-500 uppercase font-semibold tracking-wider mb-0.5">Contado / débito</p>
-                                    <p className="text-lg font-bold text-slate-900">{formatPrecio(modelo.precioBase)}</p>
+                                    <p className="text-[var(--text-lg)] font-bold text-slate-900">{formatPrecio(modelo.precioBase)}</p>
                                   </div>
                                   <div className="text-right">
                                     <p className="text-[9px] text-slate-500 uppercase font-semibold tracking-wider mb-0.5">1 cuota</p>
-                                    <p className="text-lg font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
+                                    <p className="text-[var(--text-lg)] font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
                                       {formatPrecio(Math.ceil(modelo.precioBase * 1.10))}
                                     </p>
                                   </div>
@@ -869,8 +869,8 @@ export default function CotizarPage() {
                       <Sparkles className="h-3.5 w-3.5 text-white group-hover:rotate-12 transition-transform duration-300" />
                     </div>
                     <div className="text-left">
-                      <h2 className="text-sm font-bold text-slate-800">Mejoras Opcionales</h2>
-                      <p className="text-[10px] text-slate-500">Personalizá componentes individuales</p>
+                      <h2 className="text-[var(--text-sm)] font-bold text-slate-800">Mejoras Opcionales</h2>
+                      <p className="text-[var(--text-xs)] text-slate-500">Personalizá componentes individuales</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-2">
@@ -888,8 +888,8 @@ export default function CotizarPage() {
 
                 {/* Contenido Expandible */}
                 {mejorasExpanded && modeloSeleccionado && (
-                  <div className="h-full overflow-y-auto overflow-x-hidden px-4 py-3 animate-in fade-in slide-in-from-top-4 duration-500" style={{ maxHeight: 'calc(100vh - 140px)', minHeight: '60vh' }}>
-                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div className="h-full overflow-y-auto overflow-x-hidden px-[var(--space-sm)] py-[var(--space-xs)] animate-in fade-in slide-in-from-top-4 duration-500" style={{ maxHeight: 'calc(100vh - 140px)', minHeight: '60vh' }}>
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-[var(--space-sm)]">
                       {/* Categoría: RAM */}
                       <div className="bg-gradient-to-br from-purple-50/50 to-pink-50/50 rounded-lg p-3 border border-purple-100 hover:shadow-lg hover:scale-[1.02] transition-all duration-300">
                         <div className="flex items-center gap-1.5 mb-2.5">
@@ -1113,103 +1113,104 @@ export default function CotizarPage() {
                     <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg animate-bounce">
                       <Check className="h-8 w-8 text-green-600" />
                     </div>
-                    <h2 className="text-3xl font-bold text-slate-900">¡Configuración Lista!</h2>
-                    <p className="text-slate-500">Revisá tu presupuesto y elegí cómo querés continuar.</p>
-                    <h3 className="text-lg font-bold text-slate-800 flex items-center gap-2">
-                      <Cpu className="h-5 w-5 text-[#E02127]" />
-                      Detalle de Componentes
-                    </h3>
-                  </div>
-                  <div className="divide-y divide-slate-100">
-                    {componentesDetalle.map(({ tipo, componente }) => (
-                      <div key={tipo} className="p-4 flex items-center justify-between hover:bg-slate-50 transition-colors">
-                        <div className="flex items-center gap-4">
-                          <div className="p-2 bg-slate-100 rounded-lg text-slate-500">
-                            {getComponentIcon(tipo)}
-                          </div>
-                          <div>
-                            <p className="text-xs font-bold text-slate-500 uppercase tracking-wider mb-0.5">
-                              {tipo === 'procesador' && 'Procesador'}
-                              {tipo === 'placamadre' && 'Placa Madre'}
-                              {tipo === 'ram' && 'Memoria RAM'}
-                              {tipo === 'almacenamiento' && 'Almacenamiento'}
-                              {tipo === 'gpu' && 'Gráfica'}
-                              {tipo === 'fuente' && 'Fuente'}
-                              {tipo === 'gabinete' && 'Gabinete'}
-                              {tipo === 'monitor' && 'Monitor'}
+                    <h2 className="text-[var(--text-3xl)] font-bold text-slate-900">¡Configuración Lista!</h2>
+                    <p className="text-slate-500 text-[var(--text-base)]">Revisá tu presupuesto y elegí cómo querés continuar.</p>
+                    <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
+                      <div className="p-[var(--space-md)] bg-slate-50 border-b border-slate-200 flex items-center gap-3">
+                        <div className="p-2 bg-white rounded-lg shadow-sm text-[#E02127]">
+                          <Cpu className="h-6 w-6" />
+                        </div>
+                        <h3 className="text-[var(--text-xl)] font-bold text-slate-800">Detalle de Componentes</h3>
+                      </div>
+                      <div className="divide-y divide-slate-100">
+                        {componentesDetalle.map(({ tipo, componente }) => (
+                          <div key={tipo} className="p-[var(--space-md)] flex items-center justify-between hover:bg-slate-50 transition-colors group">
+                            <div className="flex items-center gap-[var(--space-md)]">
+                              <div className="p-3 bg-slate-100 rounded-xl text-slate-500 group-hover:bg-white group-hover:text-[#E02127] group-hover:shadow-md transition-all duration-300">
+                                {getComponentIcon(tipo)}
+                              </div>
+                              <div>
+                                <p className="text-[var(--text-xs)] font-bold text-slate-500 uppercase tracking-wider mb-1">
+                                  {tipo === 'procesador' && 'Procesador'}
+                                  {tipo === 'placamadre' && 'Placa Madre'}
+                                  {tipo === 'ram' && 'Memoria RAM'}
+                                  {tipo === 'almacenamiento' && 'Almacenamiento'}
+                                  {tipo === 'gpu' && 'Gráfica'}
+                                  {tipo === 'fuente' && 'Fuente'}
+                                  {tipo === 'gabinete' && 'Gabinete'}
+                                  {tipo === 'monitor' && 'Monitor'}
+                                </p>
+                                <p className="font-bold text-slate-900 text-[var(--text-base)]">{componente?.marca} {componente?.modelo}</p>
+                              </div>
+                            </div>
+                            <p className="font-bold text-slate-700 text-[var(--text-lg)]">
+                              {formatPrecio(Math.ceil(((componente?.precio || 0) * 1.10)))}
                             </p>
-                            <p className="font-medium text-slate-900">{componente?.marca} {componente?.modelo}</p>
                           </div>
-                        </div>
-                        <p className="font-bold text-slate-700">
-                          {formatPrecio(Math.ceil(((componente?.precio || 0) * 1.10)))}
-                        </p>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-                  <div className="p-6 bg-slate-50 border-t border-slate-200">
-                    <div className="flex justify-between items-center">
-                      <span className="text-lg font-bold text-slate-900">Total Estimado (Lista)</span>
-                      <span className="text-3xl font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
-                        {formatPrecio(Math.ceil(total * 1.10))}
-                      </span>
+                      <div className="p-[var(--space-lg)] bg-slate-50 border-t border-slate-200">
+                        <div className="flex justify-between items-end">
+                          <div>
+                            <p className="text-[var(--text-sm)] text-slate-500 font-medium mb-1">Total Estimado (Lista)</p>
+                            <p className="text-[var(--text-xs)] text-slate-400">* Incluye impuestos y descuentos</p>
+                          </div>
+                          <span className="text-[var(--text-4xl)] font-black bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
+                            {formatPrecio(Math.ceil(total * 1.10))}
+                          </span>
+                        </div>
+                      </div>
                     </div>
-                    <p className="text-right text-xs text-slate-500 mt-2">
-                      * Precio de lista en 1 pago. Consultá por descuentos en efectivo/transferencia.
-                    </p>
 
-                  </div>
-
-                  {/* Actions */}
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom duration-700 delay-200">
-                    <button
-                      onClick={handleDescargarPDF}
-                      className="p-4 bg-white border-2 border-slate-200 rounded-xl hover:border-[#E02127] hover:shadow-lg transition-all duration-300 group text-left"
-                    >
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-red-50 rounded-lg text-[#E02127] group-hover:bg-[#E02127] group-hover:text-white transition-colors">
-                          <HardDrive className="h-6 w-6" />
+                    {/* Actions */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 animate-in fade-in slide-in-from-bottom duration-700 delay-200">
+                      <button
+                        onClick={handleDescargarPDF}
+                        className="p-4 bg-white border-2 border-slate-200 rounded-xl hover:border-[#E02127] hover:shadow-lg transition-all duration-300 group text-left"
+                      >
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="p-2 bg-red-50 rounded-lg text-[#E02127] group-hover:bg-[#E02127] group-hover:text-white transition-colors">
+                            <HardDrive className="h-6 w-6" />
+                          </div>
+                          <h3 className="font-bold text-slate-900">Descargar PDF</h3>
                         </div>
-                        <h3 className="font-bold text-slate-900">Descargar PDF</h3>
-                      </div>
-                      <p className="text-sm text-slate-500">Guardá el presupuesto para verlo después o imprimirlo.</p>
-                    </button>
+                        <p className="text-sm text-slate-500">Guardá el presupuesto para verlo después o imprimirlo.</p>
+                      </button>
 
-                    <button
-                      onClick={handleCompartirWhatsApp}
-                      className="p-4 bg-[#25D366] text-white rounded-xl hover:bg-[#128C7E] hover:shadow-lg transition-all duration-300 group text-left shadow-green-200"
-                    >
-                      <div className="flex items-center gap-3 mb-2">
-                        <div className="p-2 bg-white/20 rounded-lg">
-                          <MonitorUp className="h-6 w-6" />
+                      <button
+                        onClick={handleCompartirWhatsApp}
+                        className="p-4 bg-[#25D366] text-white rounded-xl hover:bg-[#128C7E] hover:shadow-lg transition-all duration-300 group text-left shadow-green-200"
+                      >
+                        <div className="flex items-center gap-3 mb-2">
+                          <div className="p-2 bg-white/20 rounded-lg">
+                            <MonitorUp className="h-6 w-6" />
+                          </div>
+                          <h3 className="font-bold">Consultar por WhatsApp</h3>
                         </div>
-                        <h3 className="font-bold">Consultar por WhatsApp</h3>
-                      </div>
-                      <p className="text-sm text-white/90">Envianos tu configuración para confirmar stock y comprar.</p>
-                    </button>
-                  </div>
+                        <p className="text-sm text-white/90">Envianos tu configuración para confirmar stock y comprar.</p>
+                      </button>
+                    </div>
 
-                  <div className="flex justify-center pt-8 pb-8">
-                    <button
-                      onClick={() => {
-                        resetear();
-                        // Optional: redirect to home or just reset
-                      }}
-                      className="text-slate-400 hover:text-slate-600 text-sm flex items-center gap-2 transition-colors"
-                    >
-                      <RotateCcw className="w-4 h-4" />
-                      Empezar una nueva cotización
-                    </button>
-                  </div>
+                    <div className="flex justify-center pt-8 pb-8">
+                      <button
+                        onClick={() => {
+                          resetear();
+                          // Optional: redirect to home or just reset
+                        }}
+                        className="text-slate-400 hover:text-slate-600 text-sm flex items-center gap-2 transition-colors"
+                      >
+                        <RotateCcw className="w-4 h-4" />
+                        Empezar una nueva cotización
+                      </button>
+                    </div>
 
+                  </div>
                 </div>
               </div>
             )
           }
         </div>
       </div>
-      {/* Debug Component */}
-
-    </div >
+    </div>
   );
 }

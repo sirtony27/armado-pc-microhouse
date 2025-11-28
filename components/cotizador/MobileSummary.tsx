@@ -28,10 +28,10 @@ export default function MobileSummary({
         <>
             {/* Bottom Bar Fixed */}
             <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-200 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)] z-50 md:hidden pb-safe">
-                <div className="flex items-center justify-between px-4 py-3">
+                <div className="flex items-center justify-between px-[var(--space-sm)] py-[var(--space-xs)]">
                     <div className="flex flex-col">
-                        <span className="text-[10px] text-slate-500 font-medium uppercase tracking-wider">Total Estimado</span>
-                        <span className="text-xl font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
+                        <span className="text-[var(--text-xs)] text-slate-500 font-medium uppercase tracking-wider">Total Estimado</span>
+                        <span className="text-[var(--text-xl)] font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
                             {formatPrecio(Math.ceil(total * 1.10))}
                         </span>
                     </div>
@@ -64,8 +64,8 @@ export default function MobileSummary({
                         </div>
 
                         {/* Header */}
-                        <div className="px-5 py-3 border-b border-slate-100 flex items-center justify-between">
-                            <h3 className="font-bold text-lg text-slate-900">Tu Configuración</h3>
+                        <div className="px-[var(--space-md)] py-[var(--space-sm)] border-b border-slate-100 flex items-center justify-between">
+                            <h3 className="font-bold text-[var(--text-lg)] text-slate-900">Tu Configuración</h3>
                             <button
                                 onClick={() => setIsOpen(false)}
                                 className="p-2 bg-slate-100 rounded-full hover:bg-slate-200 transition-colors"
@@ -77,9 +77,9 @@ export default function MobileSummary({
                         {/* Scrollable Content */}
                         <div className="overflow-y-auto p-5 space-y-4">
                             {/* Modelo Base */}
-                            <div className="bg-gradient-to-r from-[#E02127] to-[#0D1A4B] rounded-xl p-4 text-white shadow-md">
-                                <p className="text-xs opacity-80 uppercase tracking-wider font-semibold mb-1">Modelo Base</p>
-                                <p className="text-lg font-bold">{modeloSeleccionado.nombre}</p>
+                            <div className="bg-gradient-to-r from-[#E02127] to-[#0D1A4B] rounded-xl p-[var(--space-sm)] text-white shadow-md">
+                                <p className="text-[var(--text-xs)] opacity-80 uppercase tracking-wider font-semibold mb-1">Modelo Base</p>
+                                <p className="text-[var(--text-lg)] font-bold">{modeloSeleccionado.nombre}</p>
                             </div>
 
                             {/* Lista de Componentes */}
@@ -120,14 +120,14 @@ export default function MobileSummary({
                         </div>
 
                         {/* Footer with Total */}
-                        <div className="p-5 border-t border-slate-100 bg-slate-50 pb-safe">
+                        <div className="p-[var(--space-md)] border-t border-slate-100 bg-slate-50 pb-safe">
                             <div className="flex justify-between items-end mb-1">
-                                <span className="text-sm font-medium text-slate-600">Total Final</span>
-                                <span className="text-2xl font-bold text-slate-900">
+                                <span className="text-[var(--text-sm)] font-medium text-slate-600">Total Final</span>
+                                <span className="text-[var(--text-2xl)] font-bold text-slate-900">
                                     {formatPrecio(Math.ceil(total * 1.10))}
                                 </span>
                             </div>
-                            <p className="text-[10px] text-slate-400 text-right">Incluye impuestos y descuentos aplicables</p>
+                            <p className="text-[var(--text-xs)] text-slate-400 text-right">Incluye impuestos y descuentos aplicables</p>
                         </div>
                     </div>
                 </div>

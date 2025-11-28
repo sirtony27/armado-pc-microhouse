@@ -36,15 +36,15 @@ export default function FuenteSelector({ fuentes }: FuenteSelectorProps) {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-center px-6 py-6 overflow-hidden">
-      <div className="text-center mb-6 animate-in fade-in slide-in-from-top duration-700">
+    <div className="flex-1 flex flex-col items-center justify-center px-[var(--space-md)] py-[var(--space-md)] overflow-hidden">
+      <div className="text-center mb-[var(--space-md)] animate-in fade-in slide-in-from-top duration-700">
         <div className="flex items-center justify-center gap-2 mb-2">
           <Zap className="h-7 w-7 text-amber-600" />
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+          <h1 className="text-[var(--text-2xl)] font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
             Elegí tu Fuente de Poder
           </h1>
         </div>
-        <p className="text-slate-600 text-xs">Seleccioná la fuente adecuada para tu configuración</p>
+        <p className="text-slate-600 text-[var(--text-xs)]">Seleccioná la fuente adecuada para tu configuración</p>
       </div>
 
       <div
@@ -123,13 +123,13 @@ export default function FuenteSelector({ fuentes }: FuenteSelectorProps) {
                     <Zap className="h-8 w-8 text-white" />
                   </div>
 
-                  <h2 className="text-lg font-bold text-slate-900 mb-2">
+                  <h2 className="text-[var(--text-lg)] font-bold text-slate-900 mb-2">
                     {fuente.marca}
                   </h2>
-                  <p className="text-sm font-semibold text-slate-700 mb-3">
+                  <p className="text-[var(--text-sm)] font-semibold text-slate-700 mb-3">
                     {fuente.modelo}
                   </p>
-                  <p className="text-slate-600 text-xs mb-4 leading-relaxed px-2 line-clamp-2 min-h-[32px]">
+                  <p className="text-slate-600 text-[var(--text-xs)] mb-4 leading-relaxed px-2 line-clamp-2 min-h-[32px]">
                     {fuente.descripcion}
                   </p>
 
@@ -143,7 +143,7 @@ export default function FuenteSelector({ fuentes }: FuenteSelectorProps) {
                   </div>
 
                   <div className="mb-4 px-3 py-2 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border-2 border-amber-200/50 shadow-sm">
-                    <p className="text-2xl font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
+                    <p className="text-[var(--text-2xl)] font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
                       {formatPrecio(Math.ceil(Number(remotePrices[fuente.id] ?? fuente.precio ?? 0) * 1.10))}
                     </p>
                   </div>

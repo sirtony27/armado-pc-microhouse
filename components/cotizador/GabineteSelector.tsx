@@ -44,15 +44,15 @@ export default function GabineteSelector({ gabinetes: gabinetesInitial }: Gabine
   }, [gabinetesInitial]);
 
   return (
-    <div className="flex-1 flex flex-col items-center px-[2vh] py-[1vh] overflow-hidden min-h-0 w-full">
-      <div className="text-center mb-[1vh] shrink-0 animate-in fade-in slide-in-from-top duration-700">
+    <div className="flex-1 flex flex-col items-center px-[var(--space-sm)] py-[var(--space-xs)] overflow-hidden min-h-0 w-full">
+      <div className="text-center mb-[var(--space-xs)] shrink-0 animate-in fade-in slide-in-from-top duration-700">
         <div className="flex items-center justify-center gap-2 mb-1">
           <Box className="h-6 w-6 text-[#E02127]" />
-          <h1 className="text-xl font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
+          <h1 className="text-[var(--text-xl)] font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
             Elegí tu Gabinete
           </h1>
         </div>
-        <p className="text-slate-600 text-[10px]">Seleccioná el gabinete que más te guste para tu PC</p>
+        <p className="text-slate-600 text-[var(--text-xs)]">Seleccioná el gabinete que más te guste para tu PC</p>
       </div>
 
       <div className="relative w-full max-w-7xl flex-1 min-h-0 flex flex-col">
@@ -118,8 +118,8 @@ export default function GabineteSelector({ gabinetes: gabinetesInitial }: Gabine
                       );
                     })()}
 
-                    <div className="p-[2vh] space-y-[1vh] text-left shrink-0 bg-white">
-                      <h2 className="text-base font-bold text-slate-900 truncate h-6">
+                    <div className="p-[var(--space-sm)] space-y-[var(--space-xs)] text-left shrink-0 bg-white">
+                      <h2 className="text-[var(--text-base)] font-bold text-slate-900 truncate h-6">
                         {gabinete.marca} {gabinete.modelo}
                       </h2>
                       <div className="flex flex-wrap gap-1">
@@ -151,14 +151,14 @@ export default function GabineteSelector({ gabinetes: gabinetesInitial }: Gabine
                       </div>
                       <div className="flex items-center justify-between">
                         <div>
-                          <p className="text-[10px] text-slate-500 uppercase font-semibold tracking-wider mb-0.5">Contado / débito</p>
-                          <p className="text-lg font-bold text-slate-900">
+                          <p className="text-[9px] text-slate-500 uppercase font-semibold tracking-wider mb-0.5">Contado / débito</p>
+                          <p className="text-[var(--text-lg)] font-bold text-slate-900">
                             {formatPrecio(Math.ceil(Number(gabinete.precio ?? 0)))}
                           </p>
                         </div>
                         <div className="text-right">
-                          <p className="text-[10px] text-slate-500 uppercase font-semibold tracking-wider mb-0.5">3 cuotas</p>
-                          <p className="text-lg font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
+                          <p className="text-[9px] text-slate-500 uppercase font-semibold tracking-wider mb-0.5">3 cuotas</p>
+                          <p className="text-[var(--text-lg)] font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
                             {formatPrecio(Math.ceil(Number(gabinete.precio ?? 0) * 1.10))}
                           </p>
                         </div>

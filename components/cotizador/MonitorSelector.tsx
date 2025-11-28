@@ -73,15 +73,15 @@ export default function MonitorSelector() {
   };
 
   return (
-    <div className="flex-1 flex flex-col items-center px-6 py-6 overflow-hidden">
-      <div className="text-center mb-6 animate-in fade-in slide-in-from-top duration-700">
+    <div className="flex-1 flex flex-col items-center px-[var(--space-md)] py-[var(--space-md)] overflow-hidden">
+      <div className="text-center mb-[var(--space-md)] animate-in fade-in slide-in-from-top duration-700">
         <div className="flex items-center justify-center gap-2 mb-2">
           <MonitorIcon className="h-7 w-7 text-[#E02127]" />
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
+          <h1 className="text-[var(--text-2xl)] font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
             ¿Necesitás un Monitor?
           </h1>
         </div>
-        <p className="text-slate-600 text-xs">Este paso es opcional. Podés agregar un monitor a tu configuración.</p>
+        <p className="text-slate-600 text-[var(--text-xs)]">Este paso es opcional. Podés agregar un monitor a tu configuración.</p>
       </div>
 
       <div className="relative w-full max-w-7xl" style={{ minHeight: maxCardHeight ? `${maxCardHeight + 40}px` : '520px' }}>
@@ -89,16 +89,18 @@ export default function MonitorSelector() {
           <div
             className="flex h-full items-center"
             style={{
-              transform: `translateX(calc(50% - ${currentIndex * 320}px - 160px))`,
+              '--card-width': 'min(320px, 85vw)',
+              transform: `translateX(calc(50% - (${currentIndex} + 0.5) * var(--card-width)))`,
               transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
-            }}
+            } as React.CSSProperties}
           >
             {monitores.map((monitor, index) => {
               const isCurrent = index === currentIndex;
               return (
                 <div
                   key={monitor.id}
-                  className="w-[320px] flex-shrink-0 px-4"
+                  className="flex-shrink-0 px-4"
+                  style={{ width: 'var(--card-width)' }}
                   onClick={() => {
                     if (!isCurrent) {
                       setCurrentIndex(index);
@@ -135,10 +137,10 @@ export default function MonitorSelector() {
                     })()}
 
                     <div className="p-4 space-y-2">
-                      <h2 className="text-base font-bold text-slate-900 truncate h-6">
+                      <h2 className="text-[var(--text-base)] font-bold text-slate-900 truncate h-6">
                         {monitor.marca} {monitor.modelo}
                       </h2>
-                      <p className="text-2xl font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
+                      <p className="text-[var(--text-2xl)] font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
                         {formatPrecio(Math.ceil(((remotePrices[monitor.id] ?? monitor.precio) as number) * 1.10))}
                       </p>
                       <div className="pt-2">
@@ -150,8 +152,8 @@ export default function MonitorSelector() {
                             }
                           }}
                           className={`w-full px-5 py-2.5 rounded-xl transition-all text-xs font-bold shadow-lg hover:shadow-xl active:scale-95 transform duration-200 relative overflow-hidden group ${componentesSeleccionados?.monitor === monitor.id
-                              ? 'bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white'
-                              : 'bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700'
+                            ? 'bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white'
+                            : 'bg-gradient-to-r from-slate-100 to-slate-200 text-slate-700'
                             }`}
                         >
                           <span className="relative z-10 flex items-center justify-center gap-2">
@@ -198,8 +200,8 @@ export default function MonitorSelector() {
               onClick={() => setCurrentIndex(index)}
               disabled={isTransitioning}
               className={`h-2 rounded-full transition-all duration-500 ease-out ${index === currentIndex
-                  ? 'w-10 bg-gradient-to-r from-[#E02127] to-[#0D1A4B] shadow-lg'
-                  : 'w-2 bg-slate-300 hover:bg-slate-400'
+                ? 'w-10 bg-gradient-to-r from-[#E02127] to-[#0D1A4B] shadow-lg'
+                : 'w-2 bg-slate-300 hover:bg-slate-400'
                 }`}
               aria-label={`Ver monitor ${index + 1}`}
             />
