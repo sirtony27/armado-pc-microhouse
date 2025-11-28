@@ -17,39 +17,7 @@ export default function GabineteSelector({ gabinetes: gabinetesInitial }: Gabine
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  const [maxCardHeight, setMaxCardHeight] = useState<number | null>(null);
-  const cardRefs = useRef<(HTMLDivElement | null)[]>([]);
-
-  const remotePrices = useRemotePrices(gabinetesInitial);
-  const gabinetes = useMemo(() => {
-    return [...gabinetesInitial].sort((a, b) => {
-      const pa = Number(remotePrices[a.id] ?? a.precio ?? 0);
-      const pb = Number(remotePrices[b.id] ?? b.precio ?? 0);
-      return pa - pb;
-    });
-  }, [gabinetesInitial, remotePrices]);
-
-  const measureAndSetHeight = useCallback(() => {
-    let maxHeight = 0;
-    cardRefs.current.forEach(card => {
-      if (card) {
-        // Reset height to auto to measure natural height
-        card.style.minHeight = 'auto';
-        maxHeight = Math.max(maxHeight, card.scrollHeight);
-      }
-    });
-    if (maxHeight > 0) {
-      setMaxCardHeight(maxHeight);
-    }
-  }, []);
-
-  useLayoutEffect(() => {
-    if (gabinetes.length > 0) {
-      measureAndSetHeight();
-    }
-    window.addEventListener('resize', measureAndSetHeight);
-    return () => window.removeEventListener('resize', measureAndSetHeight);
-  }, [gabinetes, measureAndSetHeight]);
+  // Removed height calculation logic for fluid layout
 
   const nextGabinete = () => {
     if (isTransitioning || gabinetes.length === 0) return;
@@ -67,24 +35,33 @@ export default function GabineteSelector({ gabinetes: gabinetesInitial }: Gabine
     setTimeout(() => setIsTransitioning(false), 500);
   };
 
+  const remotePrices = useRemotePrices(gabinetesInitial);
+  const gabinetes = useMemo(() => {
+    return [...gabinetesInitial].sort((a, b) => {
+      const pa = Number(remotePrices[a.id] ?? a.precio ?? 0);
+      const pb = Number(remotePrices[b.id] ?? b.precio ?? 0);
+      return pa - pb;
+    });
+  }, [gabinetesInitial, remotePrices]);
+
   return (
-    <div className="flex-1 flex flex-col items-center px-6 py-6 overflow-hidden">
-      <div className="text-center mb-6 animate-in fade-in slide-in-from-top duration-700">
-        <div className="flex items-center justify-center gap-2 mb-2">
-          <Box className="h-7 w-7 text-[#E02127]" />
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
+    <div className="flex-1 flex flex-col items-center px-[2vh] py-[1vh] overflow-hidden min-h-0 w-full">
+      <div className="text-center mb-[1vh] shrink-0 animate-in fade-in slide-in-from-top duration-700">
+        <div className="flex items-center justify-center gap-2 mb-1">
+          <Box className="h-6 w-6 text-[#E02127]" />
+          <h1 className="text-xl font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
             Elegí tu Gabinete
           </h1>
         </div>
-        <p className="text-slate-600 text-xs">Seleccioná el gabinete que más te guste para tu PC</p>
+        <p className="text-slate-600 text-[10px]">Seleccioná el gabinete que más te guste para tu PC</p>
       </div>
 
-      <div className="relative w-full max-w-7xl" style={{ minHeight: maxCardHeight ? `${maxCardHeight + 80}px` : '640px' }}>
+      <div className="relative w-full max-w-7xl flex-1 min-h-0 flex flex-col">
         <div className="absolute inset-0 overflow-hidden">
           <div
             className="flex h-full items-center"
             style={{
-              '--card-width': 'min(320px, 85vw)',
+              '--card-width': 'min(45vh, 85vw)',
               transform: `translateX(calc(50% - (${currentIndex} + 0.5) * var(--card-width)))`,
               transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
             } as React.CSSProperties}
@@ -111,12 +88,10 @@ export default function GabineteSelector({ gabinetes: gabinetesInitial }: Gabine
                   }}
                 >
                   <div
-                    ref={(el) => { cardRefs.current[index] = el; }}
-                    className={`bg-white rounded-2xl text-center relative transition-all duration-500 ease-in-out overflow-hidden ${isCurrent ? 'shadow-[0_0_0_3px_rgba(224,33,39,0.3),0_20px_60px_-10px_rgba(224,33,39,0.4)] ring-1 ring-[#E02127]/20' : 'shadow-2xl scale-80 opacity-60'
+                    className={`bg-white rounded-2xl text-center relative transition-all duration-500 ease-in-out overflow-hidden flex flex-col h-full ${isCurrent ? 'shadow-[0_0_0_3px_rgba(224,33,39,0.3),0_20px_60px_-10px_rgba(224,33,39,0.4)] ring-1 ring-[#E02127]/20' : 'shadow-2xl scale-80 opacity-60'
                       }`}
                     style={{
                       cursor: 'pointer',
-                      minHeight: maxCardHeight ? `${maxCardHeight}px` : undefined,
                     }}
                   >
                     {(() => {
@@ -129,23 +104,22 @@ export default function GabineteSelector({ gabinetes: gabinetesInitial }: Gabine
                         else src = `${base.replace(/\/$/, '')}/storage/v1/object/public/${raw.replace(/^\//, '')}`;
                       }
                       return src ? (
-                        <div className="mx-auto rounded-t-2xl overflow-hidden bg-gradient-to-b from-slate-50 to-white h-[420px] flex items-center justify-center">
+                        <div className="mx-auto rounded-t-2xl overflow-hidden bg-gradient-to-b from-slate-50 to-white flex-1 min-h-0 w-full flex items-center justify-center p-4">
                           <img
                             src={src}
                             alt={`${gabinete.marca} ${gabinete.modelo}`}
                             loading="lazy"
                             className="w-full h-full object-contain"
-                            style={{ objectFit: 'contain', aspectRatio: '3 / 5' }}
                           />
                         </div>
                       ) : (
-                        <div className="h-[420px] flex items-center justify-center bg-slate-50">
-                          <Box className="h-16 w-16 text-slate-300" />
+                        <div className="flex-1 min-h-0 flex items-center justify-center bg-slate-50">
+                          <Box className="h-12 w-12 text-slate-300" />
                         </div>
                       );
                     })()}
 
-                    <div className="p-4 space-y-3 text-left">
+                    <div className="p-[2vh] space-y-[1vh] text-left shrink-0 bg-white">
                       <h2 className="text-base font-bold text-slate-900 truncate h-6">
                         {gabinete.marca} {gabinete.modelo}
                       </h2>

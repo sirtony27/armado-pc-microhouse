@@ -11,7 +11,7 @@ export function useComponentes() {
       ; (async () => {
         const { data, error } = await supabase
           .from('componentes')
-          .select('id,tipo,marca,modelo,descripcion,image_url,especificaciones,activo,sku')
+          .select('id,tipo,marca,modelo,descripcion,image_url,especificaciones,activo,sku,precio')
           .eq('activo', true)
           .order('created_at', { ascending: false })
         if (error || !data) { if (!cancelled) setItems([]); return }
@@ -22,7 +22,7 @@ export function useComponentes() {
           marca: c.marca,
           modelo: c.modelo,
           descripcion: c.descripcion || '',
-          precio: 0, // se sobreescribe con useRemotePrices por SKU
+          precio: c.precio || 0,
           stock: 0,
           disponible: !!c.activo,
           imagenUrl: c.image_url || '',

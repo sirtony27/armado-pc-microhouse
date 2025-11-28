@@ -20,7 +20,7 @@ export default function Stepper({ pasoActual }: StepperProps) {
   const pasoActualIndex = pasos.findIndex((p) => p.id === pasoActual);
 
   return (
-    <div className="bg-white border-b border-slate-200 px-3 md:px-6 py-2 md:py-4">
+    <div className="bg-white border-b border-slate-200 px-3 md:px-6 py-1 md:py-2">
       <div className="max-w-4xl mx-auto overflow-x-auto">
         <div className="flex items-center justify-start md:justify-between gap-4">
           {pasos.map((paso, index) => {
@@ -33,28 +33,26 @@ export default function Stepper({ pasoActual }: StepperProps) {
                 {/* Círculo del paso */}
                 <div className="flex flex-col items-center">
                   <div
-                    className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
-                      isCompleted
+                    className={`w-6 h-6 md:w-8 md:h-8 rounded-full flex items-center justify-center font-bold text-xs transition-all ${isCompleted
                         ? 'bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white shadow-md'
                         : isCurrent
-                        ? 'bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white shadow-lg ring-2 md:ring-4 ring-blue-200'
-                        : 'bg-slate-200 text-slate-500'
-                    }`}
+                          ? 'bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white shadow-lg ring-2 md:ring-4 ring-blue-200'
+                          : 'bg-slate-200 text-slate-500'
+                      }`}
                   >
                     {isCompleted ? (
-                      <Check className="h-5 w-5" />
+                      <Check className="h-4 w-4" />
                     ) : (
                       <span>{paso.numero}</span>
                     )}
                   </div>
                   <p
-                    className={`mt-1 md:mt-2 text-[10px] md:text-xs font-medium whitespace-nowrap truncate max-w-[80px] md:max-w-none ${
-                      isCurrent
+                    className={`mt-0.5 md:mt-1 text-[9px] md:text-[10px] font-medium whitespace-nowrap truncate max-w-[80px] md:max-w-none ${isCurrent
                         ? 'text-[#E02127]'
                         : isCompleted
-                        ? 'text-slate-700'
-                        : 'text-slate-400'
-                    }`}
+                          ? 'text-slate-700'
+                          : 'text-slate-400'
+                      }`}
                   >
                     {paso.label}
                   </p>
@@ -64,11 +62,10 @@ export default function Stepper({ pasoActual }: StepperProps) {
                 {index < pasos.length - 1 && (
                   <div className="flex-1 h-0.5 mx-2 md:mx-3 mt-[-18px] md:mt-[-24px]">
                     <div
-                      className={`h-full transition-all ${
-                        isCompleted
+                      className={`h-full transition-all ${isCompleted
                           ? 'bg-gradient-to-r from-[#E02127] to-[#0D1A4B]'
                           : 'bg-slate-200'
-                      }`}
+                        }`}
                     />
                   </div>
                 )}

@@ -664,13 +664,13 @@ export default function CotizarPage() {
         <div className="flex-1 flex flex-col overflow-hidden relative z-0">
           {/* Paso 1: Carrusel de Modelos */}
           {pasoActual === 'modelo' && (
-            <div className="flex-1 flex flex-col items-center justify-center px-4 md:px-6 py-4 overflow-visible w-full">
-              <div className="relative w-full max-w-7xl" style={{ minHeight: maxCardHeight ? `${Math.min(maxCardHeight + 40, window.innerHeight * 0.75)}px` : 'min(500px, 65vh)' }}>
+            <div className="flex-1 flex flex-col items-center justify-center px-[2vh] py-[1vh] overflow-hidden w-full min-h-0">
+              <div className="relative w-full max-w-7xl flex-1 min-h-0 flex flex-col">
                 <div className="absolute inset-0 overflow-hidden">
                   <div
                     className="flex h-full items-center"
                     style={{
-                      '--card-width': 'min(380px, 85vw)',
+                      '--card-width': 'min(45vh, 85vw)',
                       transform: `translateX(calc(50% - (${currentModelIndex} + 0.5) * var(--card-width)))`,
                       transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
                     } as React.CSSProperties}
@@ -693,33 +693,32 @@ export default function CotizarPage() {
                         >
                           <div
                             ref={el => { cardRefs.current[index] = el }}
-                            className={`bg-white rounded-2xl text-center w-full relative transition-all duration-500 ease-in-out flex flex-col ${isCurrent ? 'shadow-[0_0_0_3px_rgba(224,33,39,0.3),0_20px_60px_-10px_rgba(224,33,39,0.4)]' : 'shadow-2xl scale-80 opacity-60'
+                            className={`bg-white rounded-2xl text-center w-full relative transition-all duration-500 ease-in-out flex flex-col h-full max-h-full ${isCurrent ? 'shadow-[0_0_0_3px_rgba(224,33,39,0.3),0_20px_60px_-10px_rgba(224,33,39,0.4)]' : 'shadow-2xl scale-80 opacity-60'
                               }`}
                             style={{
                               cursor: 'pointer',
-                              minHeight: maxCardHeight ? `${maxCardHeight}px` : undefined,
-                              maxHeight: '75vh',
-                              overflowY: isCurrent ? 'auto' : 'hidden'
                             }}
                           >
-                            <div className="p-6 flex flex-col flex-grow">
-                              <div className="mb-3">
+                            <div className="p-[2vh] flex flex-col h-full overflow-hidden">
+                              <div className="mb-[1vh] shrink-0">
                                 {modelo.imagenUrl && (
-                                  <div className="mx-auto mb-3 rounded-xl overflow-hidden shadow-lg w-full h-40">
+                                  <div className="mx-auto mb-[1vh] rounded-xl overflow-hidden shadow-lg w-full h-[20vh] shrink-0">
                                     <img src={modelo.imagenUrl} alt={modelo.nombre} loading="lazy" className="w-full h-full object-cover" />
                                   </div>
                                 )}
                               </div>
-                              <h2 className="text-lg font-bold text-slate-900 mb-2 truncate">{modelo.nombre}</h2>
-                              <p className="text-slate-600 mb-3 text-xs leading-relaxed px-2 flex-grow">{modelo.descripcion}</p>
-                              <div className="flex flex-wrap justify-center gap-1 mb-3">
+                              <h2 className="text-lg font-bold text-slate-900 mb-1 truncate shrink-0">{modelo.nombre}</h2>
+                              <div className="flex-1 overflow-y-auto min-h-0 mb-2 custom-scrollbar">
+                                <p className="text-slate-600 text-xs leading-relaxed px-2">{modelo.descripcion}</p>
+                              </div>
+                              <div className="flex flex-wrap justify-center gap-1 mb-2 shrink-0">
                                 {modelo.usoRecomendado?.slice(0, 3).map((tag) => (
                                   <span key={tag} className="px-2 py-1 rounded-full bg-slate-100 text-[10px] text-slate-600 border border-slate-200">
                                     {tag}
                                   </span>
                                 ))}
                               </div>
-                              <div className="grid grid-cols-2 gap-2 text-left text-[10px] text-slate-600 mb-3">
+                              <div className="grid grid-cols-2 gap-2 text-left text-[10px] text-slate-600 mb-2 shrink-0">
                                 <div className="flex items-center gap-1">
                                   <Cpu className="h-3 w-3 text-slate-500" />
                                   <span className="font-semibold text-slate-800 truncate">
@@ -754,9 +753,9 @@ export default function CotizarPage() {
                                 </div>
                               </div>
 
-                              <div className="mb-4 mt-auto px-3 py-2 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200/50 shadow-sm">
+                              <div className="mb-2 mt-auto px-3 py-2 bg-gradient-to-br from-blue-50 to-indigo-50 rounded-xl border-2 border-blue-200/50 shadow-sm shrink-0">
                                 <div className="flex items-center justify-between">
-                                  <div>
+                                  <div className="shrink-0">
                                     <p className="text-[9px] text-slate-500 uppercase font-semibold tracking-wider mb-0.5">Contado / débito</p>
                                     <p className="text-lg font-bold text-slate-900">{formatPrecio(modelo.precioBase)}</p>
                                   </div>
@@ -768,7 +767,7 @@ export default function CotizarPage() {
                                   </div>
                                 </div>
                               </div>
-                              <div>
+                              <div className="shrink-0">
                                 <button
                                   onClick={() => handleSeleccionarModelo(modelo)}
                                   className={`w-full px-5 py-2.5 rounded-xl text-xs font-bold shadow-lg transition-opacity duration-300 ${isCurrent ? 'opacity-100 bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white' : 'opacity-0 pointer-events-none'

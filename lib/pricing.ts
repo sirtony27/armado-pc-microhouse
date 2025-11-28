@@ -16,19 +16,19 @@ export function useRemotePrices(componentes: Componente[]) {
         .from('componentes')
         .select('id, sku')
         .in('id', ids)
-        .not('sku','is', null)
-      const pairs = (comps || []).map((c:any) => [String(c.id), String(c.sku)])
+        .not('sku', 'is', null)
+      const pairs = (comps || []).map((c: any) => [String(c.id), String(c.sku)])
       if (!pairs.length) { if (!cancelled) setMap({}); return }
       const skus = pairs.map(([, sku]) => sku)
       const { data: prods } = await supabase
         .from('productos')
         .select('sku, precio')
         .in('sku', skus)
-      const skuToPrice = new Map((prods||[]).map((d: any) => [String(d.sku), Number(d.precio || 0)]))
+      const skuToPrice = new Map((prods || []).map((d: any) => [String(d.sku), Number(d.precio || 0)]))
       const out: Record<string, number> = {}
       for (const [id, sku] of pairs) {
         const p = skuToPrice.get(sku)
-        if (typeof p === 'number' && !Number.isNaN(p)) out[id] = p
+        if (typeof p === 'number' && !Number.isNaN(p) && p > 0) out[id] = p
       }
       if (!cancelled) setMap(out)
     }

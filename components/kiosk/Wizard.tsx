@@ -127,16 +127,16 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
             </div>
 
             {/* Content */}
-            <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-6 max-w-5xl mx-auto w-full overflow-y-auto overflow-x-hidden custom-scrollbar">
+            <div className="flex-1 flex flex-col items-center justify-center p-[2vh] max-w-5xl mx-auto w-full overflow-y-auto overflow-x-hidden custom-scrollbar">
 
                 {step === 1 && (
-                    <div className="w-full space-y-4 lg:space-y-8 animate-in fade-in slide-in-from-right duration-500 py-2 lg:py-4">
-                        <div className="text-center space-y-2 lg:space-y-4">
-                            <h2 className="text-2xl lg:text-4xl font-bold text-slate-900">¿Para qué vas a usar la PC?</h2>
-                            <p className="text-lg md:text-xl text-slate-500">Elegí la opción que mejor te describa.</p>
+                    <div className="w-full flex flex-col gap-[3vh] animate-in fade-in slide-in-from-right duration-500 py-[1vh]">
+                        <div className="text-center space-y-[1vh]">
+                            <h2 className="text-[clamp(1.5rem,3vh,2.5rem)] font-bold text-slate-900">¿Para qué vas a usar la PC?</h2>
+                            <p className="text-[clamp(1rem,2vh,1.25rem)] text-slate-500">Elegí la opción que mejor te describa.</p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-[2vh]">
                             <OptionCard
                                 icon={<Gamepad2 className="w-8 h-8 md:w-12 md:h-12 text-purple-500" />}
                                 title="Gaming"
@@ -160,13 +160,13 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
                 )}
 
                 {step === 2 && (
-                    <div className="w-full space-y-4 lg:space-y-8 animate-in fade-in slide-in-from-right duration-500 py-2 lg:py-4">
-                        <div className="text-center space-y-2 lg:space-y-4">
-                            <h2 className="text-2xl lg:text-4xl font-bold text-slate-900">¿Qué nivel de rendimiento buscás?</h2>
-                            <p className="text-base md:text-xl text-slate-500">Esto nos ayuda a ajustar el presupuesto.</p>
+                    <div className="w-full flex flex-col gap-[3vh] animate-in fade-in slide-in-from-right duration-500 py-[1vh]">
+                        <div className="text-center space-y-[1vh]">
+                            <h2 className="text-[clamp(1.5rem,3vh,2.5rem)] font-bold text-slate-900">¿Qué nivel de rendimiento buscás?</h2>
+                            <p className="text-[clamp(0.875rem,1.8vh,1.125rem)] text-slate-500">Esto nos ayuda a ajustar el presupuesto.</p>
                         </div>
 
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-[2vh]">
                             {usage === 'GAMING' ? (
                                 <>
                                     <OptionCard
@@ -226,13 +226,13 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
                 )}
 
                 {step === 3 && usage !== 'OFFICE' && (
-                    <div className="w-full space-y-4 lg:space-y-8 animate-in fade-in slide-in-from-right duration-500 py-2 lg:py-4">
-                        <div className="text-center space-y-2 lg:space-y-4">
-                            <h2 className="text-2xl lg:text-4xl font-bold text-slate-900">¿Querés una Placa de Video Dedicada?</h2>
-                            <p className="text-base md:text-xl text-slate-500">Para mayor rendimiento en juegos y renderizado.</p>
+                    <div className="w-full flex flex-col gap-[3vh] animate-in fade-in slide-in-from-right duration-500 py-[1vh]">
+                        <div className="text-center space-y-[1vh]">
+                            <h2 className="text-[clamp(1.5rem,3vh,2.5rem)] font-bold text-slate-900">¿Querés una Placa de Video Dedicada?</h2>
+                            <p className="text-[clamp(0.875rem,1.8vh,1.125rem)] text-slate-500">Para mayor rendimiento en juegos y renderizado.</p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 max-w-3xl mx-auto w-full">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-[2vh] max-w-3xl mx-auto w-full">
                             <OptionCard
                                 icon={<Cpu className="w-8 h-8 md:w-12 md:h-12 text-blue-500" />}
                                 title="Gráficos Integrados"
@@ -252,13 +252,13 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
 
                 {step === 4 && (
                     <div className="w-full flex flex-col items-center animate-in fade-in slide-in-from-right duration-500 h-full justify-center">
-                        <div className="text-center space-y-2 lg:space-y-4 mb-4 lg:mb-8 shrink-0">
-                            <h2 className="text-2xl lg:text-4xl font-bold text-slate-900">Elegí tu Gabinete</h2>
-                            <p className="text-base md:text-xl text-slate-500">Deslizá para ver las opciones disponibles.</p>
+                        <div className="text-center space-y-[1vh] mb-[2vh] shrink-0">
+                            <h2 className="text-[clamp(1.5rem,3vh,2.5rem)] font-bold text-slate-900">Elegí tu Gabinete</h2>
+                            <p className="text-[clamp(0.875rem,1.8vh,1.125rem)] text-slate-500">Deslizá para ver las opciones disponibles.</p>
                         </div>
 
                         {/* Carousel */}
-                        <div className="relative w-full max-w-[95vw] md:max-w-[1400px] h-[50vh] min-h-[350px] max-h-[700px] flex items-center justify-center perspective-1000 shrink-0 mx-auto">
+                        <div className="relative w-full max-w-[95vw] md:max-w-[1400px] h-[60svh] flex items-center justify-center perspective-1000 shrink-0 mx-auto">
                             {sortedGabinetes.length === 0 ? (
                                 <div className="text-center text-slate-500 animate-pulse">Cargando gabinetes...</div>
                             ) : (
@@ -277,9 +277,9 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
                                             style={{
                                                 // Responsive calculation:
                                                 // Mobile: card width ~85vw
-                                                // Desktop: card width ~380px
+                                                // Desktop: card width scales with height to maintain aspect ratio
                                                 // Gap: 20px (10px margin on each side)
-                                                ['--card-width' as any]: 'min(380px, 85vw)',
+                                                ['--card-width' as any]: 'min(45vh, 85vw)',
                                                 ['--card-gap' as any]: '20px', // Total gap (mx-10px * 2)
                                                 transform: `translateX(calc(50% - (${currentCaseIndex} * (var(--card-width) + var(--card-gap))) - (var(--card-width) / 2)))`,
                                             }}
@@ -305,7 +305,7 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
                                                             }`}
                                                     >
                                                         <div className={`
-                                                            bg-white rounded-[1.5rem] md:rounded-[2rem] overflow-hidden flex flex-col h-[50vh] min-h-[400px] max-h-[650px] transition-all duration-300
+                                                            bg-white rounded-[2vh] overflow-hidden flex flex-col h-full transition-all duration-300
                                                             ${isCurrent ? 'shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] ring-4 ring-[#E02127]/10' : 'shadow-xl border border-slate-100'}
                                                         `}>
                                                             {/* Image Area */}
@@ -392,9 +392,9 @@ function OptionCard({ icon, title, description, onClick, className = '' }: any) 
     return (
         <button
             onClick={onClick}
-            className={`bg-white p-5 lg:p-6 rounded-2xl border-2 border-slate-100 shadow-lg hover:shadow-2xl hover:border-[#E02127] hover:-translate-y-2 transition-all duration-300 text-left group flex flex-col gap-3 md:gap-4 w-full ${className}`}
+            className={`bg-white p-[3vh] rounded-2xl border-2 border-slate-100 shadow-lg hover:shadow-2xl hover:border-[#E02127] hover:-translate-y-1 transition-all duration-300 text-left group flex flex-col gap-[1.5vh] w-full ${className}`}
         >
-            <div className="p-3 md:p-4 bg-slate-50 rounded-xl w-fit group-hover:bg-red-50 transition-colors">
+            <div className="p-[1.5vh] bg-slate-50 rounded-xl w-fit group-hover:bg-red-50 transition-colors">
                 {icon}
             </div>
             <div>
