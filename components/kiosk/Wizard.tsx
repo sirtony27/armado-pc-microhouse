@@ -273,16 +273,12 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
 
                                     <div className="relative w-full h-full overflow-hidden flex items-center justify-center">
                                         <div
-                                            className="flex h-full items-center transition-transform duration-500 ease-out will-change-transform"
+                                            className="flex h-full items-center"
                                             style={{
-                                                // Responsive calculation:
-                                                // Mobile: card width ~85vw
-                                                // Desktop: card width scales with height to maintain aspect ratio
-                                                // Gap: 20px (10px margin on each side)
-                                                ['--card-width' as any]: 'min(400px, 80vw)',
-                                                ['--card-gap' as any]: '20px', // Total gap (mx-10px * 2)
-                                                transform: `translateX(calc(50% - (${currentCaseIndex} * (var(--card-width) + var(--card-gap))) - (var(--card-width) / 2)))`,
-                                            }}
+                                                '--card-width': 'min(45vh, 85vw)',
+                                                transform: `translateX(calc(50% - (${currentCaseIndex} + 0.5) * var(--card-width)))`,
+                                                transition: 'transform 0.6s cubic-bezier(0.4, 0, 0.2, 1)',
+                                            } as React.CSSProperties}
                                         >
                                             {sortedGabinetes.map((gabinete, index) => {
                                                 const isCurrent = index === currentCaseIndex;
@@ -299,14 +295,12 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
                                                 return (
                                                     <div
                                                         key={gabinete.id}
-                                                        className={`flex-shrink-0 w-[var(--card-width)] mx-[10px] transition-all duration-500 ease-out ${isCurrent
-                                                            ? 'scale-100 opacity-100 z-10'
-                                                            : 'scale-90 opacity-40 blur-[1px] grayscale-[0.5]'
-                                                            }`}
+                                                        className="flex-shrink-0 px-4"
+                                                        style={{ width: 'var(--card-width)' }}
                                                     >
                                                         <div className={`
-                                                            bg-white rounded-[2vh] overflow-hidden flex flex-col h-full transition-all duration-300
-                                                            ${isCurrent ? 'shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] ring-4 ring-[#E02127]/10' : 'shadow-xl border border-slate-100'}
+                                                            bg-white rounded-[2vh] overflow-hidden flex flex-col h-full transition-all duration-500 ease-in-out
+                                                            ${isCurrent ? 'shadow-[0_0_0_3px_rgba(224,33,39,0.3),0_20px_60px_-10px_rgba(224,33,39,0.4)] ring-1 ring-[#E02127]/20 scale-100 opacity-100' : 'shadow-2xl scale-90 opacity-60 blur-[1px] grayscale-[0.5]'}
                                                         `}>
                                                             {/* Image Area */}
                                                             <div className="h-[45%] bg-gradient-to-b from-slate-50 to-white p-4 flex items-center justify-center relative group">
