@@ -258,20 +258,20 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
                         </div>
 
                         {/* Carousel */}
-                        <div className="relative w-full max-w-[95vw] md:max-w-[1400px] h-[60svh] flex items-center justify-center perspective-1000 shrink-0 mx-auto">
+                        <div className="relative w-full max-w-[95vw] md:max-w-[1400px] h-[60svh] shrink-0 mx-auto">
                             {sortedGabinetes.length === 0 ? (
-                                <div className="text-center text-slate-500 animate-pulse">Cargando gabinetes...</div>
+                                <div className="flex h-full items-center justify-center text-slate-500 animate-pulse">Cargando gabinetes...</div>
                             ) : (
                                 <>
                                     <button
                                         onClick={prevGabinete}
                                         disabled={isTransitioning}
-                                        className="absolute left-2 md:left-8 z-30 bg-white/90 backdrop-blur-md rounded-full p-2 md:p-4 shadow-2xl hover:scale-110 hover:bg-[#E02127] hover:text-white transition-all duration-300 group border border-slate-200"
+                                        className="absolute left-2 md:left-8 top-1/2 -translate-y-1/2 z-30 bg-white/90 backdrop-blur-md rounded-full p-2 md:p-4 shadow-2xl hover:scale-110 hover:bg-[#E02127] hover:text-white transition-all duration-300 group border border-slate-200"
                                     >
                                         <ChevronLeft className="w-6 h-6 md:w-8 md:h-8 text-slate-700 group-hover:text-white" />
                                     </button>
 
-                                    <div className="relative w-full h-full overflow-hidden">
+                                    <div className="absolute inset-0 overflow-hidden">
                                         <div
                                             className="flex h-full items-center"
                                             style={{
@@ -366,7 +366,7 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
                                     <button
                                         onClick={nextGabinete}
                                         disabled={isTransitioning}
-                                        className="absolute right-2 md:right-8 z-30 bg-white/90 backdrop-blur-md rounded-full p-2 md:p-4 shadow-2xl hover:scale-110 hover:bg-[#E02127] hover:text-white transition-all duration-300 group border border-slate-200"
+                                        className="absolute right-2 md:right-8 top-1/2 -translate-y-1/2 z-30 bg-white/90 backdrop-blur-md rounded-full p-2 md:p-4 shadow-2xl hover:scale-110 hover:bg-[#E02127] hover:text-white transition-all duration-300 group border border-slate-200"
                                     >
                                         <ChevronRight className="w-6 h-6 md:w-8 md:h-8 text-slate-700 group-hover:text-white" />
                                     </button>
