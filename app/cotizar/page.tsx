@@ -1209,64 +1209,7 @@ export default function CotizarPage() {
         </div>
       </div>
       {/* Debug Component */}
-      {
-        modeloSeleccionado && (
-          <div className="fixed bottom-0 left-0 bg-black/90 text-white p-4 text-[10px] z-[100] max-h-[40vh] overflow-auto w-full font-mono">
-            <div className="flex justify-between items-center mb-2">
-              <h3 className="font-bold text-yellow-400">DEBUG PRECIOS: {modeloSeleccionado.nombre}</h3>
-              <button onClick={(e) => e.currentTarget.parentElement?.parentElement?.remove()} className="text-red-400 font-bold">CERRAR</button>
-            </div>
-            <table className="w-full text-left border-collapse">
-              <thead>
-                <tr className="border-b border-gray-700">
-                  <th className="p-1">Tipo</th>
-                  <th className="p-1">Componente</th>
-                  <th className="p-1">SKU</th>
-                  <th className="p-1">Local</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(() => {
-                  const compIds = [
-                    modeloSeleccionado.componentes.procesador,
-                    modeloSeleccionado.componentes.placaMadre,
-                    modeloSeleccionado.componentes.ram,
-                    modeloSeleccionado.componentes.almacenamiento,
-                    modeloSeleccionado.componentes.gpu,
-                    modeloSeleccionado.componentes.gabinete,
-                    modeloSeleccionado.componentes.fuente,
-                  ].filter(Boolean) as string[];
 
-                  let total = 0;
-
-                  const rows = compIds.map(id => {
-                    const c = componentes.find(x => x.id === id);
-                    const local = c?.precio || 0;
-                    total += local;
-
-                    return (
-                      <tr key={id} className={`border-b border-gray-800 ${!c ? 'text-red-500' : ''}`}>
-                        <td className="p-1">{c?.tipo || 'ID: ' + id}</td>
-                        <td className="p-1">{c ? `${c.marca} ${c.modelo}` : 'NO ENCONTRADO (Inactivo?)'}</td>
-                        <td className="p-1">{c?.sku || '-'}</td>
-                        <td className="p-1">${local}</td>
-                      </tr>
-                    );
-                  });
-
-                  rows.push(
-                    <tr key="total" className="bg-gray-900 font-bold text-lg">
-                      <td colSpan={3} className="p-2 text-right">TOTAL CALCULADO:</td>
-                      <td className="p-2 text-yellow-400">${total}</td>
-                    </tr>
-                  );
-                  return rows;
-                })()}
-              </tbody>
-            </table>
-          </div>
-        )
-      }
     </div >
   );
 }

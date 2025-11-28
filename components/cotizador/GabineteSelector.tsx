@@ -4,7 +4,7 @@ import { formatPrecio } from '@/lib/utils';
 import { Check, Box, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { useCotizadorStore } from '@/store/cotizadorStore';
 import { useState, useEffect, useRef, useLayoutEffect, useCallback, useMemo } from 'react';
-import { useRemotePrices } from '@/lib/pricing';
+
 import { Componente } from '@/types';
 
 interface GabineteSelectorProps {
@@ -35,14 +35,13 @@ export default function GabineteSelector({ gabinetes: gabinetesInitial }: Gabine
     setTimeout(() => setIsTransitioning(false), 500);
   };
 
-  const remotePrices = useRemotePrices(gabinetesInitial);
   const gabinetes = useMemo(() => {
     return [...gabinetesInitial].sort((a, b) => {
-      const pa = Number(remotePrices[a.id] ?? a.precio ?? 0);
-      const pb = Number(remotePrices[b.id] ?? b.precio ?? 0);
+      const pa = Number(a.precio ?? 0);
+      const pb = Number(b.precio ?? 0);
       return pa - pb;
     });
-  }, [gabinetesInitial, remotePrices]);
+  }, [gabinetesInitial]);
 
   return (
     <div className="flex-1 flex flex-col items-center px-[2vh] py-[1vh] overflow-hidden min-h-0 w-full">
@@ -154,13 +153,13 @@ export default function GabineteSelector({ gabinetes: gabinetesInitial }: Gabine
                         <div>
                           <p className="text-[10px] text-slate-500 uppercase font-semibold tracking-wider mb-0.5">Contado / débito</p>
                           <p className="text-lg font-bold text-slate-900">
-                            {formatPrecio(Math.ceil(Number(remotePrices[gabinete.id] ?? gabinete.precio ?? 0)))}
+                            {formatPrecio(Math.ceil(Number(gabinete.precio ?? 0)))}
                           </p>
                         </div>
                         <div className="text-right">
                           <p className="text-[10px] text-slate-500 uppercase font-semibold tracking-wider mb-0.5">3 cuotas</p>
                           <p className="text-lg font-bold bg-gradient-to-r from-[#E02127] to-[#0D1A4B] bg-clip-text text-transparent">
-                            {formatPrecio(Math.ceil(Number(remotePrices[gabinete.id] ?? gabinete.precio ?? 0) * 1.10))}
+                            {formatPrecio(Math.ceil(Number(gabinete.precio ?? 0) * 1.10))}
                           </p>
                         </div>
                       </div>

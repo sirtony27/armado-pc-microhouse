@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Gamepad2, Briefcase, PenTool, ChevronRight, Check, ArrowLeft, Cpu, MonitorUp, Box, ChevronLeft } from 'lucide-react';
 import { useComponentes } from '@/lib/componentes';
-import { useRemotePrices } from '@/lib/pricing';
+
 import { formatPrecio } from '@/lib/utils';
 import { Componente } from '@/types';
 
@@ -24,14 +24,14 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
     // Cabinet Carousel State
     const componentes = useComponentes();
     const gabinetes = useMemo(() => componentes.filter(c => c.tipo === 'GABINETE' && c.disponible), [componentes]);
-    const remotePrices = useRemotePrices(gabinetes);
+
     const sortedGabinetes = useMemo(() => {
         return [...gabinetes].sort((a, b) => {
-            const pa = Number(remotePrices[a.id] ?? a.precio ?? 0);
-            const pb = Number(remotePrices[b.id] ?? b.precio ?? 0);
+            const pa = Number(a.precio ?? 0);
+            const pb = Number(b.precio ?? 0);
             return pa - pb;
         });
-    }, [gabinetes, remotePrices]);
+    }, [gabinetes]);
 
     const [currentCaseIndex, setCurrentCaseIndex] = useState(0);
     const [isTransitioning, setIsTransitioning] = useState(false);
@@ -279,14 +279,14 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
                                                 // Mobile: card width ~85vw
                                                 // Desktop: card width scales with height to maintain aspect ratio
                                                 // Gap: 20px (10px margin on each side)
-                                                ['--card-width' as any]: 'min(45vh, 85vw)',
+                                                ['--card-width' as any]: 'min(400px, 80vw)',
                                                 ['--card-gap' as any]: '20px', // Total gap (mx-10px * 2)
                                                 transform: `translateX(calc(50% - (${currentCaseIndex} * (var(--card-width) + var(--card-gap))) - (var(--card-width) / 2)))`,
                                             }}
                                         >
                                             {sortedGabinetes.map((gabinete, index) => {
                                                 const isCurrent = index === currentCaseIndex;
-                                                const price = remotePrices[gabinete.id] ?? gabinete.precio ?? 0;
+                                                const price = gabinete.precio ?? 0;
                                                 const specs = (gabinete as any)?.especificaciones || {};
                                                 const incluyeFuente = Boolean(
                                                     specs.incluyeFuente ||
