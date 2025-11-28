@@ -5,7 +5,7 @@ import { useCotizadorStore } from '@/store/cotizadorStore';
 import { useModelosBase } from '@/lib/models';
 import { useComponentes } from '@/lib/componentes';
 import { formatPrecio } from '@/lib/utils';
-import { useRemotePrices } from '@/lib/pricing';
+
 import { ChevronLeft, ChevronRight, Check, Cpu, HardDrive, MemoryStick, MonitorUp, ChevronDown, Sparkles, ArrowRight, ArrowLeft, Box, Zap, RotateCcw } from 'lucide-react';
 import Stepper from '@/components/cotizador/Stepper';
 import GabineteSelector from '@/components/cotizador/GabineteSelector';
@@ -19,14 +19,49 @@ import './animations.css';
 export default function CotizarPage() {
   const { pasoActual, setPaso, modeloSeleccionado, componentesSeleccionados, setModeloBase, cambiarComponente, resetear } = useCotizadorStore();
   const modelosBase = useModelosBase();
-  const modelosOrdenados = useMemo(() => [...modelosBase].sort((a, b) => a.precioBase - b.precioBase), [modelosBase]);
   const componentes = useComponentes();
+
+
+  const modelosOrdenados = useMemo(() => {
+    const calculated = modelosBase.map(modelo => {
+      // Calculate dynamic price summing components
+      const compIds = [
+        modelo.componentes.procesador,
+        modelo.componentes.placaMadre,
+        modelo.componentes.ram,
+        modelo.componentes.almacenamiento,
+        modelo.componentes.gpu,
+        modelo.componentes.gabinete,
+        modelo.componentes.fuente,
+      ].filter(Boolean) as string[];
+
+      const dynamicPrice = compIds.reduce((sum, id) => {
+        const comp = componentes.find(c => c.id === id);
+        if (!comp) return sum;
+        return sum + (comp.precio || 0);
+      }, 0);
+
+      // If dynamic price is valid (>0), use it. Otherwise fallback to DB price.
+      // We add a small buffer or fixed cost if needed? 
+      // Usually models might have a base assembly fee or case/psu included in the static price but not in components list?
+      // If the static price is 395k and components sum to 419k, clearly the components are more expensive.
+      // If the static price was HIGHER, maybe it included the case.
+      // Let's assume the dynamic sum is the truth.
+
+      return {
+        ...modelo,
+        precioBase: dynamicPrice > 0 ? dynamicPrice : modelo.precioBase
+      };
+    });
+
+    return calculated.sort((a, b) => a.precioBase - b.precioBase);
+  }, [modelosBase, componentes]);
   const gabinetes = useMemo(() => componentes.filter(c => c.tipo === 'GABINETE'), [componentes]);
   const fuentes = useMemo(() => componentes.filter(c => c.tipo === 'FUENTE'), [componentes]);
   const [currentModelIndex, setCurrentModelIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
   const [mejorasExpanded, setMejorasExpanded] = useState(pasoActual === 'mejoras');
-  const remotePrices = useRemotePrices(componentes);
+
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
@@ -129,7 +164,7 @@ export default function CotizarPage() {
             if (!foundModel.componentes.gpu) {
               const availableGpus = componentes.filter(c => c.tipo === 'GPU' && c.disponible);
               // Sort by price ascending
-              availableGpus.sort((a, b) => (remotePrices[a.id] ?? a.precio) - (remotePrices[b.id] ?? b.precio));
+              availableGpus.sort((a, b) => (a.precio || 0) - (b.precio || 0));
 
               let selectedGpuId = '';
               const budgetLevel = params.get('budget') || 'MID';
@@ -170,7 +205,7 @@ export default function CotizarPage() {
         }, 500);
       }
     }
-  }, [modelosBase, componentes, remotePrices, setModeloBase, cambiarComponente, setPaso]);
+  }, [modelosBase, componentes, setModeloBase, cambiarComponente, setPaso]);
 
   const handleSiguiente = () => {
     if (pasoActual === 'modelo' && puedeAvanzar) setPaso('mejoras');
@@ -227,8 +262,8 @@ export default function CotizarPage() {
     const ids = Object.values(componentesSeleccionados).filter(Boolean) as string[];
     return componentes
       .filter((comp) => ids.includes(comp.id))
-      .reduce((sum, comp) => sum + (remotePrices[comp.id] ?? comp.precio), 0);
-  }, [componentesSeleccionados, componentes, remotePrices]);
+      .reduce((sum, comp) => sum + (comp.precio || 0), 0);
+  }, [componentesSeleccionados, componentes]);
 
   // Obtener componentes seleccionados con detalles
   const componentesDetalle = useMemo(() => {
@@ -351,7 +386,7 @@ export default function CotizarPage() {
       };
 
       const rows = componentesDetalle.map(({ tipo, componente }) => {
-        const base = componente ? (remotePrices[componente.id] ?? componente.precio) : 0;
+        const base = componente?.precio || 0;
         const precio3 = Math.ceil((base || 0) * 1.10);
         const e: any = componente?.especificaciones || {};
 
@@ -630,7 +665,7 @@ export default function CotizarPage() {
                         </p>
                       </div>
                       <p className="text-[#E02127] font-semibold text-[11px] mt-0.5">
-                        {formatPrecio(Math.ceil((((componente ? (remotePrices[componente.id] ?? componente.precio) : 0) || 0) * 1.10)))}
+                        {formatPrecio(Math.ceil(((componente?.precio || 0) * 1.10)))}
                       </p>
                     </div>
                   ))}
@@ -902,7 +937,7 @@ export default function CotizarPage() {
                                     <p className="text-[10px] font-bold text-slate-900 leading-tight mb-0.5">{comp.marca} {comp.modelo}</p>
                                     <p className="text-[9px] text-slate-500 mb-1">{comp.especificaciones?.capacidad}</p>
                                     <p className="text-[10px] font-bold text-purple-600">
-                                      {formatPrecio(remotePrices[comp.id] ?? comp.precio)}
+                                      {formatPrecio(comp.precio || 0)}
                                     </p>
                                   </button>
                                 );
@@ -940,7 +975,7 @@ export default function CotizarPage() {
                                 <p className="text-[10px] font-bold text-slate-900 leading-tight mb-0.5">{comp.marca} {comp.modelo}</p>
                                 <p className="text-[9px] text-slate-500 mb-1">{comp.especificaciones?.capacidad} {comp.especificaciones?.tipo}</p>
                                 <p className="text-[10px] font-bold text-blue-600">
-                                  {formatPrecio(remotePrices[comp.id] ?? comp.precio)}
+                                  {formatPrecio(comp.precio || 0)}
                                 </p>
                               </button>
                             ))}
@@ -976,7 +1011,7 @@ export default function CotizarPage() {
                                 <p className="text-[10px] font-bold text-slate-900 leading-tight mb-0.5">{comp.marca} {comp.modelo}</p>
                                 <p className="text-[9px] text-slate-500 mb-1">{comp.especificaciones?.vram}</p>
                                 <p className="text-[10px] font-bold text-orange-600">
-                                  {formatPrecio(remotePrices[comp.id] ?? comp.precio)}
+                                  {formatPrecio(comp.precio || 0)}
                                 </p>
                               </button>
                             ))}
@@ -1107,7 +1142,7 @@ export default function CotizarPage() {
                           </div>
                         </div>
                         <p className="font-bold text-slate-700">
-                          {formatPrecio(Math.ceil((((componente ? (remotePrices[componente.id] ?? componente.precio) : 0) || 0) * 1.10)))}
+                          {formatPrecio(Math.ceil(((componente?.precio || 0) * 1.10)))}
                         </p>
                       </div>
                     ))}
@@ -1171,8 +1206,67 @@ export default function CotizarPage() {
               </div>
             )
           }
-        </div >
-      </div >
+        </div>
+      </div>
+      {/* Debug Component */}
+      {
+        modeloSeleccionado && (
+          <div className="fixed bottom-0 left-0 bg-black/90 text-white p-4 text-[10px] z-[100] max-h-[40vh] overflow-auto w-full font-mono">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="font-bold text-yellow-400">DEBUG PRECIOS: {modeloSeleccionado.nombre}</h3>
+              <button onClick={(e) => e.currentTarget.parentElement?.parentElement?.remove()} className="text-red-400 font-bold">CERRAR</button>
+            </div>
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="border-b border-gray-700">
+                  <th className="p-1">Tipo</th>
+                  <th className="p-1">Componente</th>
+                  <th className="p-1">SKU</th>
+                  <th className="p-1">Local</th>
+                </tr>
+              </thead>
+              <tbody>
+                {(() => {
+                  const compIds = [
+                    modeloSeleccionado.componentes.procesador,
+                    modeloSeleccionado.componentes.placaMadre,
+                    modeloSeleccionado.componentes.ram,
+                    modeloSeleccionado.componentes.almacenamiento,
+                    modeloSeleccionado.componentes.gpu,
+                    modeloSeleccionado.componentes.gabinete,
+                    modeloSeleccionado.componentes.fuente,
+                  ].filter(Boolean) as string[];
+
+                  let total = 0;
+
+                  const rows = compIds.map(id => {
+                    const c = componentes.find(x => x.id === id);
+                    const local = c?.precio || 0;
+                    total += local;
+
+                    return (
+                      <tr key={id} className={`border-b border-gray-800 ${!c ? 'text-red-500' : ''}`}>
+                        <td className="p-1">{c?.tipo || 'ID: ' + id}</td>
+                        <td className="p-1">{c ? `${c.marca} ${c.modelo}` : 'NO ENCONTRADO (Inactivo?)'}</td>
+                        <td className="p-1">{c?.sku || '-'}</td>
+                        <td className="p-1">${local}</td>
+                      </tr>
+                    );
+                  });
+
+                  rows.push(
+                    <tr key="total" className="bg-gray-900 font-bold text-lg">
+                      <td colSpan={3} className="p-2 text-right">TOTAL CALCULADO:</td>
+                      <td className="p-2 text-yellow-400">${total}</td>
+                    </tr>
+                  );
+                  return rows;
+                })()}
+              </tbody>
+            </table>
+          </div>
+        )
+      }
     </div >
   );
 }

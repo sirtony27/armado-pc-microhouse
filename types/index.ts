@@ -46,6 +46,8 @@ export interface ModeloBase {
     ram: string;
     almacenamiento: string;
     gpu?: string; // GPU es opcional en el modelo base
+    gabinete?: string;
+    fuente?: string;
   };
 }
 
