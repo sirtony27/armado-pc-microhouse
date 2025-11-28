@@ -28,6 +28,7 @@ export interface Componente {
     potenciaMinima?: number;
     consumoWatts?: number;
   };
+  ultima_actualizacion?: string;
 }
 
 export interface ModeloBase {

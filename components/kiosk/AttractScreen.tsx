@@ -36,19 +36,19 @@ export default function AttractScreen({ onStart }: AttractScreenProps) {
             />
 
             {/* Content */}
-            <div className="relative z-10 text-center space-y-12 animate-in fade-in zoom-in duration-1000">
+            <div className="relative z-10 text-center space-y-8 md:space-y-12 animate-in fade-in zoom-in duration-1000">
 
                 {/* Logo / Brand Area */}
                 <div className="space-y-4">
-                    <div className="inline-flex items-center justify-center p-6 bg-white/5 rounded-full backdrop-blur-sm border border-white/10 shadow-[0_0_50px_rgba(224,33,39,0.3)] mb-6 animate-float">
-                        <Monitor className="w-24 h-24 text-[#E02127]" />
+                    <div className="inline-flex items-center justify-center p-4 md:p-6 bg-white/5 rounded-full backdrop-blur-sm border border-white/10 shadow-[0_0_50px_rgba(224,33,39,0.3)] mb-4 md:mb-6 animate-float">
+                        <Monitor className="w-16 h-16 md:w-24 md:h-24 text-[#E02127]" />
                     </div>
                     <img
                         src="https://wckxhidltmnvpbrswnmz.supabase.co/storage/v1/object/public/componentes/branding/microhouse-logo.png?v=2"
                         alt="MicroHouse"
-                        className="h-24 md:h-32 w-auto object-contain drop-shadow-[0_0_15px_rgba(224,33,39,0.5)] mx-auto"
+                        className="h-20 md:h-32 w-auto object-contain drop-shadow-[0_0_15px_rgba(224,33,39,0.5)] mx-auto"
                     />
-                    <p className="text-xl md:text-2xl text-slate-400 font-light tracking-widest uppercase">
+                    <p className="text-lg md:text-2xl text-slate-400 font-light tracking-widest uppercase">
                         Tu próxima PC Gamer empieza acá
                     </p>
                 </div>
@@ -56,11 +56,11 @@ export default function AttractScreen({ onStart }: AttractScreenProps) {
                 {/* Call to Action */}
                 <div className="space-y-4">
                     <button
-                        className="group relative px-12 py-6 bg-[#E02127] hover:bg-[#b91c21] text-white text-2xl font-bold rounded-full shadow-[0_0_30px_rgba(224,33,39,0.5)] hover:shadow-[0_0_50px_rgba(224,33,39,0.8)] transition-all duration-300 transform hover:scale-105"
+                        className="group relative px-8 md:px-12 py-4 md:py-6 bg-[#E02127] hover:bg-[#b91c21] text-white text-xl md:text-2xl font-bold rounded-full shadow-[0_0_30px_rgba(224,33,39,0.5)] hover:shadow-[0_0_50px_rgba(224,33,39,0.8)] transition-all duration-300 transform hover:scale-105"
                     >
-                        <span className="flex items-center gap-4">
+                        <span className="flex items-center gap-3 md:gap-4">
                             TOCÁ PARA COMENZAR
-                            <ChevronRight className="w-8 h-8 animate-pulse" />
+                            <ChevronRight className="w-6 h-6 md:w-8 md:h-8 animate-pulse" />
                         </span>
 
                         {/* Ripple Effect Ring */}

@@ -85,13 +85,13 @@ export default function ProductModal({ isOpen, onClose, product, onSave }: Produ
             const filePath = `${fileName}`;
 
             const { error: uploadError } = await supabase.storage
-                .from('productos')
+                .from('componentes')
                 .upload(filePath, file);
 
             if (uploadError) throw uploadError;
 
             const { data: { publicUrl } } = supabase.storage
-                .from('productos')
+                .from('componentes')
                 .getPublicUrl(filePath);
 
             setFormData({ ...formData, image_url: publicUrl });

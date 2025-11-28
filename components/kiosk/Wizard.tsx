@@ -127,30 +127,30 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
             </div>
 
             {/* Content */}
-            <div className="flex-1 flex flex-col items-center justify-center p-8 max-w-5xl mx-auto w-full overflow-hidden">
+            <div className="flex-1 flex flex-col items-center justify-center p-4 lg:p-6 max-w-5xl mx-auto w-full overflow-y-auto overflow-x-hidden custom-scrollbar">
 
                 {step === 1 && (
-                    <div className="w-full space-y-12 animate-in fade-in slide-in-from-right duration-500">
-                        <div className="text-center space-y-4">
-                            <h2 className="text-4xl font-bold text-slate-900">¿Para qué vas a usar la PC?</h2>
-                            <p className="text-xl text-slate-500">Elegí la opción que mejor te describa.</p>
+                    <div className="w-full space-y-4 lg:space-y-8 animate-in fade-in slide-in-from-right duration-500 py-2 lg:py-4">
+                        <div className="text-center space-y-2 lg:space-y-4">
+                            <h2 className="text-2xl lg:text-4xl font-bold text-slate-900">¿Para qué vas a usar la PC?</h2>
+                            <p className="text-lg md:text-xl text-slate-500">Elegí la opción que mejor te describa.</p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-8">
                             <OptionCard
-                                icon={<Gamepad2 className="w-12 h-12 text-purple-500" />}
+                                icon={<Gamepad2 className="w-8 h-8 md:w-12 md:h-12 text-purple-500" />}
                                 title="Gaming"
                                 description="Jugar a todo: LoL, Valorant, Warzone, AAA."
                                 onClick={() => handleUsageSelect('GAMING')}
                             />
                             <OptionCard
-                                icon={<Briefcase className="w-12 h-12 text-blue-500" />}
+                                icon={<Briefcase className="w-8 h-8 md:w-12 md:h-12 text-blue-500" />}
                                 title="Oficina / Estudio"
                                 description="Word, Excel, Navegación, Clases virtuales."
                                 onClick={() => handleUsageSelect('OFFICE')}
                             />
                             <OptionCard
-                                icon={<PenTool className="w-12 h-12 text-orange-500" />}
+                                icon={<PenTool className="w-8 h-8 md:w-12 md:h-12 text-orange-500" />}
                                 title="Diseño / Edición"
                                 description="Photoshop, Premiere, Renderizado 3D."
                                 onClick={() => handleUsageSelect('DESIGN')}
@@ -160,13 +160,13 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
                 )}
 
                 {step === 2 && (
-                    <div className="w-full space-y-12 animate-in fade-in slide-in-from-right duration-500">
-                        <div className="text-center space-y-4">
-                            <h2 className="text-4xl font-bold text-slate-900">¿Qué nivel de rendimiento buscás?</h2>
-                            <p className="text-xl text-slate-500">Esto nos ayuda a ajustar el presupuesto.</p>
+                    <div className="w-full space-y-4 lg:space-y-8 animate-in fade-in slide-in-from-right duration-500 py-2 lg:py-4">
+                        <div className="text-center space-y-2 lg:space-y-4">
+                            <h2 className="text-2xl lg:text-4xl font-bold text-slate-900">¿Qué nivel de rendimiento buscás?</h2>
+                            <p className="text-base md:text-xl text-slate-500">Esto nos ayuda a ajustar el presupuesto.</p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
                             {usage === 'GAMING' ? (
                                 <>
                                     <OptionCard
@@ -213,11 +213,11 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
                                 // Design usually implies high performance, maybe just one step or simplified
                                 <div className="col-span-full flex justify-center">
                                     <OptionCard
-                                        icon={<Cpu className="w-12 h-12 text-orange-500" />}
+                                        icon={<Cpu className="w-8 h-8 md:w-12 md:h-12 text-orange-500" />}
                                         title="Workstation Creator"
                                         description="Procesador potente y mucha RAM para renderizar."
                                         onClick={() => handleBudgetSelect('HIGH')} // Maps to Creator R7
-                                        className="max-w-md"
+                                        className="max-w-md w-full"
                                     />
                                 </div>
                             )}
@@ -226,21 +226,21 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
                 )}
 
                 {step === 3 && usage !== 'OFFICE' && (
-                    <div className="w-full space-y-12 animate-in fade-in slide-in-from-right duration-500">
-                        <div className="text-center space-y-4">
-                            <h2 className="text-4xl font-bold text-slate-900">¿Querés una Placa de Video Dedicada?</h2>
-                            <p className="text-xl text-slate-500">Para mayor rendimiento en juegos y renderizado.</p>
+                    <div className="w-full space-y-4 lg:space-y-8 animate-in fade-in slide-in-from-right duration-500 py-2 lg:py-4">
+                        <div className="text-center space-y-2 lg:space-y-4">
+                            <h2 className="text-2xl lg:text-4xl font-bold text-slate-900">¿Querés una Placa de Video Dedicada?</h2>
+                            <p className="text-base md:text-xl text-slate-500">Para mayor rendimiento en juegos y renderizado.</p>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-8 max-w-3xl mx-auto w-full">
                             <OptionCard
-                                icon={<Cpu className="w-12 h-12 text-blue-500" />}
+                                icon={<Cpu className="w-8 h-8 md:w-12 md:h-12 text-blue-500" />}
                                 title="Gráficos Integrados"
                                 description="Suficiente para juegos livianos y uso general. Más económico."
                                 onClick={() => handleGpuSelect('INTEGRATED')}
                             />
                             <OptionCard
-                                icon={<MonitorUp className="w-12 h-12 text-purple-600" />}
+                                icon={<MonitorUp className="w-8 h-8 md:w-12 md:h-12 text-purple-600" />}
                                 title="Placa Dedicada (Recomendado)"
                                 description="Máximo rendimiento para juegos AAA y trabajo pesado."
                                 onClick={() => handleGpuSelect('DEDICATED')}
@@ -251,14 +251,14 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
                 )}
 
                 {step === 4 && (
-                    <div className="w-full flex flex-col items-center animate-in fade-in slide-in-from-right duration-500">
-                        <div className="text-center space-y-4 mb-8">
-                            <h2 className="text-4xl font-bold text-slate-900">Elegí tu Gabinete</h2>
-                            <p className="text-xl text-slate-500">Deslizá para ver las opciones disponibles.</p>
+                    <div className="w-full flex flex-col items-center animate-in fade-in slide-in-from-right duration-500 h-full justify-center">
+                        <div className="text-center space-y-2 lg:space-y-4 mb-4 lg:mb-8 shrink-0">
+                            <h2 className="text-2xl lg:text-4xl font-bold text-slate-900">Elegí tu Gabinete</h2>
+                            <p className="text-base md:text-xl text-slate-500">Deslizá para ver las opciones disponibles.</p>
                         </div>
 
                         {/* Carousel */}
-                        <div className="relative w-full max-w-6xl h-[750px] flex items-center justify-center perspective-1000">
+                        <div className="relative w-full max-w-[95vw] md:max-w-[1400px] h-[50vh] min-h-[350px] max-h-[700px] flex items-center justify-center perspective-1000 shrink-0 mx-auto">
                             {sortedGabinetes.length === 0 ? (
                                 <div className="text-center text-slate-500 animate-pulse">Cargando gabinetes...</div>
                             ) : (
@@ -266,36 +266,50 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
                                     <button
                                         onClick={prevGabinete}
                                         disabled={isTransitioning}
-                                        className="absolute left-0 md:-left-12 z-20 bg-white/90 backdrop-blur-md rounded-full p-4 shadow-2xl hover:scale-110 hover:bg-[#E02127] hover:text-white transition-all duration-300 group border border-slate-200"
+                                        className="absolute left-2 md:left-8 z-30 bg-white/90 backdrop-blur-md rounded-full p-2 md:p-4 shadow-2xl hover:scale-110 hover:bg-[#E02127] hover:text-white transition-all duration-300 group border border-slate-200"
                                     >
-                                        <ChevronLeft className="w-8 h-8 text-slate-700 group-hover:text-white" />
+                                        <ChevronLeft className="w-6 h-6 md:w-8 md:h-8 text-slate-700 group-hover:text-white" />
                                     </button>
 
-                                    <div className="relative w-full h-full overflow-visible flex items-center justify-center">
+                                    <div className="relative w-full h-full overflow-hidden flex items-center justify-center">
                                         <div
                                             className="flex h-full items-center transition-transform duration-500 ease-out will-change-transform"
                                             style={{
-                                                transform: `translateX(calc(50% - (${currentCaseIndex} * 420px) - 210px))`,
+                                                // Responsive calculation:
+                                                // Mobile: card width ~85vw
+                                                // Desktop: card width ~380px
+                                                // Gap: 20px (10px margin on each side)
+                                                ['--card-width' as any]: 'min(380px, 85vw)',
+                                                ['--card-gap' as any]: '20px', // Total gap (mx-10px * 2)
+                                                transform: `translateX(calc(50% - (${currentCaseIndex} * (var(--card-width) + var(--card-gap))) - (var(--card-width) / 2)))`,
                                             }}
                                         >
                                             {sortedGabinetes.map((gabinete, index) => {
                                                 const isCurrent = index === currentCaseIndex;
                                                 const price = remotePrices[gabinete.id] ?? gabinete.precio ?? 0;
+                                                const specs = (gabinete as any)?.especificaciones || {};
+                                                const incluyeFuente = Boolean(
+                                                    specs.incluyeFuente ||
+                                                    specs.incluye_fuente ||
+                                                    specs.fuenteIncluida ||
+                                                    specs.psuIncluida ||
+                                                    specs.psu_incluida
+                                                );
 
                                                 return (
                                                     <div
                                                         key={gabinete.id}
-                                                        className={`flex-shrink-0 w-[380px] mx-5 transition-all duration-500 ease-out ${isCurrent
-                                                                ? 'scale-100 opacity-100 z-10'
-                                                                : 'scale-90 opacity-40 blur-[1px] grayscale-[0.5]'
+                                                        className={`flex-shrink-0 w-[var(--card-width)] mx-[10px] transition-all duration-500 ease-out ${isCurrent
+                                                            ? 'scale-100 opacity-100 z-10'
+                                                            : 'scale-90 opacity-40 blur-[1px] grayscale-[0.5]'
                                                             }`}
                                                     >
                                                         <div className={`
-                                                            bg-white rounded-[2rem] overflow-hidden flex flex-col h-[650px] transition-all duration-300
+                                                            bg-white rounded-[1.5rem] md:rounded-[2rem] overflow-hidden flex flex-col h-[50vh] min-h-[400px] max-h-[650px] transition-all duration-300
                                                             ${isCurrent ? 'shadow-[0_20px_50px_-12px_rgba(0,0,0,0.25)] ring-4 ring-[#E02127]/10' : 'shadow-xl border border-slate-100'}
                                                         `}>
                                                             {/* Image Area */}
-                                                            <div className="h-[320px] bg-gradient-to-b from-slate-50 to-white p-6 flex items-center justify-center relative group">
+                                                            <div className="h-[45%] bg-gradient-to-b from-slate-50 to-white p-4 flex items-center justify-center relative group">
                                                                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
                                                                 {gabinete.imagenUrl ? (
                                                                     <img
@@ -304,38 +318,47 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
                                                                         className="w-full h-full object-contain drop-shadow-xl transition-transform duration-500 group-hover:scale-110"
                                                                     />
                                                                 ) : (
-                                                                    <Box className="w-32 h-32 text-slate-200" />
+                                                                    <Box className="w-24 h-24 md:w-32 md:h-32 text-slate-200" />
                                                                 )}
+
+                                                                {/* PSU Badge */}
+                                                                {incluyeFuente && (
+                                                                    <div className="absolute top-3 left-3 md:top-4 md:left-4 bg-green-100/90 backdrop-blur px-2 py-0.5 md:px-3 md:py-1 rounded-full text-[9px] md:text-[10px] font-bold text-green-700 shadow-sm border border-green-200 flex items-center gap-1">
+                                                                        <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                                                                        CON FUENTE
+                                                                    </div>
+                                                                )}
+
                                                                 {/* Brand Badge */}
-                                                                <div className="absolute top-4 right-4 bg-white/90 backdrop-blur px-3 py-1 rounded-full text-xs font-bold text-slate-500 shadow-sm border border-slate-100">
+                                                                <div className="absolute top-3 right-3 md:top-4 md:right-4 bg-white/90 backdrop-blur px-2 py-0.5 md:px-3 md:py-1 rounded-full text-[10px] md:text-xs font-bold text-slate-500 shadow-sm border border-slate-100">
                                                                     {gabinete.marca}
                                                                 </div>
                                                             </div>
 
                                                             {/* Content Area */}
-                                                            <div className="p-8 flex-1 flex flex-col justify-between bg-white relative">
+                                                            <div className="p-4 flex-1 flex flex-col justify-between bg-white relative">
                                                                 <div>
-                                                                    <h3 className="font-black text-slate-900 text-2xl mb-2 leading-tight">{gabinete.modelo}</h3>
-                                                                    <div className="flex items-center gap-2">
-                                                                        <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-500 text-[10px] font-bold uppercase tracking-wider">ATX</span>
-                                                                        <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-500 text-[10px] font-bold uppercase tracking-wider">Vidrio Templado</span>
+                                                                    <h3 className="font-black text-slate-900 text-base md:text-xl mb-1 leading-tight line-clamp-2">{gabinete.modelo}</h3>
+                                                                    <div className="flex items-center gap-2 flex-wrap mt-1">
+                                                                        <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-500 text-[9px] md:text-[10px] font-bold uppercase tracking-wider">ATX</span>
+                                                                        <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-500 text-[9px] md:text-[10px] font-bold uppercase tracking-wider">Vidrio Templado</span>
                                                                     </div>
                                                                 </div>
 
-                                                                <div className="mt-6 pt-6 border-t border-slate-100">
-                                                                    <div className="flex items-end justify-between mb-4">
+                                                                <div className="mt-2 pt-2 border-t border-slate-100">
+                                                                    <div className="flex items-end justify-between mb-2">
                                                                         <div>
-                                                                            <p className="text-slate-400 text-xs font-medium uppercase tracking-wider mb-0.5">Precio de Lista</p>
-                                                                            <p className="text-[#E02127] font-black text-3xl tracking-tight">{formatPrecio(price)}</p>
+                                                                            <p className="text-slate-400 text-[10px] md:text-xs font-medium uppercase tracking-wider mb-0.5">Precio de Lista</p>
+                                                                            <p className="text-[#E02127] font-black text-lg md:text-2xl tracking-tight">{formatPrecio(price)}</p>
                                                                         </div>
                                                                     </div>
 
                                                                     <button
                                                                         onClick={() => handleCaseSelect(gabinete.id)}
-                                                                        className="w-full bg-slate-900 text-white py-4 rounded-xl font-bold text-lg hover:bg-[#E02127] transition-all duration-300 shadow-lg hover:shadow-red-500/30 active:scale-95 flex items-center justify-center gap-2 group/btn"
+                                                                        className="w-full bg-slate-900 text-white py-2.5 md:py-3 rounded-xl font-bold text-sm md:text-base hover:bg-[#E02127] transition-all duration-300 shadow-lg hover:shadow-red-500/30 active:scale-95 flex items-center justify-center gap-2 group/btn"
                                                                     >
                                                                         Seleccionar
-                                                                        <ChevronRight className="w-5 h-5 group-hover/btn:translate-x-1 transition-transform" />
+                                                                        <ChevronRight className="w-4 h-4 md:w-5 md:h-5 group-hover/btn:translate-x-1 transition-transform" />
                                                                     </button>
                                                                 </div>
                                                             </div>
@@ -349,15 +372,16 @@ export default function Wizard({ onComplete, onCancel }: WizardProps) {
                                     <button
                                         onClick={nextGabinete}
                                         disabled={isTransitioning}
-                                        className="absolute right-0 md:-right-12 z-20 bg-white/90 backdrop-blur-md rounded-full p-4 shadow-2xl hover:scale-110 hover:bg-[#E02127] hover:text-white transition-all duration-300 group border border-slate-200"
+                                        className="absolute right-2 md:right-8 z-30 bg-white/90 backdrop-blur-md rounded-full p-2 md:p-4 shadow-2xl hover:scale-110 hover:bg-[#E02127] hover:text-white transition-all duration-300 group border border-slate-200"
                                     >
-                                        <ChevronRight className="w-8 h-8 text-slate-700 group-hover:text-white" />
+                                        <ChevronRight className="w-6 h-6 md:w-8 md:h-8 text-slate-700 group-hover:text-white" />
                                     </button>
                                 </>
                             )}
                         </div>
-                    </div>
-                )}
+                    </div >
+                )
+                }
 
             </div >
         </div >
@@ -368,14 +392,14 @@ function OptionCard({ icon, title, description, onClick, className = '' }: any) 
     return (
         <button
             onClick={onClick}
-            className={`bg-white p-8 rounded-2xl border-2 border-slate-100 shadow-lg hover:shadow-2xl hover:border-[#E02127] hover:-translate-y-2 transition-all duration-300 text-left group flex flex-col gap-4 ${className}`}
+            className={`bg-white p-5 lg:p-6 rounded-2xl border-2 border-slate-100 shadow-lg hover:shadow-2xl hover:border-[#E02127] hover:-translate-y-2 transition-all duration-300 text-left group flex flex-col gap-3 md:gap-4 w-full ${className}`}
         >
-            <div className="p-4 bg-slate-50 rounded-xl w-fit group-hover:bg-red-50 transition-colors">
+            <div className="p-3 md:p-4 bg-slate-50 rounded-xl w-fit group-hover:bg-red-50 transition-colors">
                 {icon}
             </div>
             <div>
-                <h3 className="text-xl font-bold text-slate-900 group-hover:text-[#E02127] transition-colors">{title}</h3>
-                <p className="text-slate-500 mt-2 leading-relaxed">{description}</p>
+                <h3 className="text-lg md:text-xl font-bold text-slate-900 group-hover:text-[#E02127] transition-colors">{title}</h3>
+                <p className="text-sm md:text-base text-slate-500 mt-1 md:mt-2 leading-relaxed">{description}</p>
             </div>
         </button>
     );

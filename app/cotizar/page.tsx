@@ -664,8 +664,8 @@ export default function CotizarPage() {
         <div className="flex-1 flex flex-col overflow-hidden relative z-0">
           {/* Paso 1: Carrusel de Modelos */}
           {pasoActual === 'modelo' && (
-            <div className="flex-1 flex flex-col items-center justify-center px-4 md:px-6 py-6 overflow-visible w-full">
-              <div className="relative w-full max-w-7xl" style={{ minHeight: maxCardHeight ? `${maxCardHeight + 40}px` : '550px' }}>
+            <div className="flex-1 flex flex-col items-center justify-center px-4 md:px-6 py-4 overflow-visible w-full">
+              <div className="relative w-full max-w-7xl" style={{ minHeight: maxCardHeight ? `${Math.min(maxCardHeight + 40, window.innerHeight * 0.75)}px` : 'min(500px, 65vh)' }}>
                 <div className="absolute inset-0 overflow-hidden">
                   <div
                     className="flex h-full items-center"
@@ -697,7 +697,9 @@ export default function CotizarPage() {
                               }`}
                             style={{
                               cursor: 'pointer',
-                              minHeight: maxCardHeight ? `${maxCardHeight}px` : undefined
+                              minHeight: maxCardHeight ? `${maxCardHeight}px` : undefined,
+                              maxHeight: '75vh',
+                              overflowY: isCurrent ? 'auto' : 'hidden'
                             }}
                           >
                             <div className="p-6 flex flex-col flex-grow">

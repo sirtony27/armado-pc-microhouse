@@ -151,13 +151,13 @@ export default function ModelModal({ isOpen, onClose, model, onSave }: ModelModa
             const fileName = `modelos/${Math.random().toString(36).substring(2)}.${fileExt}`;
 
             const { error: uploadError } = await supabase.storage
-                .from('productos')
+                .from('componentes')
                 .upload(fileName, file);
 
             if (uploadError) throw uploadError;
 
             const { data: { publicUrl } } = supabase.storage
-                .from('productos')
+                .from('componentes')
                 .getPublicUrl(fileName);
 
             setFormData({ ...formData, imagen_url: publicUrl });

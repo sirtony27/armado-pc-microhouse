@@ -159,6 +159,34 @@ export default function AdminDashboard() {
                         <RefreshCw className={`h-5 w-5 ${updatingPrices ? 'animate-spin' : ''}`} />
                         {updatingPrices ? 'Actualizando...' : 'Actualizar Precios'}
                     </button>
+                    {products.length > 0 && (
+                        <div className="hidden md:block text-right mr-4">
+                            <p className="text-[10px] text-slate-400 uppercase font-semibold tracking-wider">Última actualización</p>
+                            <p className="text-xs font-medium text-slate-600">
+                                {(() => {
+                                    const dates = products
+                                        .map(p => p.ultima_actualizacion)
+                                        .filter(Boolean)
+                                        .map(d => {
+                                            // Asumimos que la fecha guardada es UTC si no tiene info de zona horaria
+                                            const dateStr = d.endsWith('Z') || d.includes('+') ? d : `${d}Z`;
+                                            return new Date(dateStr).getTime();
+                                        });
+
+                                    if (dates.length === 0) return 'Nunca';
+
+                                    const lastUpdate = new Date(Math.max(...dates));
+                                    return lastUpdate.toLocaleString('es-AR', {
+                                        day: '2-digit',
+                                        month: '2-digit',
+                                        hour: '2-digit',
+                                        minute: '2-digit',
+                                        timeZone: 'America/Argentina/Buenos_Aires'
+                                    });
+                                })()}
+                            </p>
+                        </div>
+                    )}
                     <button
                         onClick={handleNew}
                         className="bg-[#E02127] text-white px-5 py-2.5 rounded-xl font-medium flex items-center gap-2 hover:bg-red-700 transition-all shadow-lg shadow-red-900/20 hover:shadow-red-900/30 active:scale-95"

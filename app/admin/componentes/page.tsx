@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
 
-const CATEGORIAS = ['CPU','PLACA_MADRE','RAM','ALMACENAMIENTO','GPU','FUENTE','GABINETE','MONITOR'] as const
+const CATEGORIAS = ['CPU', 'PLACA_MADRE', 'RAM', 'ALMACENAMIENTO', 'GPU', 'FUENTE', 'GABINETE', 'MONITOR'] as const
 
 type Categoria = typeof CATEGORIAS[number]
 
@@ -24,71 +24,71 @@ type ComponenteRow = {
 import AdminLayout from '@/components/admin/AdminLayout'
 import EditComponenteModal from '@/components/admin/EditComponenteModal'
 
-type FieldDef = { key: string; label: string; type: 'text'|'number'|'select'|'boolean'; options?: string[] }
+type FieldDef = { key: string; label: string; type: 'text' | 'number' | 'select' | 'boolean'; options?: string[] }
 const FIELDS: Record<Categoria, FieldDef[]> = {
   CPU: [
-    { key:'socket', label:'Socket', type:'text' },
-    { key:'cores', label:'Núcleos', type:'number' },
-    { key:'threads', label:'Hilos', type:'number' },
-    { key:'base_clock_ghz', label:'Base (GHz)', type:'number' },
-    { key:'boost_clock_ghz', label:'Boost (GHz)', type:'number' },
-    { key:'tdp_w', label:'TDP (W)', type:'number' },
-    { key:'cache_mb', label:'Cache (MB)', type:'number' },
-    { key:'igpu', label:'Gráfica integrada', type:'text' },
+    { key: 'socket', label: 'Socket', type: 'text' },
+    { key: 'cores', label: 'Núcleos', type: 'number' },
+    { key: 'threads', label: 'Hilos', type: 'number' },
+    { key: 'base_clock_ghz', label: 'Base (GHz)', type: 'number' },
+    { key: 'boost_clock_ghz', label: 'Boost (GHz)', type: 'number' },
+    { key: 'tdp_w', label: 'TDP (W)', type: 'number' },
+    { key: 'cache_mb', label: 'Cache (MB)', type: 'number' },
+    { key: 'igpu', label: 'Gráfica integrada', type: 'text' },
   ],
   PLACA_MADRE: [
-    { key:'socket', label:'Socket', type:'text' },
-    { key:'chipset', label:'Chipset', type:'text' },
-    { key:'formato', label:'Formato', type:'select', options:['ATX','Micro-ATX','Mini-ITX'] },
-    { key:'ram_tipo', label:'RAM Tipo', type:'select', options:['DDR4','DDR5'] },
-    { key:'ram_slots', label:'RAM Slots', type:'number' },
-    { key:'m2_slots', label:'M.2 Slots', type:'number' },
-    { key:'sata_puertos', label:'Puertos SATA', type:'number' },
-    { key:'pcie_version', label:'PCIe', type:'text' },
+    { key: 'socket', label: 'Socket', type: 'text' },
+    { key: 'chipset', label: 'Chipset', type: 'text' },
+    { key: 'formato', label: 'Formato', type: 'select', options: ['ATX', 'Micro-ATX', 'Mini-ITX'] },
+    { key: 'ram_tipo', label: 'RAM Tipo', type: 'select', options: ['DDR4', 'DDR5'] },
+    { key: 'ram_slots', label: 'RAM Slots', type: 'number' },
+    { key: 'm2_slots', label: 'M.2 Slots', type: 'number' },
+    { key: 'sata_puertos', label: 'Puertos SATA', type: 'number' },
+    { key: 'pcie_version', label: 'PCIe', type: 'text' },
   ],
   RAM: [
-    { key:'capacidad_gb', label:'Capacidad (GB)', type:'number' },
-    { key:'tipo', label:'Tipo', type:'select', options:['DDR4','DDR5'] },
-    { key:'velocidad_mhz', label:'Velocidad (MHz)', type:'number' },
-    { key:'latencia_cl', label:'Latencia (CL)', type:'number' },
+    { key: 'capacidad_gb', label: 'Capacidad (GB)', type: 'number' },
+    { key: 'tipo', label: 'Tipo', type: 'select', options: ['DDR4', 'DDR5'] },
+    { key: 'velocidad_mhz', label: 'Velocidad (MHz)', type: 'number' },
+    { key: 'latencia_cl', label: 'Latencia (CL)', type: 'number' },
   ],
   ALMACENAMIENTO: [
-    { key:'tipo', label:'Tipo', type:'select', options:['SSD SATA','NVMe','HDD'] },
-    { key:'capacidad_gb', label:'Capacidad (GB)', type:'number' },
-    { key:'interfaz', label:'Interfaz', type:'select', options:['SATA','NVMe'] },
-    { key:'lectura_mb_s', label:'Lectura (MB/s)', type:'number' },
-    { key:'escritura_mb_s', label:'Escritura (MB/s)', type:'number' },
-    { key:'factor_forma', label:'Factor de forma', type:'text' },
+    { key: 'tipo', label: 'Tipo', type: 'select', options: ['SSD SATA', 'NVMe', 'HDD'] },
+    { key: 'capacidad_gb', label: 'Capacidad (GB)', type: 'number' },
+    { key: 'interfaz', label: 'Interfaz', type: 'select', options: ['SATA', 'NVMe'] },
+    { key: 'lectura_mb_s', label: 'Lectura (MB/s)', type: 'number' },
+    { key: 'escritura_mb_s', label: 'Escritura (MB/s)', type: 'number' },
+    { key: 'factor_forma', label: 'Factor de forma', type: 'text' },
   ],
   GPU: [
-    { key:'vram_gb', label:'VRAM (GB)', type:'number' },
-    { key:'tipo_memoria', label:'Tipo memoria', type:'text' },
-    { key:'boost_clock_mhz', label:'Boost (MHz)', type:'number' },
-    { key:'tdp_w', label:'TDP (W)', type:'number' },
-    { key:'conectores', label:'Conectores', type:'text' },
-    { key:'min_psu_w', label:'Fuente mínima (W)', type:'number' },
+    { key: 'vram_gb', label: 'VRAM (GB)', type: 'number' },
+    { key: 'tipo_memoria', label: 'Tipo memoria', type: 'text' },
+    { key: 'boost_clock_mhz', label: 'Boost (MHz)', type: 'number' },
+    { key: 'tdp_w', label: 'TDP (W)', type: 'number' },
+    { key: 'conectores', label: 'Conectores', type: 'text' },
+    { key: 'min_psu_w', label: 'Fuente mínima (W)', type: 'number' },
   ],
   FUENTE: [
-    { key:'potencia_w', label:'Potencia (W)', type:'number' },
-    { key:'certificacion', label:'Certificación', type:'text' },
-    { key:'modularidad', label:'Modularidad', type:'select', options:['No','Semi','Full'] },
+    { key: 'potencia_w', label: 'Potencia (W)', type: 'number' },
+    { key: 'certificacion', label: 'Certificación', type: 'text' },
+    { key: 'modularidad', label: 'Modularidad', type: 'select', options: ['No', 'Semi', 'Full'] },
   ],
   GABINETE: [
-    { key:'formato', label:'Formato', type:'select', options:['ATX','Micro-ATX','Mini-ITX'] },
-    { key:'ventiladores_incluidos', label:'Ventiladores incluidos', type:'text' },
-    { key:'color', label:'Color', type:'text' },
-    { key:'vidrio_lateral', label:'Vidrio lateral', type:'boolean' },
-    { key:'incluye_fuente', label:'Incluye fuente', type:'boolean' },
-    { key:'potencia_fuente', label:'Potencia fuente (W)', type:'number' },
+    { key: 'formato', label: 'Formato', type: 'select', options: ['ATX', 'Micro-ATX', 'Mini-ITX'] },
+    { key: 'ventiladores_incluidos', label: 'Ventiladores incluidos', type: 'text' },
+    { key: 'color', label: 'Color', type: 'text' },
+    { key: 'vidrio_lateral', label: 'Vidrio lateral', type: 'boolean' },
+    { key: 'incluye_fuente', label: 'Incluye fuente', type: 'boolean' },
+    { key: 'potencia_fuente', label: 'Potencia fuente (W)', type: 'number' },
   ],
   MONITOR: [
-    { key:'tamano_pulgadas', label:'Tamaño (\" )', type:'number' },
-    { key:'resolucion', label:'Resolución', type:'text' },
-    { key:'panel', label:'Panel', type:'select', options:['IPS','VA','TN','OLED'] },
-    { key:'frecuencia_hz', label:'Frecuencia (Hz)', type:'number' },
-    { key:'tiempo_respuesta_ms', label:'Tiempo resp. (ms)', type:'number' },
-    { key:'brillo_nits', label:'Brillo (nits)', type:'number' },
-    { key:'puertos', label:'Puertos (HDMI/DP/USB-C)', type:'text' },
+    { key: 'tamano_pulgadas', label: 'Tamaño (\" )', type: 'number' },
+    { key: 'resolucion', label: 'Resolución', type: 'text' },
+    { key: 'panel', label: 'Panel', type: 'select', options: ['IPS', 'VA', 'TN', 'OLED'] },
+    { key: 'frecuencia_hz', label: 'Frecuencia (Hz)', type: 'number' },
+    { key: 'tiempo_respuesta_ms', label: 'Tiempo resp. (ms)', type: 'number' },
+    { key: 'brillo_nits', label: 'Brillo (nits)', type: 'number' },
+    { key: 'puertos', label: 'Puertos (HDMI/DP/USB-C)', type: 'text' },
   ],
 }
 
@@ -148,8 +148,13 @@ export default function AdminComponentesPage() {
     if (!file) return { image_url: null, storage_path: null }
     const ext = file.name.split('.').pop() || 'jpg'
     const path = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+    console.log('Attempting upload to bucket: componentes', { path, fileSize: file.size, type: file.type });
     const { error: upErr } = await supabase.storage.from('componentes').upload(path, file, { cacheControl: '31536000', contentType: file.type || undefined, upsert: false })
-    if (upErr) throw upErr
+    if (upErr) {
+      console.error('Upload Error Details:', upErr);
+      console.log('Supabase URL used:', process.env.NEXT_PUBLIC_SUPABASE_URL);
+      throw upErr
+    }
     const { data } = supabase.storage.from('componentes').getPublicUrl(path)
     return { image_url: data.publicUrl, storage_path: path }
   }
@@ -246,22 +251,22 @@ export default function AdminComponentesPage() {
               <div key={f.key}>
                 <label className="block text-xs font-medium mb-1">{f.label}</label>
                 {f.type === 'select' ? (
-                  <select value={specsForm[f.key] ?? ''} onChange={(e)=>setSpecsForm(s=>({ ...s, [f.key]: e.target.value }))} className="w-full border rounded px-2 py-1 text-sm">
+                  <select value={specsForm[f.key] ?? ''} onChange={(e) => setSpecsForm(s => ({ ...s, [f.key]: e.target.value }))} className="w-full border rounded px-2 py-1 text-sm">
                     <option value="">—</option>
                     {f.options?.map(op => <option key={op} value={op}>{op}</option>)}
                   </select>
                 ) : f.type === 'boolean' ? (
                   <div className="flex items-center gap-2">
-                    <input type="checkbox" checked={!!specsForm[f.key]} onChange={(e)=>setSpecsForm(s=>({ ...s, [f.key]: e.target.checked }))} />
+                    <input type="checkbox" checked={!!specsForm[f.key]} onChange={(e) => setSpecsForm(s => ({ ...s, [f.key]: e.target.checked }))} />
                   </div>
                 ) : (
-                  <input type={f.type==='number'?'number':'text'} value={specsForm[f.key] ?? ''} onChange={(e)=>setSpecsForm(s=>({ ...s, [f.key]: e.target.value }))} className="w-full border rounded px-2 py-1 text-sm" />
+                  <input type={f.type === 'number' ? 'number' : 'text'} value={specsForm[f.key] ?? ''} onChange={(e) => setSpecsForm(s => ({ ...s, [f.key]: e.target.value }))} className="w-full border rounded px-2 py-1 text-sm" />
                 )}
               </div>
             ))}
           </div>
           <label className="block text-sm font-semibold mt-3 mb-1">Vista previa JSON</label>
-          <textarea value={specsText} readOnly rows={4} className={`w-full border rounded px-2 py-1 font-mono text-xs ${isSpecsValid()?'':'border-red-500'}`} placeholder='{}' />
+          <textarea value={specsText} readOnly rows={4} className={`w-full border rounded px-2 py-1 font-mono text-xs ${isSpecsValid() ? '' : 'border-red-500'}`} placeholder='{}' />
           {specsText && !specs && <p className="text-red-600 text-xs mt-1">JSON inválido</p>}
         </div>
         <div>
@@ -288,12 +293,12 @@ export default function AdminComponentesPage() {
           )}
         </div>
         <div className="flex items-end">
-          <button disabled={saving || !isSpecsValid()} className={`text-white px-4 py-2 rounded ${saving||!isSpecsValid()? 'bg-blue-400 cursor-not-allowed':'bg-blue-600'}`}>{saving ? 'Guardando…' : 'Crear componente'}</button>
+          <button disabled={saving || !isSpecsValid()} className={`text-white px-4 py-2 rounded ${saving || !isSpecsValid() ? 'bg-blue-400 cursor-not-allowed' : 'bg-blue-600'}`}>{saving ? 'Guardando…' : 'Crear componente'}</button>
         </div>
       </form>
 
       <div className="mb-3 flex items-center gap-2">
-        <input value={q} onChange={(e)=>setQ(e.target.value)} placeholder="Buscar por marca, modelo, SKU…" className="border px-3 py-2 rounded w-full md:w-80" />
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Buscar por marca, modelo, SKU…" className="border px-3 py-2 rounded w-full md:w-80" />
       </div>
 
       {loading ? (
@@ -308,7 +313,7 @@ export default function AdminComponentesPage() {
                 <th className="p-2 text-left">Marca/Modelo</th>
                 <th className="p-2 text-left">SKU</th>
                 <th className="p-2 text-left">Activo</th>
-                
+
               </tr>
             </thead>
             <tbody>
@@ -342,7 +347,7 @@ export default function AdminComponentesPage() {
           </table>
         </div>
       )}
-    {editingComponente && (<EditComponenteModal componente={editingComponente} onClose={() => setEditingComponente(null)} onSaved={() => { setEditingComponente(null); load() }} />)}`n      </AdminLayout>
+      {editingComponente && (<EditComponenteModal componente={editingComponente} onClose={() => setEditingComponente(null)} onSaved={() => { setEditingComponente(null); load() }} />)}`n      </AdminLayout>
   )
 }
 
