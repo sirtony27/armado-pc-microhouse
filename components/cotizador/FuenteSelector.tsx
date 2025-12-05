@@ -13,15 +13,24 @@ interface FuenteSelectorProps {
 export default function FuenteSelector({ fuentes }: FuenteSelectorProps) {
   const { componentesSeleccionados, cambiarComponente } = useCotizadorStore();
 
+  /* Sort by Price */
+  const sortedFuentes = useMemo(() => {
+    return [...fuentes].sort((a, b) => (a.precio || 0) - (b.precio || 0));
+  }, [fuentes]);
+
+  // Use sortedFuentes instead of fuentes for navigation and display
+  const currentFuentes = sortedFuentes;
+
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
+
 
 
 
   const nextFuente = () => {
     if (isTransitioning) return;
     setIsTransitioning(true);
-    const nextIdx = (currentIndex + 1) % fuentes.length;
+    const nextIdx = (currentIndex + 1) % currentFuentes.length;
     setCurrentIndex(nextIdx);
     setTimeout(() => setIsTransitioning(false), 800);
   };
@@ -29,7 +38,7 @@ export default function FuenteSelector({ fuentes }: FuenteSelectorProps) {
   const prevFuente = () => {
     if (isTransitioning) return;
     setIsTransitioning(true);
-    const prevIdx = (currentIndex - 1 + fuentes.length) % fuentes.length;
+    const prevIdx = (currentIndex - 1 + currentFuentes.length) % currentFuentes.length;
     setCurrentIndex(prevIdx);
     setTimeout(() => setIsTransitioning(false), 800);
   };
@@ -67,7 +76,7 @@ export default function FuenteSelector({ fuentes }: FuenteSelectorProps) {
         </button>
 
         <div className="relative w-full h-full flex items-center justify-center" style={{ '--card-width': 'min(360px, 85vw)' } as React.CSSProperties}>
-          {fuentes.map((fuente, index) => {
+          {currentFuentes.map((fuente, index) => {
             const position = index - currentIndex;
             const isVisible = Math.abs(position) <= 2;
             // Placeholder for compatibility logic, can be enhanced later
@@ -117,9 +126,19 @@ export default function FuenteSelector({ fuentes }: FuenteSelectorProps) {
                     </div>
                   )}
 
-                  <div className={`w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl mx-auto mb-3 flex items-center justify-center shadow-lg transition-all duration-700 ${position === 0 && !esInsuficiente ? 'animate-float' : 'scale-90 opacity-80'
+                  <div className={`w-32 h-32 mx-auto mb-3 flex items-center justify-center transition-all duration-700 ${position === 0 && !esInsuficiente ? 'animate-float' : 'scale-90 opacity-80'
                     }`}>
-                    <Zap className="h-8 w-8 text-white" />
+                    {fuente.imagenUrl ? (
+                      <img
+                        src={fuente.imagenUrl}
+                        alt={`${fuente.marca} ${fuente.modelo}`}
+                        className="w-full h-full object-contain drop-shadow-xl"
+                      />
+                    ) : (
+                      <div className="w-16 h-16 bg-gradient-to-br from-amber-500 to-orange-600 rounded-2xl flex items-center justify-center shadow-lg">
+                        <Zap className="h-8 w-8 text-white" />
+                      </div>
+                    )}
                   </div>
 
                   <h2 className="text-[var(--text-lg)] font-bold text-slate-900 mb-2">
@@ -134,10 +153,10 @@ export default function FuenteSelector({ fuentes }: FuenteSelectorProps) {
 
                   <div className="flex flex-wrap gap-2 justify-center mb-4">
                     <span className="px-2.5 py-1 bg-amber-50 text-amber-700 rounded-full text-[9px] font-semibold border border-amber-200/70">
-                      {fuente.especificaciones?.potencia || 'Potencia N/D'}
+                      {fuente.especificaciones?.power || fuente.especificaciones?.potencia || 'Potencia N/D'}
                     </span>
                     <span className="px-2.5 py-1 bg-orange-50 text-orange-700 rounded-full text-[9px] font-semibold border border-orange-200/70">
-                      {fuente.especificaciones?.certificacion || 'Certificación N/D'}
+                      {fuente.especificaciones?.certification || fuente.especificaciones?.certificacion || 'Certificación N/D'}
                     </span>
                   </div>
 
@@ -189,7 +208,7 @@ export default function FuenteSelector({ fuentes }: FuenteSelectorProps) {
       </div>
 
       <div className="flex gap-2 animate-in fade-in slide-in-from-bottom duration-700 delay-300">
-        {fuentes.map((_, index) => (
+        {currentFuentes.map((_, index) => (
           <button
             key={index}
             onClick={() => {
