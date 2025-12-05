@@ -1070,6 +1070,35 @@ export default function CotizarPage() {
             </div>
           )}
 
+          {/* Paso 4: Fuente */}
+          {pasoActual === 'fuente' && (
+            <div className="flex-1 overflow-hidden flex flex-col">
+              <FuenteSelector
+                fuentes={fuentes}
+              />
+              <div className="p-4 bg-white/95 backdrop-blur-sm border-t border-slate-200/50 flex justify-between items-center shadow-lg z-10">
+                <button
+                  onClick={handleAnterior}
+                  className="px-4 py-2 rounded-xl border border-slate-200 text-slate-600 font-bold text-xs hover:bg-slate-50 hover:text-slate-900 transition-all duration-300 flex items-center gap-2"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                  Volver
+                </button>
+                <button
+                  onClick={handleSiguiente}
+                  disabled={!componentesSeleccionados?.fuente}
+                  className={`px-6 py-2 rounded-xl font-bold text-xs shadow-lg transition-all duration-300 flex items-center gap-2 ${componentesSeleccionados?.fuente
+                    ? 'bg-gradient-to-r from-[#E02127] to-[#0D1A4B] text-white hover:shadow-xl hover:scale-105'
+                    : 'bg-slate-200 text-slate-400 cursor-not-allowed'
+                    }`}
+                >
+                  Siguiente
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Paso 5: Monitor */}
           {pasoActual === 'monitor' && (
             <div className="flex-1 overflow-hidden flex flex-col">

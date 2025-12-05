@@ -4,7 +4,6 @@ import { formatPrecio } from '@/lib/utils';
 import { Check, Zap, ChevronLeft, ChevronRight, ArrowRight, AlertCircle } from 'lucide-react';
 import { useCotizadorStore } from '@/store/cotizadorStore';
 import { useMemo, useState } from 'react';
-import { useRemotePrices } from '@/lib/pricing';
 import { Componente } from '@/types';
 
 interface FuenteSelectorProps {
@@ -17,7 +16,7 @@ export default function FuenteSelector({ fuentes }: FuenteSelectorProps) {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isTransitioning, setIsTransitioning] = useState(false);
 
-  const remotePrices = useRemotePrices(fuentes);
+
 
   const nextFuente = () => {
     if (isTransitioning) return;
@@ -144,7 +143,7 @@ export default function FuenteSelector({ fuentes }: FuenteSelectorProps) {
 
                   <div className="mb-4 px-3 py-2 bg-gradient-to-br from-amber-50 to-orange-50 rounded-xl border-2 border-amber-200/50 shadow-sm">
                     <p className="text-[var(--text-2xl)] font-bold bg-gradient-to-r from-amber-600 to-orange-600 bg-clip-text text-transparent">
-                      {formatPrecio(Math.ceil(Number(remotePrices[fuente.id] ?? fuente.precio ?? 0) * 1.10))}
+                      {formatPrecio(Math.ceil((fuente.precio ?? 0) * 1.10))}
                     </p>
                   </div>
 
