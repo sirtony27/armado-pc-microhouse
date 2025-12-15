@@ -49,7 +49,14 @@ export default function AdminDashboard() {
             const res = await fetch('/api/update-prices', { method: 'POST' });
             if (!res.ok) throw new Error('Error en la actualización');
             const data = await res.json();
-            toast(`Precios actualizados: ${data.updated} productos`, 'success');
+            
+            // Format nice message
+            const details = [];
+            if (data.componentsUpdated) details.push(`${data.componentsUpdated} componentes`);
+            if (data.notebooksUpdated) details.push(`${data.notebooksUpdated} notebooks`);
+            const detailStr = details.length > 0 ? `(${details.join(', ')})` : '';
+
+            toast(`Precios actualizados: ${data.updated} productos ${detailStr}`, 'success');
             fetchProducts();
         } catch (error) {
             toast('Error al actualizar precios', 'error');

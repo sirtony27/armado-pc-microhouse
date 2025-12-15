@@ -18,6 +18,8 @@ export type UpdateSummary = {
   updated: number
   failed: number
   errors: Array<{ id: number; sku: string | null; reason: string }>
+  notebooksUpdated: number
+  componentsUpdated: number
 }
 
 function getAdminClient(): SupabaseClient {
@@ -42,7 +44,7 @@ async function selectProductos() {
   const supabase = getAdminClient()
   const { data, error } = await supabase
     .from('componentes')
-    .select('id, sku')
+    .select('id, sku, tipo')
     .not('sku', 'is', null)
 
   if (error) throw error
@@ -89,6 +91,8 @@ export async function actualizarPreciosDux({ concurrency = 10, log = true }: { c
   const productos = await selectProductos()
 
   let updated = 0
+  let notebooksUpdated = 0
+  let componentsUpdated = 0
   const errors: Array<{ id: number; sku: string | null; reason: string }> = []
 
   await mapPool(productos, concurrency, async (p: any) => {
@@ -97,7 +101,14 @@ export async function actualizarPreciosDux({ concurrency = 10, log = true }: { c
       const dux = await fetchDuxBySku(sku)
       await updateProducto(supabase, p.id as number, dux)
       updated++
-      if (log) console.log(`[dux] OK ${p.id} sku=${sku} $${dux.total} stock=${dux.stock_disponible}`)
+
+      if (p.tipo === 'NOTEBOOK') {
+        notebooksUpdated++
+      } else {
+        componentsUpdated++
+      }
+
+      if (log) console.log(`[dux] OK ${p.id} [${p.tipo}] sku=${sku} $${dux.total} stock=${dux.stock_disponible}`)
     } catch (e: any) {
       const reason = e?.message || 'Error desconocido'
       errors.push({ id: p.id as number, sku, reason })
@@ -114,11 +125,13 @@ export async function actualizarPreciosDux({ concurrency = 10, log = true }: { c
     updated,
     failed: errors.length,
     errors,
+    notebooksUpdated,
+    componentsUpdated
   }
 
   if (log)
     console.log(
-      `[dux] Fin actualización: ${summary.updated}/${summary.total} ok, ${summary.failed} errores, dur=${summary.durationMs}ms`
+      `[dux] Fin actualización: ${summary.updated}/${summary.total} ok (${summary.notebooksUpdated} notebooks, ${summary.componentsUpdated} componentes), ${summary.failed} errores, dur=${summary.durationMs}ms`
     )
 
   return summary
