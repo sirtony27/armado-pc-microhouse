@@ -2,11 +2,14 @@
 import { useState, useMemo } from 'react';
 import { useComponentes } from '@/lib/componentes';
 import { useRouter } from 'next/navigation';
-import { ChevronRight, ChevronLeft, Check, Sparkles, Laptop, Wallet, Briefcase, GraduationCap, Gamepad2, PenTool } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Check, Sparkles, Laptop, Wallet, Briefcase, GraduationCap, Gamepad2, PenTool, Scale } from 'lucide-react';
 import Image from 'next/image';
 import { usePresupuestoStore } from '@/store/presupuestoStore';
+import { useComparisonStore } from '@/store/comparisonStore';
 import { formatPrecio } from '@/lib/utils';
 import BudgetSidebar from '@/components/notebooks/BudgetSidebar';
+import CompareFloatingBar from '@/components/notebooks/CompareFloatingBar';
+import CompareModal from '@/components/notebooks/CompareModal';
 
 // Step 1: Usage Types
 const USAGE_OPTIONS = [
@@ -21,6 +24,8 @@ export default function NotebookWizardPage() {
     const router = useRouter();
     const allComponents = useComponentes();
     const { items, addItem, removeItem, updateQuantity, totalEstimado } = usePresupuestoStore();
+    const { addItem: addToCompare, items: compareItems, removeItem: removeFromCompare } = useComparisonStore();
+
     const [step, setStep] = useState(1);
     const [selectedUsage, setSelectedUsage] = useState<string | null>(null);
     const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -150,9 +155,11 @@ export default function NotebookWizardPage() {
                                 </button>
                             </div>
                         ) : (
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
                                 {recommendedNotebooks.map((nb) => {
                                     const inBudget = items.find(i => i.id === nb.id);
+                                    const isComparing = compareItems.some(i => i.id === nb.id);
+
                                     return (
                                         <div key={nb.id} className="bg-white border border-slate-200 rounded-2xl overflow-hidden hover:shadow-xl transition-all duration-300 group flex flex-col">
                                             {/* Image */}
@@ -180,26 +187,42 @@ export default function NotebookWizardPage() {
                                                     </div>
                                                 </div>
 
-                                                <div className="mt-auto flex items-center justify-between pt-4 border-t border-slate-100">
+                                                <div className="mt-auto pt-4 border-t border-slate-100 flex flex-col gap-3">
                                                     <div>
                                                         <span className="text-2xl font-bold text-slate-900">{formatPrecio(nb.precio)}</span>
                                                     </div>
-                                                    <button
-                                                        onClick={() => {
-                                                            addItem({
-                                                                tipo: 'NOTEBOOK',
-                                                                producto: nb,
-                                                                cantidad: 1,
-                                                                precioUnitario: nb.precio,
-                                                                detalles: { specs: nb.descripcion }
-                                                            });
-                                                            setIsSidebarOpen(true);
-                                                        }}
-                                                        className="bg-[#E02127] text-white p-3 rounded-full hover:bg-red-700 transition-colors shadow-lg shadow-red-500/20 active:scale-95"
-                                                        title="Agregar al presupuesto"
-                                                    >
-                                                        {inBudget ? <Check className="w-5 h-5" /> : <Wallet className="w-5 h-5" />}
-                                                    </button>
+
+                                                    <div className="grid grid-cols-2 gap-2">
+                                                        <button
+                                                            onClick={() => isComparing ? removeFromCompare(nb.id) : addToCompare(nb)}
+                                                            className={`flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold border transition-colors ${isComparing
+                                                                    ? 'bg-purple-50 text-purple-700 border-purple-200'
+                                                                    : 'bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300'
+                                                                }`}
+                                                        >
+                                                            <Scale className="w-4 h-4" />
+                                                            {isComparing ? 'Quitar' : 'Comparar'}
+                                                        </button>
+
+                                                        <button
+                                                            onClick={() => {
+                                                                addItem({
+                                                                    tipo: 'NOTEBOOK',
+                                                                    producto: nb,
+                                                                    cantidad: 1,
+                                                                    precioUnitario: nb.precio,
+                                                                    detalles: { specs: nb.descripcion }
+                                                                });
+                                                                setIsSidebarOpen(true);
+                                                            }}
+                                                            className={`col-span-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-xs font-bold transition-colors ${inBudget
+                                                                ? 'bg-green-100 text-green-700 border border-green-200'
+                                                                : 'bg-[#E02127] text-white hover:bg-red-700 shadow-sm'
+                                                                }`}
+                                                        >
+                                                            {inBudget ? <><Check className="w-4 h-4" /> Agregado</> : <><Wallet className="w-4 h-4" /> Agregar</>}
+                                                        </button>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
@@ -212,6 +235,8 @@ export default function NotebookWizardPage() {
             </main>
 
             <BudgetSidebar isOpen={isSidebarOpen} setIsOpen={setIsSidebarOpen} />
+            <CompareFloatingBar />
+            <CompareModal />
         </div>
     );
 }
