@@ -198,6 +198,66 @@ export default function CotizarPage() {
             cambiarComponente('GPU', '');
           }
 
+          // 4. PSU Auto-selection (New Logic)
+          // Determine if we need to add a PSU
+          // Re-calculate effective case ID since store update might not be ready
+          let effectiveCaseId = foundModel.componentes.gabinete as string;
+          if (caseParam) {
+            const availableCases = componentes.filter(c => c.tipo === 'GABINETE' && c.disponible);
+            if (availableCases.some(c => c.id === caseParam)) {
+              effectiveCaseId = caseParam;
+            }
+          }
+
+          if (effectiveCaseId) {
+            const caseObj = componentes.find(c => c.id === effectiveCaseId);
+            const specs = (caseObj as any)?.especificaciones || {};
+            const caseHasPsu = Boolean(
+              specs.incluyeFuente ||
+              specs.incluye_fuente ||
+              specs.fuenteIncluida ||
+              specs.psuIncluida ||
+              specs.psu_incluida
+            );
+
+            if (!caseHasPsu) {
+              const availablePsus = componentes.filter(c => c.tipo === 'FUENTE' && c.disponible);
+              // Parse wattage helper
+              const getWatts = (p: any) => {
+                const val = p?.especificaciones?.potencia || 0;
+                if (typeof val === 'number') return val;
+                const match = String(val).match(/(\d+)/);
+                return match ? parseInt(match[1], 10) : 0;
+              };
+
+              availablePsus.sort((a, b) => getWatts(a) - getWatts(b)); // Sort by watts ascending
+
+              let targetWatts = 500; // Minimum baseline
+              const budgetLevel = params.get('budget') || 'MID';
+              const isDedicated = gpuParam === 'dedicated' || (gpuParam !== 'integrated' && !!foundModel.componentes.gpu);
+
+              if (!isDedicated) {
+                // Integrated graphics approach
+                targetWatts = 450;
+              } else {
+                // Dedicated GPU approach
+                if (budgetLevel === 'ENTRY') targetWatts = 500;
+                else if (budgetLevel === 'MID') targetWatts = 600;
+                else if (budgetLevel === 'HIGH') targetWatts = 700;
+                else if (budgetLevel === 'ULTRA') targetWatts = 850;
+              }
+
+              // Find the best match (closest wattage >= targetWatts)
+              const suitablePsu = availablePsus.find(p => getWatts(p) >= targetWatts) || availablePsus[availablePsus.length - 1];
+
+              if (suitablePsu) {
+                // ONLY change if we don't have one or if we are overriding everything
+                // But since this is init, let's just set it to ensure correctness
+                cambiarComponente('FUENTE', suitablePsu.id);
+              }
+            }
+          }
+
           // 3. Step Override
           if (stepParam === 'resumen') {
             setPaso('resumen');
