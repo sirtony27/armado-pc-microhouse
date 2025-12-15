@@ -57,7 +57,12 @@ export default function BudgetSidebar({ isOpen: controlledIsOpen, setIsOpen: con
                 {/* Header */}
                 <div className="p-5 bg-slate-900 text-white flex items-center justify-between shrink-0">
                     <div className="flex items-center gap-3">
-                        <Calculator className="w-6 h-6 text-[#E02127]" />
+                        <img
+                            src="https://wckxhidltmnvpbrswnmz.supabase.co/storage/v1/object/public/componentes/branding/microhouse-logo.png?v=5"
+                            alt="MicroHouse"
+                            className="w-auto object-contain"
+                            style={{ height: '40px' }}
+                        />
                         <div>
                             <h2 className="font-bold text-lg leading-none">Tu Presupuesto</h2>
                             <p className="text-xs text-slate-400 mt-1">{items.length} items agregados</p>

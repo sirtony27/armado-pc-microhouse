@@ -288,7 +288,16 @@ function NotebooksContent() {
                         <ArrowLeft className="w-5 h-5 mr-2" /> Volver
                     </button>
 
-                    <h1 className="text-xl font-bold text-slate-900 hidden md:block">Catálogo de Notebooks</h1>
+                    <div className="flex items-center gap-3 hidden md:flex">
+                        <img
+                            src="https://wckxhidltmnvpbrswnmz.supabase.co/storage/v1/object/public/componentes/branding/microhouse-logo.png?v=5"
+                            alt="MicroHouse"
+                            className="w-auto object-contain"
+                            style={{ height: '48px' }}
+                        />
+                        <span className="h-4 border-r border-slate-300"></span>
+                        <h1 className="text-lg font-bold text-slate-700 tracking-tight">Notebooks</h1>
+                    </div>
 
                     <div className="flex-1 md:flex-none max-w-sm mx-4 md:mx-0">
                         {/* Search Mobile/Desktop */}

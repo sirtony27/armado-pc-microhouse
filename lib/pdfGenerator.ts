@@ -3,6 +3,25 @@ import autoTable from 'jspdf-autotable';
 import { ItemPresupuesto } from '@/types';
 import { formatPrecio } from '@/lib/utils';
 
+// Helper to getting base64 from url
+const getBase64ImageFromURL = (url: string): Promise<string> => {
+    return new Promise((resolve, reject) => {
+        const img = new Image();
+        img.setAttribute('crossOrigin', 'anonymous');
+        img.onload = () => {
+            const canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            const ctx = canvas.getContext('2d');
+            ctx?.drawImage(img, 0, 0);
+            const dataURL = canvas.toDataURL('image/png');
+            resolve(dataURL);
+        };
+        img.onerror = error => reject(error);
+        img.src = url;
+    });
+};
+
 export const generateBudgetPDF = async (items: ItemPresupuesto[]) => {
     const doc = new jsPDF({
         orientation: 'p',
@@ -16,14 +35,31 @@ export const generateBudgetPDF = async (items: ItemPresupuesto[]) => {
     let y = margin;
 
     // --- Header ---
-    // Logo (Simulated text for now, assuming image handling is complex without direct URL access or base64)
-    // If we had the logo base64, we'd add it here.
-    // doc.addImage("/logo.png", "PNG", margin, y, 30, 10);
+    // Logo
+    try {
+        const logoUrl = "https://wckxhidltmnvpbrswnmz.supabase.co/storage/v1/object/public/componentes/branding/microhouse-logo.png?v=5";
+        const logoBase64 = await getBase64ImageFromURL(logoUrl);
+        // Maintain aspect ratio, assuming logo is approx 3:1 width:height or similar.
+        // Let's set a fixed width of 40mm and calculate height.
+        // Actually for simplicity, let's fix dimensions that look good in A5 header.
+        doc.addImage(logoBase64, 'PNG', margin, y, 40, 15); // width 40mm, height 15mm
+    } catch (error) {
+        // Fallback if image load fails
+        console.error("Failed to load PDF logo", error);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(18);
+        doc.setTextColor(224, 33, 39); // MicroHouse Red
+        doc.text('MICROHOUSE', margin, y + 8);
+    }
 
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(18);
-    doc.setTextColor(224, 33, 39); // MicroHouse Red
-    doc.text('MICROHOUSE', margin, y + 8);
+    // Adjust Y if logo was placed (15mm height) or text (text is approx same space)
+    // The previous text was at y+8. The image goes from y to y+15.
+    // So company info which started at y+5 needs to move down?
+    // Previous Code:
+    // doc.text('MICROHOUSE', margin, y + 8);
+    // let infoY = y + 5; (Starts parallel to logo/text)
+
+    // We want the company info to be on the right, aligned top with logo.
 
     // Company Info
     doc.setFont('helvetica', 'normal');
@@ -34,6 +70,8 @@ export const generateBudgetPDF = async (items: ItemPresupuesto[]) => {
         'administracion@microhouse.com.ar',
         'Tel: 291 576-4388'
     ];
+
+    // Start info at same Y as logo top + offset
     let infoY = y + 5;
     companyInfo.forEach(line => {
         doc.text(line, pageWidth - margin, infoY, { align: 'right' });
@@ -68,14 +106,6 @@ export const generateBudgetPDF = async (items: ItemPresupuesto[]) => {
             : (item.detalles?.modeloNombre || 'PC Armada a Medida');
 
         const specs = item.detalles?.specs || (item.tipo === 'NOTEBOOK' ? prod.descripcion : 'Ver detalle adjunto');
-
-        // Price Calculation (Following existing logic: Base + Margin approx)
-        // Note: The store price SHOULD be the final price already?
-        // Let's assume store price is "Contado". Existing PDF implies "Precio 3 Cuotas" in the table.
-        // Let's stick to showing the Unit Price stored in the budget (Contado) and then breakdown the totals.
-        // OR follow the previous pattern: Table shows "Lista/3 Cuotas" generally? 
-        // Reading previous code: "precio3 = Math.ceil((base || 0) * 1.10);"
-        // I will display the stored price (Unitario) for clarity, and clarify totals below.
 
         return [
             item.cantidad,
@@ -131,7 +161,6 @@ export const generateBudgetPDF = async (items: ItemPresupuesto[]) => {
     const rightColX = pageWidth - margin - 10;
 
     // Calculations (Same multipliers as original)
-    const unoCuota = Math.ceil(totalContado * 1.10);
     const tresTotal = Math.ceil(totalContado * 1.10);
     const seisTotal = Math.ceil(totalContado * 1.2603);
     const doceTotal = Math.ceil(totalContado * 1.51);
