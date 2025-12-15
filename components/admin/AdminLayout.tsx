@@ -7,6 +7,7 @@ const nav = [
   { href: '/admin', label: 'Precios' },
   { href: '/admin/componentes', label: 'Componentes' },
   { href: '/admin/modelos', label: 'Modelos' },
+  { href: '/admin/notebooks', label: 'Notebooks' },
 ]
 
 export default function AdminLayout({ title, subtitle, children }: { title?: string; subtitle?: string; children: ReactNode }) {
@@ -43,11 +44,10 @@ export default function AdminLayout({ title, subtitle, children }: { title?: str
               <button
                 onClick={triggerUpdate}
                 disabled={updating}
-                className={`inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded ${
-                  updating
+                className={`inline-flex items-center gap-2 text-xs font-semibold px-3 py-1.5 rounded ${updating
                     ? 'bg-emerald-200 text-emerald-800 cursor-wait'
                     : 'bg-emerald-600 text-white hover:bg-emerald-700'
-                }`}
+                  }`}
               >
                 {updating ? (
                   <>

@@ -6,7 +6,8 @@ export type TipoComponente =
   | 'PLACA_MADRE'
   | 'FUENTE'
   | 'GABINETE'
-  | 'MONITOR';
+  | 'MONITOR'
+  | 'NOTEBOOK';
 
 export interface Componente {
   id: string;
@@ -72,4 +73,16 @@ export interface Cotizacion {
 
 export interface ComponenteConPrecio extends Componente {
   esDefault: boolean;
+}
+
+export interface ItemPresupuesto {
+  id: string; // Unique ID for the item in the list
+  tipo: 'PC_ARMADA' | 'NOTEBOOK' | 'COMPONENTE';
+  producto: Componente | any; // Componente for Notebook/Componente, or custom object for PC
+  cantidad: number;
+  precioUnitario: number;
+  detalles?: {
+    specs?: string; // Summary of specs for display
+    modeloNombre?: string; // For PCs
+  };
 }

@@ -48,8 +48,9 @@ export const useCotizadorStore = create<CotizadorState>((set, get) => ({
       'FUENTE': 'fuente',
       'GABINETE': 'gabinete',
       'MONITOR': 'monitor',
+      'NOTEBOOK': '', // Not used here
     };
-    
+
     const tipoKey = tipoMap[tipo];
     set((state) => ({
       componentesSeleccionados: {

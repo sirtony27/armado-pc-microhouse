@@ -22,6 +22,7 @@ const tipoLabels: Record<TipoComponente, string> = {
   FUENTE: 'Fuente de Poder',
   GABINETE: 'Gabinete',
   MONITOR: 'Monitor',
+  NOTEBOOK: 'Notebook',
 };
 
 export default function ComponenteSelector({
@@ -70,8 +71,8 @@ export default function ComponenteSelector({
                     setExpanded(false);
                   }}
                   className={`w-full text-left p-4 rounded-lg border-2 transition-all ${componente.id === seleccionadoId
-                      ? 'border-blue-600 bg-blue-50'
-                      : 'border-gray-200 bg-white hover:border-gray-300'
+                    ? 'border-blue-600 bg-blue-50'
+                    : 'border-gray-200 bg-white hover:border-gray-300'
                     }`}
                 >
                   <div className="flex items-start justify-between">

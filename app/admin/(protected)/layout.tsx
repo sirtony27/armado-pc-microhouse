@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Loader2, Package, LogOut, Menu, X, User, ChevronDown, Monitor } from 'lucide-react';
+import { Loader2, Package, LogOut, Menu, X, User, ChevronDown, Monitor, Laptop } from 'lucide-react';
 import { ToastProvider } from '@/components/ui/Toast';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -70,8 +70,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <a
                             href="/admin"
                             className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${pathname === '/admin'
-                                    ? 'bg-[#E02127] text-white shadow-lg shadow-red-900/20'
-                                    : 'text-white/70 hover:bg-white/10 hover:text-white'
+                                ? 'bg-[#E02127] text-white shadow-lg shadow-red-900/20'
+                                : 'text-white/70 hover:bg-white/10 hover:text-white'
                                 }`}
                         >
                             <Package className="h-5 w-5" />
@@ -80,12 +80,22 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                         <a
                             href="/admin/modelos"
                             className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${pathname === '/admin/modelos'
-                                    ? 'bg-[#E02127] text-white shadow-lg shadow-red-900/20'
-                                    : 'text-white/70 hover:bg-white/10 hover:text-white'
+                                ? 'bg-[#E02127] text-white shadow-lg shadow-red-900/20'
+                                : 'text-white/70 hover:bg-white/10 hover:text-white'
                                 }`}
                         >
                             <Monitor className="h-5 w-5" />
                             Modelos PC
+                        </a>
+                        <a
+                            href="/admin/notebooks"
+                            className={`flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-colors ${pathname === '/admin/notebooks'
+                                ? 'bg-[#E02127] text-white shadow-lg shadow-red-900/20'
+                                : 'text-white/70 hover:bg-white/10 hover:text-white'
+                                }`}
+                        >
+                            <Laptop className="h-5 w-5" />
+                            Notebooks
                         </a>
                     </nav>
 
@@ -125,7 +135,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                             </button>
                             <h2 className="text-lg font-semibold text-slate-800">
                                 {pathname === '/admin' ? 'Inventario' :
-                                    pathname === '/admin/modelos' ? 'Modelos PC' : 'Panel'}
+                                    pathname === '/admin/modelos' ? 'Modelos PC' :
+                                        pathname === '/admin/notebooks' ? 'Notebooks' : 'Panel'}
                             </h2>
                         </div>
                     </header>
